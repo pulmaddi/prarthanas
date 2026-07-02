@@ -194,9 +194,12 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
           onLayout={(e) => (canvasW.current = e.nativeEvent.layout.width)}
         >
           {deityImg ? (
-            /* Full deity view */
+            /* Full deity view: blurred cover backdrop fills the board; the full
+               murti sits on top uncropped (contain). */
             <>
-              <Image source={{ uri: deityImg }} style={styles.fullDeity} resizeMode="cover" />
+              <Image source={{ uri: deityImg }} style={styles.deityBackdrop} resizeMode="cover" blurRadius={16} />
+              <View style={styles.backdropDim} />
+              <Image source={{ uri: deityImg }} style={styles.deityFore} resizeMode="contain" />
               {!!chosenName && (
                 <View style={styles.deityNameBar}>
                   <Text style={styles.deityNameFull}>{chosenName}</Text>
@@ -348,7 +351,9 @@ const styles = StyleSheet.create({
   },
   medallionImg: { width: 154, height: 154, borderRadius: 77 },
   om: { fontSize: 84 },
-  fullDeity: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
+  deityBackdrop: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
+  backdropDim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(42,10,18,0.28)' },
+  deityFore: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
   deityNameBar: {
     position: 'absolute',
     bottom: 14,
