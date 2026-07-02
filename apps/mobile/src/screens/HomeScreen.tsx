@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -22,8 +23,9 @@ type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
   const rootNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { profile } = useAuth();
+  const { profile, isAdmin } = useAuth();
   const { today } = useWeekdayDeities();
+  const [menuOpen, setMenuOpen] = useState(false);
   const fullName = profile?.name?.trim() || t('profile.devotee');
   const firstName = fullName.split(' ')[0];
   const initial = (firstName[0] || '🙏').toUpperCase();
@@ -40,9 +42,20 @@ export default function HomeScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topbar}>
-        <View>
-          <Text style={styles.greet}>🙏 {t('namaste')}, {firstName}</Text>
-          {!!profile?.city && <Text style={styles.loc}>📍 {profile.city}</Text>}
+        <View style={styles.topLeft}>
+          {isAdmin && (
+            <TouchableOpacity
+              style={styles.hamburger}
+              onPress={() => setMenuOpen(true)}
+              accessibilityLabel={t('profile.adminSection')}
+            >
+              <Text style={styles.hamburgerIcon}>☰</Text>
+            </TouchableOpacity>
+          )}
+          <View>
+            <Text style={styles.greet}>🙏 {t('namaste')}, {firstName}</Text>
+            {!!profile?.city && <Text style={styles.loc}>📍 {profile.city}</Text>}
+          </View>
         </View>
         <TouchableOpacity
           style={styles.avatar}
@@ -52,6 +65,43 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={{ color: colors.white, fontWeight: '700' }}>{initial}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Left admin drawer */}
+      <Modal
+        visible={menuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuOpen(false)}
+      >
+        <View style={styles.drawerRow}>
+          <View style={styles.drawer}>
+            <Text style={styles.drawerTitle}>🛠️ {t('profile.adminSection')}</Text>
+            <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => {
+                setMenuOpen(false);
+                rootNav.navigate('Admin');
+              }}
+            >
+              <Text style={styles.drawerItemText}>👤 {t('profile.admin')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => {
+                setMenuOpen(false);
+                rootNav.navigate('AdminVaara');
+              }}
+            >
+              <Text style={styles.drawerItemText}>📅 {t('profile.adminVaara')}</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={styles.drawerBackdrop}
+            activeOpacity={1}
+            onPress={() => setMenuOpen(false)}
+          />
+        </View>
+      </Modal>
 
       <ScrollView contentContainerStyle={styles.body}>
         {/* Daily Rituals — pooja shortcuts (compact icons, no background) */}
@@ -154,8 +204,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.lg,
   },
+  topLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  hamburger: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hamburgerIcon: { color: colors.white, fontSize: 20, fontWeight: '700' },
   greet: { color: colors.white, fontSize: 15, fontWeight: '600' },
   loc: { color: colors.cream, fontSize: 11, opacity: 0.85 },
+  drawerRow: { flex: 1, flexDirection: 'row' },
+  drawer: {
+    width: 280,
+    backgroundColor: colors.cream,
+    paddingTop: 54,
+    paddingHorizontal: spacing.lg,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  drawerBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
+  drawerTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: colors.muted,
+    textTransform: 'uppercase',
+    marginBottom: 12,
+  },
+  drawerItem: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  drawerItemText: { fontSize: 15, color: colors.ink, fontWeight: '600' },
   avatar: {
     width: 34,
     height: 34,
