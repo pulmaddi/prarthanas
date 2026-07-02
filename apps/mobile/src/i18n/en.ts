@@ -185,6 +185,7 @@ export default {
     enterRoom: 'Enter room',
     open: 'Open',
     chooseDeity: 'Choose deity',
+    changeDeity: 'Change deity',
   },
   rituals: { title: 'Virtual Rituals' },
   common: { join: 'Join live', book: 'Book', rsvp: 'RSVP', pay: 'Pay', back: 'Back' },

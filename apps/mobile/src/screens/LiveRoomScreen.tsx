@@ -193,20 +193,40 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
           style={styles.canvas}
           onLayout={(e) => (canvasW.current = e.nativeEvent.layout.width)}
         >
-          <View style={styles.medallion}>
-            {deityImg ? (
-              <Image source={{ uri: deityImg }} style={styles.medallionImg} resizeMode="cover" />
-            ) : (
-              <Text style={styles.om}>🕉️</Text>
-            )}
-          </View>
-          <Text style={styles.deityName}>{chosenName || t('room.deityPlaceholder')}</Text>
-
-          {isOrganizer && (
-            <TouchableOpacity style={styles.chooseBtn} activeOpacity={0.85} onPress={() => setPickerOpen(true)}>
-              <MaterialCommunityIcons name="image-edit" size={16} color={colors.maroon} />
-              <Text style={styles.chooseText}>{t('room.chooseDeity')}</Text>
-            </TouchableOpacity>
+          {deityImg ? (
+            /* Full deity view */
+            <>
+              <Image source={{ uri: deityImg }} style={styles.fullDeity} resizeMode="contain" />
+              {!!chosenName && (
+                <View style={styles.deityNameBar}>
+                  <Text style={styles.deityNameFull}>{chosenName}</Text>
+                </View>
+              )}
+              {isOrganizer && (
+                <TouchableOpacity
+                  style={styles.changeFab}
+                  activeOpacity={0.85}
+                  onPress={() => setPickerOpen(true)}
+                >
+                  <MaterialCommunityIcons name="image-edit" size={16} color={colors.white} />
+                  <Text style={styles.changeFabText}>{t('room.changeDeity')}</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          ) : (
+            /* Not chosen yet — placeholder + choose (organizer only) */
+            <>
+              <View style={styles.medallion}>
+                <Text style={styles.om}>🕉️</Text>
+              </View>
+              <Text style={styles.deityName}>{chosenName || t('room.deityPlaceholder')}</Text>
+              {isOrganizer && (
+                <TouchableOpacity style={styles.chooseBtn} activeOpacity={0.85} onPress={() => setPickerOpen(true)}>
+                  <MaterialCommunityIcons name="image-edit" size={16} color={colors.maroon} />
+                  <Text style={styles.chooseText}>{t('room.chooseDeity')}</Text>
+                </TouchableOpacity>
+              )}
+            </>
           )}
 
           {offers.map((o) => (
@@ -328,6 +348,30 @@ const styles = StyleSheet.create({
   },
   medallionImg: { width: 154, height: 154, borderRadius: 77 },
   om: { fontSize: 84 },
+  fullDeity: { position: 'absolute', top: 16, left: 16, right: 16, bottom: 16, width: undefined, height: undefined },
+  deityNameBar: {
+    position: 'absolute',
+    bottom: 14,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(122,10,20,0.85)',
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  deityNameFull: { color: colors.white, fontSize: 15, fontWeight: '800' },
+  changeFab: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(122,10,20,0.9)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  changeFabText: { color: colors.white, fontWeight: '700', fontSize: 12 },
   deityName: { color: colors.maroon, fontSize: 18, fontWeight: '800', marginTop: 16 },
   chooseBtn: {
     flexDirection: 'row',
