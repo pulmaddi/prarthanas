@@ -30,6 +30,7 @@ import MyProfileScreen from './src/screens/MyProfileScreen';
 import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 import AdminScreen from './src/screens/AdminScreen';
 import AdminVaaraScreen from './src/screens/AdminVaaraScreen';
+import AdminHostsScreen from './src/screens/AdminHostsScreen';
 import PoojaScreen from './src/screens/PoojaScreen';
 
 // Crisp vector tab icons from @expo/vector-icons (bundled with Expo).
@@ -117,6 +118,7 @@ export default function App() {
           <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ title: t('profile.changePassword') }} />
           <Stack.Screen name="Admin" component={AdminScreen} options={{ title: t('profile.admin') }} />
           <Stack.Screen name="AdminVaara" component={AdminVaaraScreen} options={{ title: t('profile.adminVaara') }} />
+          <Stack.Screen name="AdminHosts" component={AdminHostsScreen} options={{ title: t('profile.adminHosts') }} />
           <Stack.Screen name="Pooja" component={PoojaScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>

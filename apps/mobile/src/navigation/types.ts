@@ -10,6 +10,7 @@ export type RootStackParamList = {
   ChangePassword: undefined;
   Admin: undefined;
   AdminVaara: undefined;
+  AdminHosts: undefined;
   Pooja: { deityName?: string; vaara?: boolean; day?: number } | undefined;
   RitualBooking: { occasionId: string; title: string };
   LiveMeeting: { occasionInstanceId: string; title: string };

@@ -46,6 +46,31 @@ export async function signInWithGoogle() {
   return data;
 }
 
+/**
+ * Admin-only: create an auth user for a host (Priest/Guru/Temple Exec) without
+ * disturbing the admin's own session. Uses a throwaway client (no persisted
+ * session, no privileged key). Returns the new user's id. The caller then
+ * records the host role in `host_accounts` (admin-gated by RLS).
+ */
+export async function adminCreateHostUser(params: {
+  email: string;
+  password: string;
+  name: string;
+}): Promise<string> {
+  const tmp = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data, error } = await tmp.auth.signUp({
+    email: params.email,
+    password: params.password,
+    options: { data: { name: params.name } },
+  });
+  if (error) throw error;
+  const id = data.user?.id;
+  if (!id) throw new Error('Could not create the account.');
+  return id;
+}
+
 /** Sign up with email/password; name & language go into user metadata + profile. */
 export async function signUpWithProfile(params: {
   email: string;
