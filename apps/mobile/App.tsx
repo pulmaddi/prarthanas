@@ -8,7 +8,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { colors } from './src/theme';
 import { t, setLocale } from './src/i18n';
-import { AuthProvider } from './src/lib/auth';
+import { AuthProvider, useAuth } from './src/lib/auth';
 import { LocaleContext, type Lang } from './src/lib/locale';
 import type { RootStackParamList, MainTabParamList } from './src/navigation/types';
 
@@ -21,6 +21,8 @@ import HomeScreen from './src/screens/HomeScreen';
 import RitualsScreen from './src/screens/RitualsScreen';
 import JoinCommunityScreen from './src/screens/JoinCommunityScreen';
 import JoinMeetingScreen from './src/screens/JoinMeetingScreen';
+import MeetingsScreen from './src/screens/MeetingsScreen';
+import NotificationsScreen from './src/screens/NotificationsScreen';
 import RitualBookingScreen from './src/screens/RitualBookingScreen';
 import LiveMeetingScreen from './src/screens/LiveMeetingScreen';
 import HostProfileScreen from './src/screens/HostProfileScreen';
@@ -44,6 +46,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 function MainTabs() {
+  const { hostType } = useAuth();
+  const isHost = !!hostType;
   return (
     <Tab.Navigator
       screenOptions={{
@@ -65,21 +69,38 @@ function MainTabs() {
         component={HomeScreen}
         options={{ title: t('tabs.home'), tabBarIcon: tabIcon('home-variant') }}
       />
-      <Tab.Screen
-        name="TodaysPuja"
-        component={RitualsScreen}
-        options={{ title: t('tabs.todaysPuja'), tabBarIcon: tabIcon('candle') }}
-      />
-      <Tab.Screen
-        name="JoinCommunity"
-        component={JoinCommunityScreen}
-        options={{ title: t('tabs.joinCommunity'), tabBarIcon: tabIcon('account-group') }}
-      />
-      <Tab.Screen
-        name="JoinMeeting"
-        component={JoinMeetingScreen}
-        options={{ title: t('tabs.joinMeeting'), tabBarIcon: tabIcon('video') }}
-      />
+      {isHost ? (
+        <>
+          <Tab.Screen
+            name="Meetings"
+            component={MeetingsScreen}
+            options={{ title: t('tabs.meetings'), tabBarIcon: tabIcon('calendar-clock') }}
+          />
+          <Tab.Screen
+            name="MyNotifications"
+            component={NotificationsScreen}
+            options={{ title: t('tabs.myNotifications'), tabBarIcon: tabIcon('bell-ring') }}
+          />
+        </>
+      ) : (
+        <>
+          <Tab.Screen
+            name="TodaysPuja"
+            component={RitualsScreen}
+            options={{ title: t('tabs.todaysPuja'), tabBarIcon: tabIcon('candle') }}
+          />
+          <Tab.Screen
+            name="JoinCommunity"
+            component={JoinCommunityScreen}
+            options={{ title: t('tabs.joinCommunity'), tabBarIcon: tabIcon('account-group') }}
+          />
+          <Tab.Screen
+            name="JoinMeeting"
+            component={JoinMeetingScreen}
+            options={{ title: t('tabs.joinMeeting'), tabBarIcon: tabIcon('video') }}
+          />
+        </>
+      )}
     </Tab.Navigator>
   );
 }

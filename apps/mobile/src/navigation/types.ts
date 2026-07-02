@@ -24,4 +24,7 @@ export type MainTabParamList = {
   TodaysPuja: undefined;
   JoinCommunity: undefined;
   JoinMeeting: undefined;
+  // Host tabs (Priest / Guru / Temple Exec)
+  Meetings: undefined;
+  MyNotifications: undefined;
 };

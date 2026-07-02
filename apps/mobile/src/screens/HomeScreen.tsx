@@ -20,13 +20,14 @@ import { useAuth } from '../lib/auth';
 import { useWeekdayDeities } from '../lib/weekdayDeities';
 import { useHostDirectory } from '../lib/hosts';
 import HostFollowSection from '../components/HostFollowSection';
+import HostHomeSections from '../components/HostHomeSections';
 import SectionHeader from '../components/SectionHeader';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
   const rootNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { profile, isAdmin } = useAuth();
+  const { profile, isAdmin, hostType } = useAuth();
   const { today } = useWeekdayDeities();
   const { priests, gurus, temples, followed, follow, unfollow } = useHostDirectory();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -164,44 +165,54 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* My Priests */}
-        <HostFollowSection
-          title={t('home.myPriests')}
-          icon="account-tie"
-          hosts={priests}
-          followed={followed}
-          onFollow={follow}
-          onUnfollow={unfollow}
-          prompt={t('home.followPriestPrompt')}
-          emptyText={t('home.noPriests')}
-          fallbackName="Priest"
-        />
+        {hostType ? (
+          /* Host (Priest / Guru / Temple Exec): meeting invites + notifications */
+          <HostHomeSections
+            onOpenMeetings={() => navigation.navigate('Meetings')}
+            onOpenNotifications={() => navigation.navigate('MyNotifications')}
+          />
+        ) : (
+          <>
+            {/* My Priests */}
+            <HostFollowSection
+              title={t('home.myPriests')}
+              icon="account-tie"
+              hosts={priests}
+              followed={followed}
+              onFollow={follow}
+              onUnfollow={unfollow}
+              prompt={t('home.followPriestPrompt')}
+              emptyText={t('home.noPriests')}
+              fallbackName="Priest"
+            />
 
-        {/* My Spiritual Guru */}
-        <HostFollowSection
-          title={t('home.mySpiritualGuru')}
-          icon="meditation"
-          hosts={gurus}
-          followed={followed}
-          onFollow={follow}
-          onUnfollow={unfollow}
-          prompt={t('home.followGuruPrompt')}
-          emptyText={t('home.noGurus')}
-          fallbackName="Guru"
-        />
+            {/* My Spiritual Guru */}
+            <HostFollowSection
+              title={t('home.mySpiritualGuru')}
+              icon="meditation"
+              hosts={gurus}
+              followed={followed}
+              onFollow={follow}
+              onUnfollow={unfollow}
+              prompt={t('home.followGuruPrompt')}
+              emptyText={t('home.noGurus')}
+              fallbackName="Guru"
+            />
 
-        {/* My Temple */}
-        <HostFollowSection
-          title={t('home.myTemple')}
-          icon="town-hall"
-          hosts={temples}
-          followed={followed}
-          onFollow={follow}
-          onUnfollow={unfollow}
-          prompt={t('home.followTemplePrompt')}
-          emptyText={t('home.noTemples')}
-          fallbackName="Temple"
-        />
+            {/* My Temple */}
+            <HostFollowSection
+              title={t('home.myTemple')}
+              icon="town-hall"
+              hosts={temples}
+              followed={followed}
+              onFollow={follow}
+              onUnfollow={unfollow}
+              prompt={t('home.followTemplePrompt')}
+              emptyText={t('home.noTemples')}
+              fallbackName="Temple"
+            />
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
