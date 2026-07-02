@@ -1,13 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors, radius } from '../theme';
 import { Card, Title, Muted, Button } from './ui';
+import SectionHeader from './SectionHeader';
 import { t } from '../i18n';
 import type { PublicHost } from '../lib/hosts';
 
+type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
+
 type Props = {
   title: string;
-  icon: string;
+  icon: IconName;
   hosts: PublicHost[];
   followed: Set<string>;
   onFollow: (id: string) => void;
@@ -35,7 +39,7 @@ export default function HostFollowSection({
     <Card>
       <View style={styles.row}>
         <View style={styles.thumb}>
-          <Text style={styles.thumbIcon}>{icon}</Text>
+          <MaterialCommunityIcons name={icon} size={22} color={colors.white} />
         </View>
         <View style={{ flex: 1 }}>
           <Title>{h.name || fallbackName}</Title>
@@ -52,7 +56,7 @@ export default function HostFollowSection({
 
   return (
     <>
-      <Text style={styles.section}>{icon} {title}</Text>
+      <SectionHeader icon={icon} title={title} />
       {mine.length > 0 ? (
         mine.map((h) => <HostCard key={h.user_id} h={h} following />)
       ) : (
@@ -69,15 +73,13 @@ export default function HostFollowSection({
 }
 
 const styles = StyleSheet.create({
-  section: { fontSize: 15, fontWeight: '700', color: colors.ink, marginTop: 22, marginBottom: 4 },
   row: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   thumb: {
     width: 46,
     height: 46,
     borderRadius: radius.md,
-    backgroundColor: colors.gold,
+    backgroundColor: colors.saffron,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  thumbIcon: { fontSize: 20 },
 });

@@ -20,6 +20,7 @@ import { useAuth } from '../lib/auth';
 import { useWeekdayDeities } from '../lib/weekdayDeities';
 import { useHostDirectory } from '../lib/hosts';
 import HostFollowSection from '../components/HostFollowSection';
+import SectionHeader from '../components/SectionHeader';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
@@ -117,7 +118,7 @@ export default function HomeScreen({ navigation }: Props) {
 
       <ScrollView contentContainerStyle={styles.body}>
         {/* Daily Rituals — pooja shortcuts (compact icons, no background) */}
-        <Text style={styles.section}>{t('home.dailyRituals')}</Text>
+        <SectionHeader icon="candle" title={t('home.dailyRituals')} />
         <View style={styles.idpWrap}>
           {/* Ishta Daiva Pooja */}
           <View style={styles.idpItem}>
@@ -166,7 +167,7 @@ export default function HomeScreen({ navigation }: Props) {
         {/* My Priests */}
         <HostFollowSection
           title={t('home.myPriests')}
-          icon="🧑‍🏫"
+          icon="account-tie"
           hosts={priests}
           followed={followed}
           onFollow={follow}
@@ -179,7 +180,7 @@ export default function HomeScreen({ navigation }: Props) {
         {/* My Spiritual Guru */}
         <HostFollowSection
           title={t('home.mySpiritualGuru')}
-          icon="🧘"
+          icon="meditation"
           hosts={gurus}
           followed={followed}
           onFollow={follow}
@@ -192,7 +193,7 @@ export default function HomeScreen({ navigation }: Props) {
         {/* My Temple */}
         <HostFollowSection
           title={t('home.myTemple')}
-          icon="🛕"
+          icon="town-hall"
           hosts={temples}
           followed={followed}
           onFollow={follow}
