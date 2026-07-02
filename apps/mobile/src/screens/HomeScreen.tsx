@@ -18,6 +18,7 @@ import { Card, Title, Muted, Button } from '../components/ui';
 import { t } from '../i18n';
 import { useAuth } from '../lib/auth';
 import { useWeekdayDeities } from '../lib/weekdayDeities';
+import { useMyPriests } from '../lib/hosts';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
@@ -25,7 +26,11 @@ export default function HomeScreen({ navigation }: Props) {
   const rootNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { profile, isAdmin } = useAuth();
   const { today } = useWeekdayDeities();
+  const { priests, followed, follow, unfollow } = useMyPriests();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const myPriests = priests.filter((p) => followed.has(p.user_id));
+  const topPriests = priests.filter((p) => !followed.has(p.user_id)).slice(0, 3);
   const fullName = profile?.name?.trim() || t('profile.devotee');
   const firstName = fullName.split(' ')[0];
   const initial = (firstName[0] || '🙏').toUpperCase();
@@ -168,6 +173,46 @@ export default function HomeScreen({ navigation }: Props) {
             </Text>
           </View>
         </View>
+
+        {/* My Priests */}
+        <Text style={[styles.section, { marginTop: 22 }]}>🧑‍🏫 {t('home.myPriests')}</Text>
+        {myPriests.length > 0 ? (
+          myPriests.map((p) => (
+            <Card key={p.user_id}>
+              <View style={styles.row}>
+                <View style={styles.thumb}><Text style={styles.thumbIcon}>🧑‍🏫</Text></View>
+                <View style={{ flex: 1 }}>
+                  <Title>{p.name || 'Priest'}</Title>
+                  {!!p.city && <Muted>{p.city}</Muted>}
+                </View>
+              </View>
+              <Button
+                label={t('home.following')}
+                variant="outline"
+                onPress={() => unfollow(p.user_id)}
+              />
+            </Card>
+          ))
+        ) : (
+          <>
+            <Muted style={{ marginTop: 2 }}>{t('home.followPriestPrompt')}</Muted>
+            {topPriests.length === 0 && (
+              <Muted style={{ marginTop: 8 }}>{t('home.noPriests')}</Muted>
+            )}
+            {topPriests.map((p) => (
+              <Card key={p.user_id}>
+                <View style={styles.row}>
+                  <View style={styles.thumb}><Text style={styles.thumbIcon}>🧑‍🏫</Text></View>
+                  <View style={{ flex: 1 }}>
+                    <Title>{p.name || 'Priest'}</Title>
+                    {!!p.city && <Muted>{p.city}</Muted>}
+                  </View>
+                </View>
+                <Button label={t('home.follow')} onPress={() => follow(p.user_id)} />
+              </Card>
+            ))}
+          </>
+        )}
 
         {/* Spiritual groups */}
         <View style={styles.sectionHdr}>
