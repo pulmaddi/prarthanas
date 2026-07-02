@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
+  Image,
+  Modal,
   Animated,
   ScrollView,
   StyleSheet,
@@ -17,6 +19,7 @@ import { t } from '../i18n';
 import { useAuth } from '../lib/auth';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useRoomPresence, type Participant } from '../lib/roomPresence';
+import { useDeities, deityFileUrl } from '../lib/deities';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LiveRoom'>;
 
@@ -73,6 +76,12 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
   const { profile, hostType, session } = useAuth();
   const { width } = useWindowDimensions();
   const wide = width >= 820;
+  const isOrganizer = !!session?.user.id && session.user.id === hostId;
+
+  const { deities, imageUrlForName } = useDeities();
+  const [chosenName, setChosenName] = useState<string | undefined>(deityName || undefined);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const deityImg = imageUrlForName(chosenName);
 
   const me: Participant | null = session?.user.id
     ? {
@@ -109,24 +118,36 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
 
   const offer = (emoji: string) => {
     const x = 16 + Math.random() * Math.max(40, canvasW.current - 56);
-    const id = ++_oid;
-    setOffers((o) => [...o, { id, emoji, x }]);
+    setOffers((o) => [...o, { id: ++_oid, emoji, x }]);
   };
 
+  const pickDeity = (name: string) => {
+    setChosenName(name);
+    setPickerOpen(false);
+    if (isOrganizer && isSupabaseConfigured)
+      void supabase.from('host_meetings').update({ deity_name: name }).eq('id', meetingId);
+  };
+
+  // Participants: presence-first, organizer enriched from hosts_public.
+  const organizerFromPresence = participants.find((p) => p.user_id === hostId);
+  const organizerEntry: Participant | null = organizer
+    ? { user_id: hostId, name: organizer.name, role: organizer.role }
+    : organizerFromPresence ?? null;
   const others = participants.filter((p) => p.user_id !== hostId);
+  const count = others.length + (organizerEntry ? 1 : 0);
 
   const ParticipantsPanel = (
     <View style={[styles.panel, wide ? styles.panelSide : styles.panelBottom]}>
       <Text style={styles.panelTitle}>
-        {t('room.participants')} ({participants.length || (organizer ? 1 : 0)})
+        {t('room.participants')} ({count})
       </Text>
       <ScrollView>
-        {organizer && (
+        {organizerEntry && (
           <View style={styles.pRow}>
-            <Avatar name={organizer.name} gold />
+            <Avatar name={organizerEntry.name} gold />
             <View style={{ flex: 1 }}>
-              <Text style={styles.pName}>{organizer.name}</Text>
-              <Text style={styles.pRole}>{organizer.role}</Text>
+              <Text style={styles.pName}>{organizerEntry.name || t('room.organizer')}</Text>
+              <Text style={styles.pRole}>{organizerEntry.role || t('roles.priest')}</Text>
             </View>
             <View style={styles.orgTag}>
               <Text style={styles.orgTagText}>{t('room.organizer')}</Text>
@@ -173,9 +194,21 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
           onLayout={(e) => (canvasW.current = e.nativeEvent.layout.width)}
         >
           <View style={styles.medallion}>
-            <Text style={styles.om}>🕉️</Text>
+            {deityImg ? (
+              <Image source={{ uri: deityImg }} style={styles.medallionImg} resizeMode="cover" />
+            ) : (
+              <Text style={styles.om}>🕉️</Text>
+            )}
           </View>
-          <Text style={styles.deityName}>{deityName || t('room.deityPlaceholder')}</Text>
+          <Text style={styles.deityName}>{chosenName || t('room.deityPlaceholder')}</Text>
+
+          {isOrganizer && (
+            <TouchableOpacity style={styles.chooseBtn} activeOpacity={0.85} onPress={() => setPickerOpen(true)}>
+              <MaterialCommunityIcons name="image-edit" size={16} color={colors.maroon} />
+              <Text style={styles.chooseText}>{t('room.chooseDeity')}</Text>
+            </TouchableOpacity>
+          )}
+
           {offers.map((o) => (
             <FloatingOffering
               key={o.id}
@@ -206,12 +239,52 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
           ))}
         </ScrollView>
       </View>
+
+      {/* Deity picker (organizer only) */}
+      <Modal visible={pickerOpen} transparent animationType="fade" onRequestClose={() => setPickerOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHead}>
+              <Text style={styles.modalTitle}>{t('room.chooseDeity')}</Text>
+              <TouchableOpacity onPress={() => setPickerOpen(false)} hitSlop={8}>
+                <MaterialCommunityIcons name="close" size={22} color={colors.ink} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={styles.grid}>
+              {deities.map((d) => {
+                const url = deityFileUrl(d.image_path);
+                return (
+                  <TouchableOpacity
+                    key={d.key}
+                    style={styles.gridItem}
+                    activeOpacity={0.85}
+                    onPress={() => pickDeity(d.display_name)}
+                  >
+                    <View style={styles.gridThumb}>
+                      {url ? (
+                        <Image source={{ uri: url }} style={styles.gridImg} resizeMode="cover" />
+                      ) : (
+                        <Text style={{ fontSize: 30 }}>🕉️</Text>
+                      )}
+                    </View>
+                    <Text style={styles.gridName} numberOfLines={1}>
+                      {d.display_name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
+const SANDAL = '#E7D3A1';
+
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#2A0A12' },
+  safe: { flex: 1, backgroundColor: colors.maroon },
   topbar: {
     backgroundColor: colors.maroon,
     flexDirection: 'row',
@@ -220,12 +293,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: 12,
   },
-  liveBadge: {
-    backgroundColor: colors.live,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
+  liveBadge: { backgroundColor: colors.live, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   liveText: { color: colors.white, fontSize: 10, fontWeight: '800' },
   topTitle: { flex: 1, color: colors.white, fontSize: 16, fontWeight: '700' },
   closeBtn: {
@@ -242,7 +310,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3A0F1B',
+    backgroundColor: SANDAL,
     margin: spacing.md,
     borderRadius: radius.lg,
     overflow: 'hidden',
@@ -251,30 +319,34 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: 'rgba(242,180,65,0.15)',
+    backgroundColor: 'rgba(122,10,20,0.06)',
     borderWidth: 3,
     borderColor: colors.gold,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
+  medallionImg: { width: 154, height: 154, borderRadius: 77 },
   om: { fontSize: 84 },
-  deityName: { color: colors.gold, fontSize: 18, fontWeight: '800', marginTop: 16 },
+  deityName: { color: colors.maroon, fontSize: 18, fontWeight: '800', marginTop: 16 },
+  chooseBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.maroon,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    marginTop: 14,
+  },
+  chooseText: { color: colors.maroon, fontWeight: '700', fontSize: 13 },
   offering: { position: 'absolute', top: 24, fontSize: 26 },
   // participants
   panel: { backgroundColor: colors.cream },
-  panelSide: {
-    width: 260,
-    margin: spacing.md,
-    marginLeft: 0,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-  },
-  panelBottom: {
-    maxHeight: 168,
-    marginHorizontal: spacing.md,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-  },
+  panelSide: { width: 260, margin: spacing.md, marginLeft: 0, borderRadius: radius.lg, padding: spacing.md },
+  panelBottom: { maxHeight: 168, marginHorizontal: spacing.md, borderRadius: radius.lg, padding: spacing.md },
   panelTitle: {
     fontSize: 12,
     fontWeight: '800',
@@ -295,25 +367,11 @@ const styles = StyleSheet.create({
   avatarText: { color: colors.white, fontWeight: '700' },
   pName: { fontSize: 14, fontWeight: '600', color: colors.ink },
   pRole: { fontSize: 11, color: colors.muted },
-  orgTag: {
-    backgroundColor: colors.gold,
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
+  orgTag: { backgroundColor: colors.gold, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   orgTagText: { fontSize: 9, fontWeight: '800', color: colors.maroon },
   // palette
-  paletteWrap: {
-    backgroundColor: colors.maroon,
-    paddingTop: 8,
-    paddingBottom: 12,
-  },
-  paletteHint: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 11,
-    textAlign: 'center',
-    marginBottom: 6,
-  },
+  paletteWrap: { backgroundColor: colors.maroon, paddingTop: 8, paddingBottom: 12 },
+  paletteHint: { color: 'rgba(255,255,255,0.7)', fontSize: 11, textAlign: 'center', marginBottom: 6 },
   palette: { paddingHorizontal: spacing.md, gap: 10, alignItems: 'center' },
   palItem: {
     width: 66,
@@ -324,4 +382,34 @@ const styles = StyleSheet.create({
   },
   palEmoji: { fontSize: 26 },
   palLabel: { color: colors.white, fontSize: 10, marginTop: 2 },
+  // modal
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  modalCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    maxHeight: '80%',
+  },
+  modalHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  modalTitle: { fontSize: 16, fontWeight: '800', color: colors.maroon },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center' },
+  gridItem: { width: 92, alignItems: 'center' },
+  gridThumb: {
+    width: 84,
+    height: 84,
+    borderRadius: radius.md,
+    backgroundColor: colors.cream,
+    borderWidth: 1,
+    borderColor: colors.line,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  gridImg: { width: 84, height: 84 },
+  gridName: { fontSize: 12, color: colors.ink, marginTop: 4, textAlign: 'center' },
 });

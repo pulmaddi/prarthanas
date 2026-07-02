@@ -184,6 +184,7 @@ export default {
     water: 'నీరు',
     enterRoom: 'రూమ్‌లోకి ప్రవేశించండి',
     open: 'తెరవండి',
+    chooseDeity: 'దైవాన్ని ఎంచుకోండి',
   },
   rituals: { title: 'వర్చువల్ పూజలు' },
   common: { join: 'ప్రత్యక్షంగా చేరండి', book: 'బుక్ చేయండి', rsvp: 'హాజరు', pay: 'చెల్లించండి', back: 'వెనుకకు' },

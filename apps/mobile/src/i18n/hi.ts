@@ -184,6 +184,7 @@ export default {
     water: 'जल',
     enterRoom: 'रूम में प्रवेश करें',
     open: 'खोलें',
+    chooseDeity: 'देव चुनें',
   },
   rituals: { title: 'आभासी अनुष्ठान' },
   common: { join: 'लाइव जुड़ें', book: 'बुक करें', rsvp: 'उपस्थिति', pay: 'भुगतान', back: 'वापस' },
