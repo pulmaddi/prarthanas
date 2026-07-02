@@ -20,6 +20,7 @@ import { useAuth } from '../lib/auth';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useRoomPresence, type Participant } from '../lib/roomPresence';
 import { useDeities, deityFileUrl } from '../lib/deities';
+import PriestVideoTile from '../components/PriestVideoTile';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LiveRoom'>;
 
@@ -240,6 +241,15 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
               onDone={() => setOffers((cur) => cur.filter((c) => c.id !== o.id))}
             />
           ))}
+
+          {/* Priest mic/video tile (PIP) */}
+          <View style={styles.videoSlot}>
+            <PriestVideoTile
+              name={organizerEntry?.name || t('roles.priest')}
+              role={organizerEntry?.role || t('roles.priest')}
+              canPublish={isOrganizer}
+            />
+          </View>
         </View>
 
         {ParticipantsPanel}
@@ -377,6 +387,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   changeFabText: { color: colors.white, fontWeight: '700', fontSize: 12 },
+  videoSlot: { position: 'absolute', top: 12, left: 12, width: 150, height: 112, zIndex: 5 },
   deityName: { color: colors.maroon, fontSize: 18, fontWeight: '800', marginTop: 16 },
   chooseBtn: {
     flexDirection: 'row',
