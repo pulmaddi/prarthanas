@@ -265,7 +265,7 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
 
         {/* Right column: moderator video (top) + participants (bottom) */}
         <View style={[styles.rightCol, wide ? styles.rightColWide : styles.rightColNarrow]}>
-          <View style={styles.videoBox}>
+          <View style={[styles.videoBox, wide ? styles.videoBoxWide : styles.videoBoxNarrow]}>
             <PriestVideoTile
               name={organizerEntry?.name || t('roles.priest')}
               role={organizerEntry?.role || t('roles.priest')}
@@ -396,7 +396,9 @@ const styles = StyleSheet.create({
   rightCol: {},
   rightColWide: { width: 300, margin: spacing.md, marginLeft: spacing.sm },
   rightColNarrow: { marginHorizontal: spacing.md, marginBottom: spacing.md },
-  videoBox: { height: 180, borderRadius: radius.lg, overflow: 'hidden', marginBottom: 10 },
+  videoBox: { borderRadius: radius.lg, overflow: 'hidden', marginBottom: 10 },
+  videoBoxWide: { height: 180 },
+  videoBoxNarrow: { height: 150 },
   deityName: { color: colors.maroon, fontSize: 18, fontWeight: '800', marginTop: 16 },
   chooseBtn: {
     flexDirection: 'row',
