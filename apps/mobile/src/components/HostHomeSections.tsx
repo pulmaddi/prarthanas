@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../theme';
 import { Card, Title, Muted, Button } from './ui';
 import SectionHeader from './SectionHeader';
@@ -18,7 +19,15 @@ export default function HostHomeSections({
   onOpenMeetings: () => void;
   onOpenNotifications: () => void;
 }) {
-  const { meetings, notifications } = useHostContent();
+  const { meetings, notifications, reload } = useHostContent();
+
+  // Home stays mounted as a tab; refetch whenever it regains focus so newly
+  // scheduled meetings / sent notifications appear without an app restart.
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload]),
+  );
 
   return (
     <>
