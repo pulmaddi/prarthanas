@@ -18,7 +18,8 @@ import { Card, Title, Muted, Button } from '../components/ui';
 import { t } from '../i18n';
 import { useAuth } from '../lib/auth';
 import { useWeekdayDeities } from '../lib/weekdayDeities';
-import { useMyPriests } from '../lib/hosts';
+import { useHostDirectory } from '../lib/hosts';
+import HostFollowSection from '../components/HostFollowSection';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
@@ -26,23 +27,11 @@ export default function HomeScreen({ navigation }: Props) {
   const rootNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { profile, isAdmin } = useAuth();
   const { today } = useWeekdayDeities();
-  const { priests, followed, follow, unfollow } = useMyPriests();
+  const { priests, gurus, temples, followed, follow, unfollow } = useHostDirectory();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const myPriests = priests.filter((p) => followed.has(p.user_id));
-  const topPriests = priests.filter((p) => !followed.has(p.user_id)).slice(0, 3);
   const fullName = profile?.name?.trim() || t('profile.devotee');
   const firstName = fullName.split(' ')[0];
   const initial = (firstName[0] || '🙏').toUpperCase();
-
-  const groups = [
-    { icon: '🧘', name: 'Swami Anand', meta: 'Guru · Hindi · Rishikesh' },
-    { icon: '👥', name: 'Bhakti Mandali', meta: 'Group · Telugu · Vijayawada' },
-  ];
-  const temples = [
-    { icon: '🛕', name: 'Sri Venkateswara Temple', meta: 'Temple · Telugu · Hyderabad' },
-    { icon: '🛕', name: 'ISKCON Bengaluru', meta: 'Temple · English/Hindi' },
-  ];
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -175,84 +164,43 @@ export default function HomeScreen({ navigation }: Props) {
         </View>
 
         {/* My Priests */}
-        <Text style={[styles.section, { marginTop: 22 }]}>🧑‍🏫 {t('home.myPriests')}</Text>
-        {myPriests.length > 0 ? (
-          myPriests.map((p) => (
-            <Card key={p.user_id}>
-              <View style={styles.row}>
-                <View style={styles.thumb}><Text style={styles.thumbIcon}>🧑‍🏫</Text></View>
-                <View style={{ flex: 1 }}>
-                  <Title>{p.name || 'Priest'}</Title>
-                  {!!p.city && <Muted>{p.city}</Muted>}
-                </View>
-              </View>
-              <Button
-                label={t('home.following')}
-                variant="outline"
-                onPress={() => unfollow(p.user_id)}
-              />
-            </Card>
-          ))
-        ) : (
-          <>
-            <Muted style={{ marginTop: 2 }}>{t('home.followPriestPrompt')}</Muted>
-            {topPriests.length === 0 && (
-              <Muted style={{ marginTop: 8 }}>{t('home.noPriests')}</Muted>
-            )}
-            {topPriests.map((p) => (
-              <Card key={p.user_id}>
-                <View style={styles.row}>
-                  <View style={styles.thumb}><Text style={styles.thumbIcon}>🧑‍🏫</Text></View>
-                  <View style={{ flex: 1 }}>
-                    <Title>{p.name || 'Priest'}</Title>
-                    {!!p.city && <Muted>{p.city}</Muted>}
-                  </View>
-                </View>
-                <Button label={t('home.follow')} onPress={() => follow(p.user_id)} />
-              </Card>
-            ))}
-          </>
-        )}
+        <HostFollowSection
+          title={t('home.myPriests')}
+          icon="🧑‍🏫"
+          hosts={priests}
+          followed={followed}
+          onFollow={follow}
+          onUnfollow={unfollow}
+          prompt={t('home.followPriestPrompt')}
+          emptyText={t('home.noPriests')}
+          fallbackName="Priest"
+        />
 
-        {/* Spiritual groups */}
-        <View style={styles.sectionHdr}>
-          <Text style={styles.section}>🧘 {t('home.spiritualGroups')}</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('JoinCommunity')}>
-            <Text style={styles.seeAll}>{t('home.seeAll')}</Text>
-          </TouchableOpacity>
-        </View>
-        {groups.map((g) => (
-          <Card key={g.name}>
-            <View style={styles.row}>
-              <View style={styles.thumb}><Text style={styles.thumbIcon}>{g.icon}</Text></View>
-              <View style={{ flex: 1 }}>
-                <Title>{g.name}</Title>
-                <Muted>{g.meta}</Muted>
-              </View>
-            </View>
-            <Button label={t('home.join')} onPress={() => navigation.navigate('JoinCommunity')} />
-          </Card>
-        ))}
+        {/* My Spiritual Guru */}
+        <HostFollowSection
+          title={t('home.mySpiritualGuru')}
+          icon="🧘"
+          hosts={gurus}
+          followed={followed}
+          onFollow={follow}
+          onUnfollow={unfollow}
+          prompt={t('home.followGuruPrompt')}
+          emptyText={t('home.noGurus')}
+          fallbackName="Guru"
+        />
 
-        {/* Temple communities */}
-        <View style={styles.sectionHdr}>
-          <Text style={styles.section}>🛕 {t('home.templeCommunity')}</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('JoinCommunity')}>
-            <Text style={styles.seeAll}>{t('home.seeAll')}</Text>
-          </TouchableOpacity>
-        </View>
-        {temples.map((tm) => (
-          <Card key={tm.name}>
-            <View style={styles.row}>
-              <View style={styles.thumb}><Text style={styles.thumbIcon}>{tm.icon}</Text></View>
-              <View style={{ flex: 1 }}>
-                <Title>{tm.name}</Title>
-                <Muted>{tm.meta}</Muted>
-              </View>
-            </View>
-            <Button label={t('home.join')} onPress={() => navigation.navigate('JoinCommunity')} />
-          </Card>
-        ))}
+        {/* My Temple */}
+        <HostFollowSection
+          title={t('home.myTemple')}
+          icon="🛕"
+          hosts={temples}
+          followed={followed}
+          onFollow={follow}
+          onUnfollow={unfollow}
+          prompt={t('home.followTemplePrompt')}
+          emptyText={t('home.noTemples')}
+          fallbackName="Temple"
+        />
       </ScrollView>
     </SafeAreaView>
   );

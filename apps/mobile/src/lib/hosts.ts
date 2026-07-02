@@ -4,29 +4,28 @@ import { useAuth } from './auth';
 
 export type PublicHost = {
   user_id: string;
-  host_type: string;
+  host_type: string; // 'priest' | 'guru' | 'temple_exec'
   name: string | null;
   city: string | null;
 };
 
 /**
- * Priests directory + the current user's follows, with follow/unfollow.
- * Reads the PII-free `hosts_public` view; writes to `follows`.
+ * Host directory (priests / gurus / temples) from the PII-free `hosts_public`
+ * view, plus the current user's follows and follow/unfollow actions.
  */
-export function useMyPriests() {
+export function useHostDirectory() {
   const { session } = useAuth();
   const uid = session?.user.id;
-  const [priests, setPriests] = useState<PublicHost[]>([]);
+  const [hosts, setHosts] = useState<PublicHost[]>([]);
   const [followed, setFollowed] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     if (!isSupabaseConfigured) return;
-    const { data: ps } = await supabase
+    const { data } = await supabase
       .from('hosts_public')
       .select('user_id,host_type,name,city')
-      .eq('host_type', 'priest')
-      .limit(20);
-    setPriests((ps as PublicHost[]) ?? []);
+      .limit(60);
+    setHosts((data as PublicHost[]) ?? []);
     if (uid) {
       const { data: fs } = await supabase
         .from('follows')
@@ -55,5 +54,14 @@ export function useMyPriests() {
     });
   };
 
-  return { priests, followed, follow, unfollow };
+  const byType = (ty: string) => hosts.filter((h) => h.host_type === ty);
+
+  return {
+    priests: byType('priest'),
+    gurus: byType('guru'),
+    temples: byType('temple_exec'),
+    followed,
+    follow,
+    unfollow,
+  };
 }
