@@ -196,7 +196,7 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
           {deityImg ? (
             /* Full deity view */
             <>
-              <Image source={{ uri: deityImg }} style={styles.fullDeity} resizeMode="contain" />
+              <Image source={{ uri: deityImg }} style={styles.fullDeity} resizeMode="cover" />
               {!!chosenName && (
                 <View style={styles.deityNameBar}>
                   <Text style={styles.deityNameFull}>{chosenName}</Text>
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   },
   medallionImg: { width: 154, height: 154, borderRadius: 77 },
   om: { fontSize: 84 },
-  fullDeity: { position: 'absolute', top: 16, left: 16, right: 16, bottom: 16, width: undefined, height: undefined },
+  fullDeity: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
   deityNameBar: {
     position: 'absolute',
     bottom: 14,
