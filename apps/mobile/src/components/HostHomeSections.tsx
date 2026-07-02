@@ -33,7 +33,7 @@ export default function HostHomeSections({
           </Card>
         ))
       )}
-      <Button label={`＋ ${t('host.newMeeting')}`} onPress={onOpenMeetings} />
+      <Button label={`＋ ${t('host.scheduleMeeting')}`} onPress={onOpenMeetings} />
 
       <SectionHeader icon="bell-ring" title={t('host.notificationMessages')} />
       {notifications.length === 0 ? (

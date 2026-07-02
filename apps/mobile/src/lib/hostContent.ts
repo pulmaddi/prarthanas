@@ -2,11 +2,21 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { useAuth } from './auth';
 
+export type MeetingType = 'meeting' | 'special_pooja';
+export type Recurrence = 'none' | 'daily' | 'weekly' | 'monthly';
+
 export type Meeting = {
   id: string;
   host_id: string;
   title: string;
-  when_text: string | null;
+  meeting_type: MeetingType;
+  deity_name: string | null;
+  start_date: string | null; // YYYY-MM-DD
+  start_time: string | null; // HH:MM (24h)
+  recurrence: Recurrence;
+  weekdays: string | null; // CSV of 0-6 (Sun=0)
+  status: string;
+  when_text: string | null; // human-readable schedule summary
   description: string | null;
   join_url: string | null;
   created_at: string;
@@ -60,6 +70,12 @@ export function useHostContent() {
 
   const createMeeting = async (v: {
     title: string;
+    meeting_type?: MeetingType;
+    deity_name?: string;
+    start_date?: string;
+    start_time?: string;
+    recurrence?: Recurrence;
+    weekdays?: string;
     when_text?: string;
     description?: string;
     join_url?: string;
