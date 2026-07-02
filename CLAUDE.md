@@ -30,6 +30,7 @@ When requirements change, **update these docs first**, then code.
 - **Revenue model:** subscriptions + pay-per-event/ritual + platform commission on host earnings. (Donations/seva are deferred — FR-37.)
 - **Launch languages:** English, Hindi, Telugu (i18n framework ready for more later).
 - **Recommended stack:** React Native (Expo) + NestJS (TypeScript) + LiveKit (WebRTC) + PostgreSQL + Redis, hosted in an India cloud region. See ARCHITECTURE §2. (Tech is the engineer's call — the client does not weigh in on stack.)
+- **Live Ritual Room ("Virtual Temple"):** host performs a guided puja on a shared deity; devotees offer individually to the same murti during host-controlled offering windows. Media = LiveKit HLS broadcast (thousands) + stage/raise-hand; canvas = Supabase Realtime (host broadcasts deity + offerings; devotee offerings stay local); free-for-followers for MVP. See REQUIREMENTS FR-41…FR-50 and ARCHITECTURE §8. Built in phases A (canvas, no keys) → B (media) → C (replay/scale).
 
 ## Things to keep in mind
 - **India compliance** is first-class: DPDP Act (consent + data residency in India), RBI marketplace/payout rules, GST invoicing. Don't store raw card data — Razorpay (PCI-DSS) handles it; store only references.

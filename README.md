@@ -7,7 +7,7 @@ A meeting and community app for Hindu devotees in India. Temples, devotee groups
 ## What it does
 
 - **Live gatherings** — audio/video meetings hosted by a temple, group, or Guru, with many participants (satsang, pravachan, bhajan, Q&A/darshan).
-- **Virtual rituals** — guided, interactive puja/aarti/havan experiences with sankalpa details, offerings, and prasad/blessing follow-up.
+- **Virtual rituals** — guided, interactive puja/aarti/havan experiences with sankalpa details, offerings, and prasad/blessing follow-up. Includes the **Live Ritual Room ("Virtual Temple")**: a host performs a live puja on a shared deity while devotees make their own offerings to the same murti (see ARCHITECTURE §8).
 - **Communities** — temples, devotee groups, and Gurus run recurring occasions, share announcements/media, and broadcast group-level messages.
 - **Paid access** — subscriptions, pay-per-event/ritual, and platform commission on host earnings, via Razorpay (UPI, cards, wallets, netbanking).
 

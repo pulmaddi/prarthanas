@@ -1,7 +1,7 @@
 # Roadmap — Clique
 
 **Status:** Proposed. Phases are scoped to validate value early and defer cost/complexity. Refine with the client.
-**Last updated:** 2026-06-22
+**Last updated:** 2026-07-02
 
 ---
 
@@ -25,11 +25,18 @@
 - Admin console (minimal): host approval, commission config, refunds.
 
 ## Phase 2 — Virtual rituals & interactivity
+- **Live Ritual Room ("Virtual Temple")** — the signature experience (FR-41…FR-50, ARCHITECTURE §8). See its own sub-phasing below.
 - Ritual occasions with steps, **sankalpa** capture, digital offerings (free + paid add-ons).
 - Digital **prasad/blessing** delivery.
 - Interactive room mode: raise-hand, promote-to-speaker, co-host/sevak moderation.
 - Session recording + published replays with access gating.
 - Host earnings dashboard + scheduled **payouts** (Razorpay Route).
+
+### Live Ritual Room ("Virtual Temple") — sub-phases
+A host performs a live, guided puja on a shared deity canvas; devotees watch/listen and make their own offerings to the same murti (FR-41…FR-50). Delivered in three slices so the unique value ships before the expensive media tier:
+- **Phase A (canvas-first, web-demoable, no LiveKit keys):** drag-drop deity placement + accessory palette (aarti, flowers, kumkuma, chandan, saffron, water/agarbathi) with existing PoojaScreen effects; host-controlled **offering windows**; **Supabase Realtime** sync of the host's deity + offerings; **anonymous collective tally**; devotee offerings render locally. Media pane stubbed. Go-live / join flow.
+- **Phase B (media):** LiveKit **HLS broadcast** to the audience (thousands) + low-latency **stage**; **raise-hand** promote/demote; participant count; mute/remove. Requires LiveKit Cloud (Mumbai) keys + a native dev build.
+- **Phase C (polish/scale):** recording → **VOD replay**; canvas/HLS **time-alignment**; self-hosted media for cost.
 
 ## Phase 3 — Scale, localization & engagement
 - Additional regional languages beyond launch set (Tamil, Kannada, Marathi, Bengali, Gujarati) + festival calendar.

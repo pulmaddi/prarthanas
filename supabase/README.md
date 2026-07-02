@@ -61,6 +61,23 @@ operator signs in and adds/edits deities + uploads images through a simple UI. I
 public anon key + admin session (RLS restricts writes to admins). Run `supabase/admin.sql`
 to enable it.
 
+## SQL files (run in order, in the SQL Editor)
+
+| File | Adds |
+| --- | --- |
+| [`schema.sql`](schema.sql) | `profiles`, RLS, signup trigger (core auth). |
+| [`deities.sql`](deities.sql) | Ishta Daiva deity catalog + seed. |
+| [`admin.sql`](admin.sql) | `admins` table + `is_admin()` for the local admin app. |
+| [`profiles-roles.sql`](profiles-roles.sql) | Adds `profiles.email` + admin read policy; makes onboarding additive (everyone is a Devotee; host roles are added on top). |
+| [`hosts.sql`](hosts.sql) | `host_accounts` (priest/guru/temple_exec) + admin-managed RLS. |
+| [`follows.sql`](follows.sql) | `follows` table + PII-free `hosts_public` directory view. |
+| [`host-content.sql`](host-content.sql) | `host_meetings` (invites) + `host_notifications` (broadcasts); read open to authenticated, writes owner-only. |
+
+> **Coming with the Live Ritual Room (Virtual Temple, ARCHITECTURE §8):** a migration adding
+> meeting `status`/`livekit_room`/`deity`/`hls_url` columns and a `speaker_requests` (raise-hand)
+> table. The shared canvas syncs over **Supabase Realtime Broadcast** (no schema needed — enable
+> Realtime on the project); individual devotee offerings never touch the database.
+
 ## Verify
 - Register in the app → a row appears in **Authentication → Users** and in
   **Table editor → profiles**.
