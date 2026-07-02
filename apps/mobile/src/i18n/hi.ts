@@ -2,6 +2,12 @@ export default {
   appName: 'इष्ट',
   tagline: 'अपने भीतर का मार्ग आलोकित करें',
   namaste: 'नमस्ते',
+  roles: {
+    devotee: 'भक्त',
+    priest: 'पुजारी',
+    guru: 'गुरु',
+    templeExec: 'मंदिर कार्यकारी',
+  },
   auth: { google: 'Google से जारी रखें', or: 'या' },
   welcome: {
     purpose:

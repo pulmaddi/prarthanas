@@ -2,6 +2,12 @@ export default {
   appName: 'ఇష్ట',
   tagline: 'మీ అంతరంగ మార్గాన్ని వెలిగించండి',
   namaste: 'నమస్తే',
+  roles: {
+    devotee: 'భక్తుడు',
+    priest: 'పూజారి',
+    guru: 'ఆధ్యాత్మిక గురువు',
+    templeExec: 'ఆలయ కార్యనిర్వాహకుడు',
+  },
   auth: { google: 'Google తో కొనసాగించండి', or: 'లేదా' },
   welcome: {
     purpose:

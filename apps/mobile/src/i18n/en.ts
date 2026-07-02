@@ -2,6 +2,12 @@ export default {
   appName: 'Ishta',
   tagline: 'Light Your Inner Path',
   namaste: 'Namaste',
+  roles: {
+    devotee: 'Devotee',
+    priest: 'Priest',
+    guru: 'Spiritual Guru',
+    templeExec: 'Temple Executive',
+  },
   auth: { google: 'Continue with Google', or: 'or' },
   welcome: {
     purpose:

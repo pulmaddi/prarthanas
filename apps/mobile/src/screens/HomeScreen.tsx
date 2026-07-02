@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -34,6 +35,14 @@ export default function HomeScreen({ navigation }: Props) {
   const fullName = profile?.name?.trim() || t('profile.devotee');
   const firstName = fullName.split(' ')[0];
   const initial = (firstName[0] || '🙏').toUpperCase();
+  const roleLabel =
+    hostType === 'priest'
+      ? t('roles.priest')
+      : hostType === 'guru'
+        ? t('roles.guru')
+        : hostType === 'temple_exec'
+          ? t('roles.templeExec')
+          : t('roles.devotee');
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -48,8 +57,16 @@ export default function HomeScreen({ navigation }: Props) {
               <Text style={styles.hamburgerIcon}>☰</Text>
             </TouchableOpacity>
           )}
-          <View>
-            <Text style={styles.greet}>🙏 {t('namaste')}, {firstName}</Text>
+          <View style={{ flex: 1 }}>
+            <View style={styles.greetRow}>
+              <MaterialCommunityIcons name="hands-pray" size={18} color={colors.gold} />
+              <Text style={styles.greet} numberOfLines={1}>
+                {t('namaste')}, {firstName}
+              </Text>
+              <View style={styles.rolePill}>
+                <Text style={styles.roleText}>{roleLabel}</Text>
+              </View>
+            </View>
             {!!profile?.city && <Text style={styles.loc}>📍 {profile.city}</Text>}
           </View>
         </View>
@@ -237,8 +254,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   hamburgerIcon: { color: colors.white, fontSize: 20, fontWeight: '700' },
+  greetRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
   greet: { color: colors.white, fontSize: 15, fontWeight: '600' },
-  loc: { color: colors.cream, fontSize: 11, opacity: 0.85 },
+  rolePill: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 2,
+  },
+  roleText: {
+    color: colors.gold,
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  loc: { color: colors.cream, fontSize: 11, opacity: 0.85, marginTop: 2 },
   drawerRow: { flex: 1, flexDirection: 'row' },
   drawer: {
     width: 280,
