@@ -6,7 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -21,26 +21,28 @@ export default function NotificationsScreen() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
 
   const submit = async () => {
-    if (!title.trim()) return Alert.alert(t('host.notifTitle'), t('host.titleRequired'));
+    if (!title.trim()) return setFeedback({ ok: false, text: t('host.titleRequired') });
     setBusy(true);
+    setFeedback(null);
     try {
       await createNotification({ title: title.trim(), body: body.trim() || undefined });
       setTitle('');
       setBody('');
+      setFeedback({ ok: true, text: t('host.sent') });
     } catch (e: any) {
-      Alert.alert('Error', e?.message ?? String(e));
+      setFeedback({ ok: false, text: e?.message ?? String(e) });
     } finally {
       setBusy(false);
     }
   };
 
   const confirmDelete = (id: string) => {
-    Alert.alert(t('host.deleteNotif'), t('host.deleteConfirm'), [
-      { text: t('host.cancel'), style: 'cancel' },
-      { text: t('host.delete'), style: 'destructive', onPress: () => deleteNotification(id) },
-    ]);
+    const ok =
+      Platform.OS === 'web' ? (typeof window !== 'undefined' ? window.confirm(t('host.deleteConfirm')) : true) : true;
+    if (ok) deleteNotification(id);
   };
 
   return (
@@ -71,6 +73,18 @@ export default function NotificationsScreen() {
             multiline
           />
           <Muted style={{ marginTop: 6 }}>{t('host.notifHint')}</Muted>
+          {feedback && (
+            <View style={[styles.banner, feedback.ok ? styles.bannerOk : styles.bannerErr]}>
+              <MaterialCommunityIcons
+                name={feedback.ok ? 'check-circle' : 'alert-circle'}
+                size={16}
+                color={feedback.ok ? colors.green : '#B00020'}
+              />
+              <Text style={[styles.bannerText, { color: feedback.ok ? colors.green : '#B00020' }]}>
+                {feedback.text}
+              </Text>
+            </View>
+          )}
           <Button label={busy ? '…' : t('host.send')} onPress={submit} />
         </Card>
 
@@ -121,4 +135,16 @@ const styles = StyleSheet.create({
   multiline: { height: 96, textAlignVertical: 'top' },
   rowBetween: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   desc: { fontSize: 13, color: colors.ink, marginTop: 4 },
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 12,
+  },
+  bannerOk: { backgroundColor: '#E8F5E9' },
+  bannerErr: { backgroundColor: '#FDECEA' },
+  bannerText: { flex: 1, fontSize: 13, fontWeight: '600' },
 });

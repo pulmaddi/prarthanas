@@ -6,7 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -85,6 +85,7 @@ export default function MeetingsScreen() {
   const [description, setDescription] = useState('');
   const [joinUrl, setJoinUrl] = useState('');
   const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
 
   const toggleDay = (d: number) =>
     setWeekdays((w) => (w.includes(d) ? w.filter((x) => x !== d) : [...w, d]));
@@ -102,12 +103,13 @@ export default function MeetingsScreen() {
   };
 
   const submit = async () => {
-    if (!title.trim()) return Alert.alert(t('host.meetingTitle'), t('host.titleRequired'));
+    if (!title.trim()) return setFeedback({ ok: false, text: t('host.titleRequired') });
     if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date.trim()))
-      return Alert.alert(t('host.date'), t('host.dateInvalid'));
+      return setFeedback({ ok: false, text: t('host.dateInvalid') });
     if (time && !/^\d{1,2}:\d{2}$/.test(time.trim()))
-      return Alert.alert(t('host.time'), t('host.timeInvalid'));
+      return setFeedback({ ok: false, text: t('host.timeInvalid') });
     setBusy(true);
+    setFeedback(null);
     try {
       await createMeeting({
         title: title.trim(),
@@ -122,18 +124,18 @@ export default function MeetingsScreen() {
         join_url: joinUrl.trim() || undefined,
       });
       reset();
+      setFeedback({ ok: true, text: t('host.scheduled') });
     } catch (e: any) {
-      Alert.alert('Error', e?.message ?? String(e));
+      setFeedback({ ok: false, text: e?.message ?? String(e) });
     } finally {
       setBusy(false);
     }
   };
 
   const confirmDelete = (id: string) => {
-    Alert.alert(t('host.deleteMeeting'), t('host.deleteConfirm'), [
-      { text: t('host.cancel'), style: 'cancel' },
-      { text: t('host.delete'), style: 'destructive', onPress: () => deleteMeeting(id) },
-    ]);
+    const ok =
+      Platform.OS === 'web' ? (typeof window !== 'undefined' ? window.confirm(t('host.deleteConfirm')) : true) : true;
+    if (ok) deleteMeeting(id);
   };
 
   return (
@@ -245,6 +247,19 @@ export default function MeetingsScreen() {
             multiline
           />
 
+          {feedback && (
+            <View style={[styles.banner, feedback.ok ? styles.bannerOk : styles.bannerErr]}>
+              <MaterialCommunityIcons
+                name={feedback.ok ? 'check-circle' : 'alert-circle'}
+                size={16}
+                color={feedback.ok ? colors.green : '#B00020'}
+              />
+              <Text style={[styles.bannerText, { color: feedback.ok ? colors.green : '#B00020' }]}>
+                {feedback.text}
+              </Text>
+            </View>
+          )}
+
           <Button label={busy ? '…' : t('host.schedule')} onPress={submit} />
         </Card>
 
@@ -326,4 +341,16 @@ const styles = StyleSheet.create({
   badgeText: { color: colors.white, fontSize: 10, fontWeight: '800' },
   desc: { fontSize: 13, color: colors.ink, marginTop: 4 },
   link: { fontSize: 12, color: colors.saffron, marginTop: 4 },
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 12,
+  },
+  bannerOk: { backgroundColor: '#E8F5E9' },
+  bannerErr: { backgroundColor: '#FDECEA' },
+  bannerText: { flex: 1, fontSize: 13, fontWeight: '600' },
 });
