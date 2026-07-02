@@ -188,12 +188,13 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
         </TouchableOpacity>
       </View>
 
-      <View style={[styles.content, wide && styles.contentWide]}>
-        {/* Deity whiteboard */}
-        <View
-          style={styles.canvas}
-          onLayout={(e) => (canvasW.current = e.nativeEvent.layout.width)}
-        >
+      <View style={[styles.body, wide && styles.bodyWide]}>
+        {/* Left column: deity whiteboard (top) + palette (bottom) */}
+        <View style={styles.leftCol}>
+          <View
+            style={styles.canvas}
+            onLayout={(e) => (canvasW.current = e.nativeEvent.layout.width)}
+          >
           {deityImg ? (
             /* Full deity view: blurred cover backdrop fills the board; the full
                murti sits on top uncropped (contain). */
@@ -241,9 +242,28 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
               onDone={() => setOffers((cur) => cur.filter((c) => c.id !== o.id))}
             />
           ))}
+          </View>
+
+          {/* Offering palette (under the deity) */}
+          <View style={styles.paletteWrap}>
+            <Text style={styles.paletteHint}>{t('room.tapToOffer')}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.palette}>
+              {PALETTE.map((item) => (
+                <TouchableOpacity
+                  key={item.key}
+                  style={styles.palItem}
+                  activeOpacity={0.8}
+                  onPress={() => offer(item.emoji)}
+                >
+                  <Text style={styles.palEmoji}>{item.emoji}</Text>
+                  <Text style={styles.palLabel}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         </View>
 
-        {/* Right column: priest video (fixed) + participants */}
+        {/* Right column: moderator video (top) + participants (bottom) */}
         <View style={[styles.rightCol, wide ? styles.rightColWide : styles.rightColNarrow]}>
           <View style={styles.videoBox}>
             <PriestVideoTile
@@ -254,24 +274,6 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
           </View>
           {ParticipantsPanel}
         </View>
-      </View>
-
-      {/* Offering palette */}
-      <View style={styles.paletteWrap}>
-        <Text style={styles.paletteHint}>{t('room.tapToOffer')}</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.palette}>
-          {PALETTE.map((item) => (
-            <TouchableOpacity
-              key={item.key}
-              style={styles.palItem}
-              activeOpacity={0.8}
-              onPress={() => offer(item.emoji)}
-            >
-              <Text style={styles.palEmoji}>{item.emoji}</Text>
-              <Text style={styles.palLabel}>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
       </View>
 
       {/* Deity picker (organizer only) */}
@@ -338,14 +340,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  content: { flex: 1 },
-  contentWide: { flexDirection: 'row' },
+  body: { flex: 1 },
+  bodyWide: { flexDirection: 'row' },
+  leftCol: { flex: 1 },
   canvas: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: SANDAL,
     margin: spacing.md,
+    marginBottom: 0,
     borderRadius: radius.lg,
     overflow: 'hidden',
   },
@@ -390,9 +394,9 @@ const styles = StyleSheet.create({
   changeFabText: { color: colors.white, fontWeight: '700', fontSize: 12 },
   // right column
   rightCol: {},
-  rightColWide: { width: 280, marginVertical: spacing.md, marginRight: spacing.md },
+  rightColWide: { width: 300, margin: spacing.md, marginLeft: spacing.sm },
   rightColNarrow: { marginHorizontal: spacing.md, marginBottom: spacing.md },
-  videoBox: { height: 168, borderRadius: radius.lg, overflow: 'hidden', marginBottom: 10 },
+  videoBox: { height: 180, borderRadius: radius.lg, overflow: 'hidden', marginBottom: 10 },
   deityName: { color: colors.maroon, fontSize: 18, fontWeight: '800', marginTop: 16 },
   chooseBtn: {
     flexDirection: 'row',
@@ -411,7 +415,7 @@ const styles = StyleSheet.create({
   // participants
   panel: { backgroundColor: colors.cream, borderRadius: radius.lg, padding: spacing.md },
   panelWide: { flex: 1 },
-  panelNarrow: { maxHeight: 200 },
+  panelNarrow: { maxHeight: 180 },
   panelTitle: {
     fontSize: 12,
     fontWeight: '800',
@@ -434,10 +438,10 @@ const styles = StyleSheet.create({
   pRole: { fontSize: 11, color: colors.muted },
   orgTag: { backgroundColor: colors.gold, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   orgTagText: { fontSize: 9, fontWeight: '800', color: colors.maroon },
-  // palette
-  paletteWrap: { backgroundColor: colors.maroon, paddingTop: 8, paddingBottom: 12 },
-  paletteHint: { color: 'rgba(255,255,255,0.7)', fontSize: 11, textAlign: 'center', marginBottom: 6 },
-  palette: { paddingHorizontal: spacing.md, gap: 10, alignItems: 'center' },
+  // palette (in the left column, under the deity)
+  paletteWrap: { paddingTop: 10, paddingBottom: 6, paddingHorizontal: spacing.md },
+  paletteHint: { color: 'rgba(255,255,255,0.75)', fontSize: 11, textAlign: 'center', marginBottom: 8 },
+  palette: { gap: 10, alignItems: 'center' },
   palItem: {
     width: 66,
     alignItems: 'center',
