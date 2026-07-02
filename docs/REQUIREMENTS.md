@@ -79,6 +79,20 @@ Access is **role-based (RBAC)**. A single user may hold multiple roles (e.g. a d
 - **FR-25** Group rituals (many participants in one ceremony) and personal/dedicated rituals (host performs for one devotee/family) are both supported.
 - **FR-26a** **Vaara Pooja (weekday deity):** each weekday is associated with a deity (Sun=Aditya, Mon=Shiva, Tue=Hanuman, Wed=Ganesha, Thu=Sai Baba, Fri=Lakshmi, Sat=Venkateswara). The app surfaces a generic **"Vaara Pooja"** entry that opens the pooja for *today's* deity, reusing the deity catalog's image + mantra audio. (Monday=Shiva is a sensible default — confirm.)
 
+### 3.5a Live Ritual Room ("Virtual Temple")
+A host (Priest / Spiritual Guru / Temple Executive) performs a live, guided puja on a **shared deity canvas** while associated devotees watch, listen, and make their own offerings to the *same* deity — like a virtual temple where one murti is in the sanctum and each devotee offers personally.
+
+- **FR-41** A host **goes live** from a scheduled meeting (see FR-13/FR-16); state moves scheduled → live → ended. Devotees see a "🔴 Live now" entry and join.
+- **FR-42** **Deity placement is the moderator's, and shared.** The host drags a deity image onto the canvas and positions/sizes it. This placement is broadcast so every participant sees the murti in the same spot (the authoritative centerpiece).
+- **FR-43** The host performs the puja verbally (**voice**, via the live stream) and offers accessories by **dragging pooja items onto the deity** (water/abhishekam, flowers, kumkuma, chandan/sandal, saffron/akshata, aarti, agarbathi). The host's offerings are the **official puja** and are **broadcast to all** participants.
+- **FR-44** **Offering windows:** the host **opens and closes** when devotees may offer (e.g. "offer flowers now"). Devotees can only offer while a window is open.
+- **FR-45** **Individual devotee offerings:** while a window is open, each devotee drags an accessory from their **own palette** onto the same (moderator-placed) deity. A devotee sees **the murti + the host's offerings + their own** — **not** other devotees' offerings (personal act, shared deity).
+- **FR-46** **Collective presence (anonymous):** an aggregate tally (e.g. "1,240 devotees offered flowers") conveys the shared moment without rendering individual devotee offerings.
+- **FR-47** **Audience scale via broadcast:** the host's video/audio reaches thousands via one-to-many broadcast (HLS/CDN, ~5–10s latency, listen/watch). See ARCHITECTURE §8 (NFR-1, NFR-10).
+- **FR-48** **Moderated speaking (raise-hand):** devotees are muted by default; a devotee may raise a hand and, if the host approves, is promoted to speak live (then demoted). Host can mute/remove.
+- **FR-49** **Access:** for MVP a live ritual room is **free for followers** — any devotee following the host may join. (Paid ritual rooms remain FR-32; deferred pending the app-store IAP question, open Q7.)
+- **FR-50** Offering positions are stored **relative to the deity's local coordinate space** (not the screen) so the host's broadcast offerings align on every device regardless of screen size.
+
 ### 3.6 Communication & broadcasts
 - **FR-26** Hosts broadcast **group-level messages/announcements** (text + media) to all followers or a subscriber segment; delivered via push + in-app inbox.
 - **FR-27** Information sharing: hosts post updates, images, audio (bhajans), and documents to their profile feed.

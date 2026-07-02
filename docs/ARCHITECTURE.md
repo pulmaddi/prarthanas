@@ -121,7 +121,47 @@ RBAC is enforced server-side on every API and at token issuance — never trust 
 
 ---
 
-## 8. Repository shape (proposed, when build starts)
+## 8. Live Ritual Rooms ("Virtual Temple")
+
+Implements FR-41…FR-50. Two **independent one-to-many streams** flow from the host — media and canvas — which lets the room scale to thousands cheaply.
+
+### 8.1 Media — "stage" + "audience" tiers
+- **Stage** = a low-latency LiveKit (WebRTC) room: the host plus any devotee currently granted the floor (raise-hand, FR-48). Small and cheap.
+- **Audience** = thousands watch the stage via **LiveKit Egress → HLS over CDN** (~5–10s latency, listen/watch only — FR-47). Native plays HLS via `expo-av`; web via `hls.js`.
+- **Raise-hand** promotes a devotee from Audience (HLS) to Stage (WebRTC publisher, mic only); their audio is mixed into the egress for the audience. Demote returns them to HLS.
+- Backend mints access-scoped LiveKit tokens / signed playback per §5. Host grant: publish video+audio+data; devotee grant: subscribe + (audio only when promoted).
+
+### 8.2 Canvas — moderator broadcast over Supabase Realtime
+The audience is **not** in the WebRTC room, so LiveKit data messages can't reach them. Canvas sync therefore uses **Supabase Realtime Broadcast**, one channel per meeting:
+- The host broadcasts only: **deity placement** (FR-42), **the host's own offerings** (FR-43), **offering-window open/close** (FR-44), **clear**, and the **anonymous tally** (FR-46).
+- **Devotee offerings never touch the network** (FR-45) — each devotee decorates their own local copy of the shared deity. Only a lightweight "+1 flower" increment is sent to drive the aggregate tally.
+- **Late-join snapshot:** a new joiner announces "hello" on the channel; the host's client replies with the current state (deity + host offerings so far + window state). No backend state store needed for v1 (the host is always present). Move to Redis/DB later for host-independent replay.
+- **Coordinate model (FR-50):** offerings are anchored in the **deity's local space**, so a host offering "at the feet" maps to the same relative spot on every device, independent of screen size. This is the trick that makes shared offerings align.
+
+### 8.3 Rendering & interaction
+- **`@shopify/react-native-skia`** for the canvas (60fps particles/paint on native **and** Expo web); ports the existing single-user `PoojaScreen` effects (aarti orbit, agarbathi smoke, flowers, turmeric, saffron).
+- **`react-native-gesture-handler`** for drag-and-drop: deity is a draggable/resizable sprite; accessories drag from a palette tray onto the murti and animate into place.
+
+### 8.4 Data model additions
+- **Meeting** (extends `host_meetings`): `status` (scheduled|live|ended), `livekit_room`, `deity_id`/`deity_image`, `hls_url`, `started_at`, `ended_at`.
+- **SpeakerRequest** — raise-hand queue (meeting_id, user_id, status).
+- No per-offering persistence in v1 (offerings are ephemeral); optional post-event summary + recording→VOD in a later phase.
+
+### 8.5 Latency note
+Canvas events arrive near-instant while HLS video is ~8s behind, so the host's on-screen gesture and the broadcast effect can be slightly out of sync — acceptable for a large broadcast. If needed, timestamp canvas events to the media timeline to align (deferred).
+
+### 8.6 Phasing
+- **Phase A (MVP, web-demoable, no LiveKit keys):** drag-drop deity canvas + palette + offering windows + Supabase Realtime sync + anonymous tally. Media stubbed.
+- **Phase B:** LiveKit media (HLS audience + stage), raise-hand promotion, participant count, mute/remove.
+- **Phase C:** recording→VOD replay, canvas/HLS time-alignment, self-hosted media for cost.
+
+### 8.7 Dependencies / decisions
+- **LiveKit Cloud, Mumbai region** recommended (managed egress/HLS, India residency) — needs an account + API keys from the client; self-host later to cut cost (NFR-10).
+- **`@livekit/react-native` requires a native dev build** (won't run in Expo Go — needs `expo prebuild` + custom dev client). Web audience (HLS) runs in-browser.
+
+---
+
+## 9. Repository shape (proposed, when build starts)
 
 ```
 clique/
