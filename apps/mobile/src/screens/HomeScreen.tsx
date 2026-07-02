@@ -187,6 +187,14 @@ export default function HomeScreen({ navigation }: Props) {
           <HostHomeSections
             onOpenMeetings={() => navigation.navigate('Meetings')}
             onOpenNotifications={() => navigation.navigate('MyNotifications')}
+            onOpenRoom={(m) =>
+              rootNav.navigate('LiveRoom', {
+                meetingId: m.id,
+                title: m.title,
+                deityName: m.deity_name ?? undefined,
+                hostId: m.host_id,
+              })
+            }
           />
         ) : (
           <>

@@ -173,6 +173,18 @@ export default {
     turmeric: 'हल्दी',
     saffron: 'केसर',
   },
+  room: {
+    live: 'लाइव',
+    participants: 'प्रतिभागी',
+    organizer: 'आयोजक',
+    deityPlaceholder: 'देव',
+    tapToOffer: 'देव को अर्पित करने के लिए किसी सामग्री पर टैप करें',
+    kumkuma: 'कुमकुम',
+    sandal: 'चंदन',
+    water: 'जल',
+    enterRoom: 'रूम में प्रवेश करें',
+    open: 'खोलें',
+  },
   rituals: { title: 'आभासी अनुष्ठान' },
   common: { join: 'लाइव जुड़ें', book: 'बुक करें', rsvp: 'उपस्थिति', pay: 'भुगतान', back: 'वापस' },
   profile: {

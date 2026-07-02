@@ -173,6 +173,18 @@ export default {
     turmeric: 'పసుపు',
     saffron: 'కుంకుమ',
   },
+  room: {
+    live: 'ప్రత్యక్ష',
+    participants: 'పాల్గొనేవారు',
+    organizer: 'నిర్వాహకుడు',
+    deityPlaceholder: 'దైవం',
+    tapToOffer: 'దైవానికి సమర్పించడానికి ఒక వస్తువుపై నొక్కండి',
+    kumkuma: 'కుంకుమ',
+    sandal: 'చందనం',
+    water: 'నీరు',
+    enterRoom: 'రూమ్‌లోకి ప్రవేశించండి',
+    open: 'తెరవండి',
+  },
   rituals: { title: 'వర్చువల్ పూజలు' },
   common: { join: 'ప్రత్యక్షంగా చేరండి', book: 'బుక్ చేయండి', rsvp: 'హాజరు', pay: 'చెల్లించండి', back: 'వెనుకకు' },
   profile: {

@@ -173,6 +173,18 @@ export default {
     turmeric: 'Turmeric',
     saffron: 'Saffron',
   },
+  room: {
+    live: 'LIVE',
+    participants: 'Participants',
+    organizer: 'Organizer',
+    deityPlaceholder: 'Deity',
+    tapToOffer: 'Tap an offering to present it to the deity',
+    kumkuma: 'Kumkuma',
+    sandal: 'Sandal',
+    water: 'Water',
+    enterRoom: 'Enter room',
+    open: 'Open',
+  },
   rituals: { title: 'Virtual Rituals' },
   common: { join: 'Join live', book: 'Book', rsvp: 'RSVP', pay: 'Pay', back: 'Back' },
   profile: {

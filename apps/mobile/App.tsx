@@ -35,6 +35,7 @@ import AdminVaaraScreen from './src/screens/AdminVaaraScreen';
 import AdminHostsScreen from './src/screens/AdminHostsScreen';
 import AdminHostsManageScreen from './src/screens/AdminHostsManageScreen';
 import PoojaScreen from './src/screens/PoojaScreen';
+import LiveRoomScreen from './src/screens/LiveRoomScreen';
 
 // Crisp vector tab icons from @expo/vector-icons (bundled with Expo).
 const tabIcon =
@@ -143,6 +144,7 @@ export default function App() {
           <Stack.Screen name="AdminHosts" component={AdminHostsScreen} options={{ title: t('profile.adminHosts') }} />
           <Stack.Screen name="AdminHostsManage" component={AdminHostsManageScreen} options={{ title: t('profile.adminHostsManage') }} />
           <Stack.Screen name="Pooja" component={PoojaScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="LiveRoom" component={LiveRoomScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
       </AuthProvider>

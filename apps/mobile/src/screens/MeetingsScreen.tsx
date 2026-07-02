@@ -12,7 +12,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import type { MainTabParamList } from '../navigation/types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { Card, Title, Muted, Button } from '../components/ui';
 import SectionHeader from '../components/SectionHeader';
@@ -78,6 +79,14 @@ const Chip = ({
 export default function MeetingsScreen() {
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
   const { meetings, createMeeting, deleteMeeting } = useHostContent();
+
+  const openRoom = (m: (typeof meetings)[number]) =>
+    navigation.getParent<NativeStackNavigationProp<RootStackParamList>>()?.navigate('LiveRoom', {
+      meetingId: m.id,
+      title: m.title,
+      deityName: m.deity_name ?? undefined,
+      hostId: m.host_id,
+    });
 
   const [type, setType] = useState<MeetingType>('meeting');
   const [title, setTitle] = useState('');
@@ -298,6 +307,10 @@ export default function MeetingsScreen() {
                 <MaterialCommunityIcons name="trash-can-outline" size={20} color={colors.muted} />
               </TouchableOpacity>
             </View>
+            <TouchableOpacity style={styles.enterBtn} activeOpacity={0.85} onPress={() => openRoom(m)}>
+              <MaterialCommunityIcons name="video" size={16} color={colors.white} />
+              <Text style={styles.enterText}>{t('room.enterRoom')}</Text>
+            </TouchableOpacity>
           </Card>
         ))}
       </ScrollView>
@@ -361,6 +374,17 @@ const styles = StyleSheet.create({
   badgeText: { color: colors.white, fontSize: 10, fontWeight: '800' },
   desc: { fontSize: 13, color: colors.ink, marginTop: 4 },
   link: { fontSize: 12, color: colors.saffron, marginTop: 4 },
+  enterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: colors.green,
+    borderRadius: radius.sm,
+    paddingVertical: 9,
+    marginTop: 10,
+  },
+  enterText: { color: colors.white, fontWeight: '700', fontSize: 13 },
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
