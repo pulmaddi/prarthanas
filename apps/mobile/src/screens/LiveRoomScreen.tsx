@@ -138,7 +138,7 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
   const count = others.length + (organizerEntry ? 1 : 0);
 
   const ParticipantsPanel = (
-    <View style={[styles.panel, wide ? styles.panelSide : styles.panelBottom]}>
+    <View style={[styles.panel, wide ? styles.panelWide : styles.panelNarrow]}>
       <Text style={styles.panelTitle}>
         {t('room.participants')} ({count})
       </Text>
@@ -241,18 +241,19 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
               onDone={() => setOffers((cur) => cur.filter((c) => c.id !== o.id))}
             />
           ))}
+        </View>
 
-          {/* Priest mic/video tile (PIP) */}
-          <View style={styles.videoSlot}>
+        {/* Right column: priest video (fixed) + participants */}
+        <View style={[styles.rightCol, wide ? styles.rightColWide : styles.rightColNarrow]}>
+          <View style={styles.videoBox}>
             <PriestVideoTile
               name={organizerEntry?.name || t('roles.priest')}
               role={organizerEntry?.role || t('roles.priest')}
               canPublish={isOrganizer}
             />
           </View>
+          {ParticipantsPanel}
         </View>
-
-        {ParticipantsPanel}
       </View>
 
       {/* Offering palette */}
@@ -387,7 +388,11 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   changeFabText: { color: colors.white, fontWeight: '700', fontSize: 12 },
-  videoSlot: { position: 'absolute', top: 12, left: 12, width: 150, height: 112, zIndex: 5 },
+  // right column
+  rightCol: {},
+  rightColWide: { width: 280, marginVertical: spacing.md, marginRight: spacing.md },
+  rightColNarrow: { marginHorizontal: spacing.md, marginBottom: spacing.md },
+  videoBox: { height: 168, borderRadius: radius.lg, overflow: 'hidden', marginBottom: 10 },
   deityName: { color: colors.maroon, fontSize: 18, fontWeight: '800', marginTop: 16 },
   chooseBtn: {
     flexDirection: 'row',
@@ -404,9 +409,9 @@ const styles = StyleSheet.create({
   chooseText: { color: colors.maroon, fontWeight: '700', fontSize: 13 },
   offering: { position: 'absolute', top: 24, fontSize: 26 },
   // participants
-  panel: { backgroundColor: colors.cream },
-  panelSide: { width: 260, margin: spacing.md, marginLeft: 0, borderRadius: radius.lg, padding: spacing.md },
-  panelBottom: { maxHeight: 168, marginHorizontal: spacing.md, borderRadius: radius.lg, padding: spacing.md },
+  panel: { backgroundColor: colors.cream, borderRadius: radius.lg, padding: spacing.md },
+  panelWide: { flex: 1 },
+  panelNarrow: { maxHeight: 200 },
   panelTitle: {
     fontSize: 12,
     fontWeight: '800',

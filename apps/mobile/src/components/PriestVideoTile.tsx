@@ -22,15 +22,18 @@ export default function PriestVideoTile({
   canPublish: boolean;
 }) {
   const videoRef = useRef<any>(null);
-  const streamRef = useRef<any>(null);
+  const [stream, setStream] = useState<any>(null);
   const [camOn, setCamOn] = useState(true);
   const [micOn, setMicOn] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const isWeb = Platform.OS === 'web';
+  const showVideo = isWeb && canPublish && !err && camOn;
 
+  // Acquire the local camera/mic once (organizer, web).
   useEffect(() => {
     if (!isWeb || !canPublish) return;
     let cancelled = false;
+    let acquired: any = null;
     const nav: any = (globalThis as any).navigator;
     if (!nav?.mediaDevices?.getUserMedia) {
       setErr(t('room.noCamera'));
@@ -38,33 +41,46 @@ export default function PriestVideoTile({
     }
     nav.mediaDevices
       .getUserMedia({ video: true, audio: true })
-      .then((stream: any) => {
+      .then((s: any) => {
         if (cancelled) {
-          stream.getTracks().forEach((tr: any) => tr.stop());
+          s.getTracks().forEach((tr: any) => tr.stop());
           return;
         }
-        streamRef.current = stream;
-        if (videoRef.current) videoRef.current.srcObject = stream;
+        acquired = s;
+        setStream(s);
       })
       .catch((e: any) => setErr(e?.name === 'NotAllowedError' ? t('room.camDenied') : String(e?.message ?? e)));
     return () => {
       cancelled = true;
-      streamRef.current?.getTracks?.().forEach((tr: any) => tr.stop());
+      acquired?.getTracks?.().forEach((tr: any) => tr.stop());
     };
   }, [isWeb, canPublish]);
+
+  // Attach the stream to the <video> element once both exist (and on remount
+  // when the camera is toggled back on).
+  useEffect(() => {
+    const el = videoRef.current;
+    if (el && stream) {
+      try {
+        el.srcObject = stream;
+        const p = el.play?.();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [stream, showVideo]);
 
   const toggleCam = () => {
     const on = !camOn;
     setCamOn(on);
-    streamRef.current?.getVideoTracks?.().forEach((tr: any) => (tr.enabled = on));
+    stream?.getVideoTracks?.().forEach((tr: any) => (tr.enabled = on));
   };
   const toggleMic = () => {
     const on = !micOn;
     setMicOn(on);
-    streamRef.current?.getAudioTracks?.().forEach((tr: any) => (tr.enabled = on));
+    stream?.getAudioTracks?.().forEach((tr: any) => (tr.enabled = on));
   };
-
-  const showVideo = isWeb && canPublish && !err && camOn;
 
   return (
     <View style={styles.tile}>
