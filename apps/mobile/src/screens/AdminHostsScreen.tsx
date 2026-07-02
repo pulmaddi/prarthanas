@@ -45,7 +45,7 @@ export default function AdminHostsScreen() {
   const [typeOpen, setTypeOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
-  const [created, setCreated] = useState<{ email: string; password: string } | null>(null);
+  const [created, setCreated] = useState<{ email: string; password: string | null } | null>(null);
   const [rows, setRows] = useState<HostRow[]>([]);
 
   const loadRows = async () => {
@@ -72,13 +72,30 @@ export default function AdminHostsScreen() {
     setCreated(null);
     if (name.trim().length < 2) return setErr('Please enter the full name.');
     if (!EMAIL_RE.test(email)) return setErr('Please enter a valid email (username).');
-    if (password.length < 6) return setErr('Password must be at least 6 characters.');
+    const emailLc = email.trim().toLowerCase();
     try {
       setBusy(true);
-      // 1) Create the auth user (throwaway client — admin session untouched).
-      const userId = await adminCreateHostUser({ email: email.trim(), password, name: name.trim() });
-      // 2) Record the host role (admin-gated by RLS).
-      const { error } = await supabase.from('host_accounts').insert({
+      // Everyone is a Devotee by default. Add the host role to the existing
+      // account if the email is already registered; otherwise create one.
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', emailLc)
+        .maybeSingle();
+
+      let userId = (existing?.id as string | undefined) ?? undefined;
+      let isNew = false;
+      if (!userId) {
+        if (password.length < 6) {
+          setBusy(false);
+          return setErr('New account: set a password (min 6 characters).');
+        }
+        userId = await adminCreateHostUser({ email: emailLc, password, name: name.trim() });
+        isNew = true;
+      }
+
+      // Grant/refresh the host role (admin-gated by RLS). Upsert so re-assigning is safe.
+      const { error } = await supabase.from('host_accounts').upsert({
         user_id: userId,
         host_type: hostType,
         name: name.trim(),
@@ -87,7 +104,7 @@ export default function AdminHostsScreen() {
         org_name: null,
       });
       if (error) throw error;
-      setCreated({ email: email.trim(), password });
+      setCreated({ email: emailLc, password: isNew ? password : null });
       reset();
       loadRows();
     } catch (e: any) {
@@ -184,9 +201,11 @@ export default function AdminHostsScreen() {
       {created && (
         <View style={styles.created}>
           <Text style={styles.createdTitle}>✓ {t('hosts.createdTitle')}</Text>
-          <Text style={styles.createdText}>{t('hosts.share')}</Text>
+          <Text style={styles.createdText}>
+            {created.password ? t('hosts.share') : t('hosts.roleAdded')}
+          </Text>
           <Text style={styles.cred}>👤 {created.email}</Text>
-          <Text style={styles.cred}>🔑 {created.password}</Text>
+          {!!created.password && <Text style={styles.cred}>🔑 {created.password}</Text>}
         </View>
       )}
 
