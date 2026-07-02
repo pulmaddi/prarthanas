@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { colors, radius, spacing } from '../theme';
 import { Button } from '../components/ui';
@@ -42,6 +43,7 @@ export default function AdminHostsScreen() {
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
   const [org, setOrg] = useState('');
+  const [typeOpen, setTypeOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [created, setCreated] = useState<{ email: string; password: string } | null>(null);
@@ -115,19 +117,47 @@ export default function AdminHostsScreen() {
       <Text style={styles.hint}>{t('hosts.hint')}</Text>
 
       <Text style={styles.label}>{t('hosts.type')}</Text>
-      <View style={styles.chips}>
-        {TYPES.map((ty) => (
-          <TouchableOpacity
-            key={ty.key}
-            style={[styles.chip, hostType === ty.key && styles.chipOn]}
-            onPress={() => setHostType(ty.key)}
-          >
-            <Text style={[styles.chipText, hostType === ty.key && styles.chipTextOn]}>
-              {ty.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <TouchableOpacity
+        style={styles.select}
+        activeOpacity={0.7}
+        onPress={() => setTypeOpen(true)}
+      >
+        <Text style={styles.selectText}>{TYPE_LABEL[hostType]}</Text>
+        <Text style={styles.selectChevron}>▾</Text>
+      </TouchableOpacity>
+
+      <Modal
+        visible={typeOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setTypeOpen(false)}
+      >
+        <TouchableOpacity
+          style={styles.ddBackdrop}
+          activeOpacity={1}
+          onPress={() => setTypeOpen(false)}
+        >
+          <View style={styles.ddSheet}>
+            {TYPES.map((ty) => (
+              <TouchableOpacity
+                key={ty.key}
+                style={styles.ddOption}
+                onPress={() => {
+                  setHostType(ty.key);
+                  setTypeOpen(false);
+                }}
+              >
+                <Text
+                  style={[styles.ddOptionText, hostType === ty.key && styles.ddOptionOn]}
+                >
+                  {ty.label}
+                </Text>
+                {hostType === ty.key && <Text style={styles.ddCheck}>✓</Text>}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       {[
         { label: t('hosts.name'), v: name, set: setName, ph: 'Full name', cap: 'words' as const },
@@ -200,18 +230,42 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   field: {},
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
+  select: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.white,
     borderColor: colors.line,
     borderWidth: 1,
-    borderRadius: radius.pill,
+    borderRadius: radius.md,
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: colors.white,
+    paddingVertical: 13,
   },
-  chipOn: { backgroundColor: colors.maroon, borderColor: colors.maroon },
-  chipText: { color: colors.ink, fontSize: 13 },
-  chipTextOn: { color: colors.white },
+  selectText: { fontSize: 15, color: colors.ink },
+  selectChevron: { fontSize: 16, color: colors.muted },
+  ddBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  ddSheet: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    overflow: 'hidden',
+  },
+  ddOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  ddOptionText: { fontSize: 15, color: colors.ink },
+  ddOptionOn: { color: colors.maroon, fontWeight: '700' },
+  ddCheck: { color: colors.maroon, fontWeight: '800', fontSize: 16 },
   err: { color: colors.live, fontSize: 13, marginTop: 12 },
   created: {
     backgroundColor: '#EAF7EE',
