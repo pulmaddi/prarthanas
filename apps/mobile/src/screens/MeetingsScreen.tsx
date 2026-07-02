@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { MainTabParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { Card, Title, Muted, Button } from '../components/ui';
 import SectionHeader from '../components/SectionHeader';
@@ -73,6 +76,7 @@ const Chip = ({
 );
 
 export default function MeetingsScreen() {
+  const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
   const { meetings, createMeeting, deleteMeeting } = useHostContent();
 
   const [type, setType] = useState<MeetingType>('meeting');
@@ -141,6 +145,14 @@ export default function MeetingsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topbar}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Home')}
+          style={styles.backBtn}
+          hitSlop={8}
+          accessibilityLabel={t('common.back')}
+        >
+          <MaterialCommunityIcons name="arrow-left" size={22} color={colors.white} />
+        </TouchableOpacity>
         <MaterialCommunityIcons name="calendar-clock" size={22} color={colors.white} />
         <Text style={styles.topTitle}>{t('host.meetingsTitle')}</Text>
       </View>
@@ -303,6 +315,14 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   topTitle: { color: colors.white, fontSize: 17, fontWeight: '700' },
+  backBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   body: { padding: spacing.lg, paddingBottom: 30 },
   label: { fontSize: 12, fontWeight: '600', color: colors.muted, marginTop: 10, marginBottom: 4 },
   input: {

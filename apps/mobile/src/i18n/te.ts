@@ -174,7 +174,7 @@ export default {
     saffron: 'కుంకుమ',
   },
   rituals: { title: 'వర్చువల్ పూజలు' },
-  common: { join: 'ప్రత్యక్షంగా చేరండి', book: 'బుక్ చేయండి', rsvp: 'హాజరు', pay: 'చెల్లించండి' },
+  common: { join: 'ప్రత్యక్షంగా చేరండి', book: 'బుక్ చేయండి', rsvp: 'హాజరు', pay: 'చెల్లించండి', back: 'వెనుకకు' },
   profile: {
     devotee: 'భక్తుడు',
     account: 'ఖాతా',

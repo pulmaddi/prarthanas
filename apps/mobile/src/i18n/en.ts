@@ -174,7 +174,7 @@ export default {
     saffron: 'Saffron',
   },
   rituals: { title: 'Virtual Rituals' },
-  common: { join: 'Join live', book: 'Book', rsvp: 'RSVP', pay: 'Pay' },
+  common: { join: 'Join live', book: 'Book', rsvp: 'RSVP', pay: 'Pay', back: 'Back' },
   profile: {
     devotee: 'Devotee',
     account: 'Account',

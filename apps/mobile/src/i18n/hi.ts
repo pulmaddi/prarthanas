@@ -174,7 +174,7 @@ export default {
     saffron: 'केसर',
   },
   rituals: { title: 'आभासी अनुष्ठान' },
-  common: { join: 'लाइव जुड़ें', book: 'बुक करें', rsvp: 'उपस्थिति', pay: 'भुगतान' },
+  common: { join: 'लाइव जुड़ें', book: 'बुक करें', rsvp: 'उपस्थिति', pay: 'भुगतान', back: 'वापस' },
   profile: {
     devotee: 'भक्त',
     account: 'खाता',
