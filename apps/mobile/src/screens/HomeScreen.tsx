@@ -103,6 +103,15 @@ export default function HomeScreen({ navigation }: Props) {
             >
               <Text style={styles.drawerItemText}>🧑‍🏫 {t('profile.adminHosts')}</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => {
+                setMenuOpen(false);
+                rootNav.navigate('AdminHostsManage');
+              }}
+            >
+              <Text style={styles.drawerItemText}>🗂️ {t('profile.adminHostsManage')}</Text>
+            </TouchableOpacity>
           </View>
           <TouchableOpacity
             style={styles.drawerBackdrop}
