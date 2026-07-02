@@ -42,7 +42,6 @@ export default function AdminHostsScreen() {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
-  const [org, setOrg] = useState('');
   const [typeOpen, setTypeOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -66,7 +65,6 @@ export default function AdminHostsScreen() {
     setPassword('');
     setPhone('');
     setCity('');
-    setOrg('');
   };
 
   const onCreate = async () => {
@@ -86,7 +84,7 @@ export default function AdminHostsScreen() {
         name: name.trim(),
         phone: phone.trim() || null,
         city: city.trim() || null,
-        org_name: org.trim() || null,
+        org_name: null,
       });
       if (error) throw error;
       setCreated({ email: email.trim(), password });
@@ -165,7 +163,6 @@ export default function AdminHostsScreen() {
         { label: t('hosts.password'), v: password, set: setPassword, ph: 'Set a password', secure: true },
         { label: t('hosts.phone'), v: phone, set: setPhone, ph: '+91 …', kb: 'phone-pad' as const },
         { label: t('hosts.city'), v: city, set: setCity, ph: 'City' },
-        { label: t('hosts.org'), v: org, set: setOrg, ph: 'Temple / Ashram / Org' },
       ].map((f) => (
         <View key={f.label} style={styles.field}>
           <Text style={styles.label}>{f.label}</Text>
