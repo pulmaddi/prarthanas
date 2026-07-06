@@ -15,10 +15,24 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ishta.app"
+      "bundleIdentifier": "com.ishta.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Ishta uses your camera so a priest can appear on video during a live pooja.",
+        "NSMicrophoneUsageDescription": "Ishta uses your microphone so you can speak and hear during a live pooja."
+      }
     },
     "android": {
-      "package": "com.ishta.app"
+      "package": "com.ishta.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/ishta-logo.png",
+        "backgroundColor": "#7A1F2B"
+      },
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -27,6 +41,16 @@
     "extra": {
       "apiBaseUrl": "http://localhost:3000/api/v1"
     },
-    "plugins": ["expo-localization"]
+    "plugins": [
+      "expo-localization",
+      "@livekit/react-native",
+      [
+        "expo-build-properties",
+        {
+          "android": { "minSdkVersion": 24 },
+          "ios": { "deploymentTarget": "13.4" }
+        }
+      ]
+    ]
   }
 }
