@@ -18,3 +18,7 @@ Thumbs.db
 *.log
 .vscode/
 .idea/
+
+# Expo prebuild native projects (regenerate with `expo prebuild`)
+apps/mobile/android/
+apps/mobile/ios/
