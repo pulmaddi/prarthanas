@@ -43,7 +43,6 @@
     },
     "plugins": [
       "expo-localization",
-      "@livekit/react-native",
       [
         "expo-build-properties",
         {

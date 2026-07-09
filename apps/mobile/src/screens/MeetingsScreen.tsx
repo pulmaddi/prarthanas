@@ -319,7 +319,7 @@ export default function MeetingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.cream },
+  safe: { flex: 1, backgroundColor: colors.bg },
   topbar: {
     backgroundColor: colors.maroon,
     flexDirection: 'row',

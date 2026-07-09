@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { colors, radius } from '../theme';
+import { colors, radius, type } from '../theme';
 
-/** Section title on a soft saffron bar with a crisp vector icon. */
+/** Section title on a soft sandalwood bar with a crisp saffron icon. */
 export default function SectionHeader({
   icon,
   title,
@@ -13,8 +13,8 @@ export default function SectionHeader({
 }) {
   return (
     <View style={styles.bar}>
-      <MaterialCommunityIcons name={icon} size={18} color={colors.maroon} />
-      <Text style={styles.title}>{title}</Text>
+      <MaterialCommunityIcons name={icon} size={18} color={colors.saffron} />
+      <Text style={[type.h2, styles.title]}>{title}</Text>
     </View>
   );
 }
@@ -24,14 +24,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#F7E4CC',
+    backgroundColor: colors.sandalSoft,
     borderLeftWidth: 4,
     borderLeftColor: colors.saffron,
     borderRadius: radius.sm,
-    paddingVertical: 9,
+    paddingVertical: 10,
     paddingHorizontal: 12,
     marginTop: 20,
     marginBottom: 10,
   },
-  title: { fontSize: 15, fontWeight: '800', color: colors.maroon },
+  title: { fontSize: 18 },
 });

@@ -1,12 +1,18 @@
 import React, { useCallback, useState } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFonts, Marcellus_400Regular } from '@expo-google-fonts/marcellus';
+import {
+  Mukta_400Regular,
+  Mukta_500Medium,
+  Mukta_600SemiBold,
+} from '@expo-google-fonts/mukta';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import { colors } from './src/theme';
+import { colors, fonts } from './src/theme';
 import { t, setLocale } from './src/i18n';
 import { AuthProvider, useAuth } from './src/lib/auth';
 import { LocaleContext, type Lang } from './src/lib/locale';
@@ -53,9 +59,9 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#F2B441', // turmeric/gold — high contrast on maroon
+        tabBarActiveTintColor: colors.turmeric, // turmeric — high contrast on maroon
         tabBarInactiveTintColor: 'rgba(255,255,255,0.6)',
-        tabBarLabelStyle: { fontSize: 10 },
+        tabBarLabelStyle: { fontSize: 10, fontFamily: fonts.body },
         tabBarStyle: {
           backgroundColor: colors.maroon,
           borderTopColor: 'rgba(255,255,255,0.12)',
@@ -112,6 +118,14 @@ export default function App() {
     setLocale(l);
     setLang(l);
   }, []);
+
+  const [fontsLoaded] = useFonts({
+    Marcellus_400Regular,
+    Mukta_400Regular,
+    Mukta_500Medium,
+    Mukta_600SemiBold,
+  });
+  if (!fontsLoaded) return null;
 
   return (
     <SafeAreaProvider>
