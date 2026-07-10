@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#7A1F2B"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ishta.app",
@@ -39,17 +41,25 @@
       "favicon": "./assets/ishta-logo.png"
     },
     "extra": {
-      "apiBaseUrl": "http://localhost:3000/api/v1"
+      "apiBaseUrl": "http://localhost:3000/api/v1",
+      "eas": {
+        "projectId": "2e9328de-b712-4363-ad53-dcfc3bce854a"
+      }
     },
     "plugins": [
       "expo-localization",
       [
         "expo-build-properties",
         {
-          "android": { "minSdkVersion": 24 },
-          "ios": { "deploymentTarget": "13.4" }
+          "android": {
+            "minSdkVersion": 24
+          },
+          "ios": {
+            "deploymentTarget": "13.4"
+          }
         }
       ]
-    ]
+    ],
+    "owner": "quaitech"
   }
 }
