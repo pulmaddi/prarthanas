@@ -6,11 +6,11 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "icon": "./assets/ishta-logo.png",
+    "icon": "./assets/icon.png",
     "splash": {
-      "image": "./assets/ishta-logo.png",
+      "image": "./assets/logo.jpeg",
       "resizeMode": "contain",
-      "backgroundColor": "#7A1F2B"
+      "backgroundColor": "#FFFFFF"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -27,8 +27,8 @@
       "package": "com.ishta.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/ishta-logo.png",
-        "backgroundColor": "#7A1F2B"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
       },
       "permissions": [
         "CAMERA",
@@ -38,7 +38,7 @@
     },
     "web": {
       "bundler": "metro",
-      "favicon": "./assets/ishta-logo.png"
+      "favicon": "./assets/icon.png"
     },
     "extra": {
       "apiBaseUrl": "http://localhost:3000/api/v1",

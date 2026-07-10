@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius, shadow, spacing } from '../theme';
 import { Button } from '../components/ui';
 import GoogleButton from '../components/GoogleButton';
 import { t } from '../i18n';
@@ -25,7 +25,7 @@ export default function WelcomeScreen({ navigation }: Props) {
         {/* Logo + identity */}
         <View style={styles.logoBadge}>
           <Image
-            source={require('../../assets/ishta-logo.png')}
+            source={require('../../assets/logo.jpeg')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -99,9 +99,14 @@ const styles = StyleSheet.create({
   logoBadge: {
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 24,
+    paddingVertical: 18,
+    paddingHorizontal: 22,
+    ...shadow.card,
   },
-  logo: { width: 160, height: 160 },
-  tag: { color: colors.cream, fontSize: 14, opacity: 0.9, marginTop: -24 },
+  logo: { width: 170, height: 170 },
+  tag: { color: colors.cream, fontSize: 14, opacity: 0.9, marginTop: 16 },
   purpose: {
     color: colors.cream,
     fontSize: 15,

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { colors } from '../theme';
+import { colors, shadow } from '../theme';
 import { t } from '../i18n';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
@@ -31,7 +31,7 @@ export default function SplashScreen({ navigation }: Props) {
     <View style={styles.container}>
       <View style={styles.logoCard}>
         <Image
-          source={require('../../assets/ishta-logo.png')}
+          source={require('../../assets/logo.jpeg')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -49,8 +49,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoCard: { alignItems: 'center', justifyContent: 'center' },
-  logo: { width: 170, height: 170 },
+  logoCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 28,
+    paddingVertical: 22,
+    paddingHorizontal: 26,
+    ...shadow.card,
+  },
+  logo: { width: 200, height: 200 },
   tag: { color: colors.cream, fontSize: 13, marginTop: 16, opacity: 0.9 },
   langs: { color: colors.cream, fontSize: 11, position: 'absolute', bottom: 40, opacity: 0.8 },
 });

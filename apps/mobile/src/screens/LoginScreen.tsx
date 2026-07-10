@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius, shadow, spacing } from '../theme';
 import { Button } from '../components/ui';
 import GoogleButton from '../components/GoogleButton';
 import { t } from '../i18n';
@@ -53,7 +53,7 @@ export default function LoginScreen({ navigation }: Props) {
     >
       <View style={styles.logoWrap}>
         <Image
-          source={require('../../assets/ishta-logo.png')}
+          source={require('../../assets/logo.jpeg')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -105,8 +105,13 @@ const styles = StyleSheet.create({
   logoWrap: {
     alignSelf: 'center',
     marginTop: 24,
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    ...shadow.card,
   },
-  logo: { width: 96, height: 96 },
+  logo: { width: 160, height: 140 },
   h1: { fontSize: 22, fontWeight: '700', color: colors.maroon, marginTop: 18 },
   sub: { fontSize: 13, color: colors.muted, marginTop: 4, marginBottom: 8 },
   field: { marginTop: 14 },
