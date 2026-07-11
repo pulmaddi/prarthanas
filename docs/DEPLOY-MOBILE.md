@@ -19,10 +19,16 @@ bank + GSTIN for payouts). See the discussion in chat / ARCHITECTURE §7 (IAP ri
   - **development** → dev client (APK) for live-reload native debugging.
   - **production** → **AAB** for the Play Store.
 
-> **Before building:** open `apps/mobile/eas.json` and replace
-> `REPLACE_WITH_YOUR_ANON_KEY` with the Supabase anon key from
-> `apps/mobile/.env` (it's the public key — safe to embed; RLS protects data).
-> Confirm the `EXPO_PUBLIC_SUPABASE_URL` matches your project.
+> **Auth env (already set):** `apps/mobile/eas.json` carries the public
+> `EXPO_PUBLIC_SUPABASE_URL` + `EXPO_PUBLIC_SUPABASE_ANON_KEY` in every profile's
+> `env` block (anon key is safe to embed; RLS protects data). A built APK has no
+> `.env`, so these must live in `eas.json`.
+>
+> **Google sign-in** works on the native app via a deep-link callback. It requires
+> `ishta://auth-callback` allow-listed in **Supabase → Auth → URL Configuration →
+> Redirect URLs**, plus the Google provider enabled (the Google *Web* OAuth client
+> is shared with the web app — no Android client). Full steps:
+> [`supabase/README.md` → Google sign-in (OAuth)](../supabase/README.md#google-sign-in-oauth).
 
 ## Build an APK to test on your Android phone
 ```bash

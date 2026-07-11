@@ -41,6 +41,45 @@ cp apps/mobile/.env.example apps/mobile/.env
 ```
 Restart the Expo dev server after editing `.env`.
 
+> **For EAS cloud builds** the same public URL + anon key are read from the
+> `env` block of each profile in [`apps/mobile/eas.json`](../apps/mobile/eas.json)
+> (a built APK has no `.env`). These are already set for the Ishta project.
+
+## Google sign-in (OAuth)
+
+Ishta supports **Continue with Google** on web and native (Android/iOS). The app
+never talks to Google directly — the flow is **app → Supabase → Google → Supabase
+→ app**, so a single Google **Web application** OAuth client serves every platform
+(no separate Android client needed).
+
+**Code:** `signInWithGoogle()` + `setSessionFromUrl()` in
+[`apps/mobile/src/lib/supabase.ts`](../apps/mobile/src/lib/supabase.ts); the native
+deep-link handler + `navigationRef` live in
+[`apps/mobile/App.tsx`](../apps/mobile/App.tsx). The app scheme (`ishta`) is set in
+`app.json`.
+
+### Setup (once per Supabase project)
+1. **Google Cloud → Auth Platform → Clients** — a **Web application** OAuth client
+   whose **Authorized redirect URIs** include the Supabase callback:
+   ```
+   https://<project-ref>.supabase.co/auth/v1/callback
+   ```
+2. **Google Cloud → Auth Platform → Audience** — set **Publishing status = In
+   production** so any Google account can sign in. Ishta requests only basic scopes
+   (email, profile, openid), so **no Google verification/review is required**.
+   (Leave it in *Testing* to restrict to listed test-user emails instead.)
+3. **Supabase → Authentication → Providers → Google** — enable, paste the client's
+   **Client ID + secret**.
+4. **Supabase → Authentication → URL Configuration → Redirect URLs** — add the
+   native deep link (this is the mobile-only addition; web uses its site URL):
+   ```
+   ishta://auth-callback
+   ```
+
+> For the Ishta project (`azeawlwqtiqtbgjrazxl`) the Google client + provider are
+> **already configured** (shared with the web app, same project URL). The only
+> mobile-specific addition is the `ishta://auth-callback` redirect URL in step 4.
+
 ## Deity images (Ishta Daiva)
 
 The deity catalog + images are managed entirely from the Supabase dashboard — **no custom admin page**.
