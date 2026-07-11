@@ -1,8 +1,9 @@
 # Development guide — Clique platform
 
-This is the engineering setup for the **app** (mobile + API). The static preview
-site (root `index.html`, `view.html`, `docs/`) is separate and deploys to Render
-per [DEPLOY.md](DEPLOY.md).
+This is the engineering setup for the **app** (mobile + API). The devotee product
+is one Expo/React-Native codebase in [`apps/mobile`](../apps/mobile) that targets
+**Android, iOS, and Web** — run the web view with `cd apps/mobile && npm run web`
+(http://localhost:8081). Cloud builds: [DEPLOY-MOBILE.md](DEPLOY-MOBILE.md).
 
 ## Monorepo layout
 ```

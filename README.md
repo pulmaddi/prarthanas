@@ -2,7 +2,7 @@
 
 A meeting and community app for Hindu devotees in India. Temples, devotee groups, and Gurus/Swamijis host live audio/video gatherings, perform virtual rituals, share information, and deliver group-level messages. Participants pay to access premium services through India-native payments.
 
-> **Status:** Planning / requirements phase. No application code yet — see [`docs/`](docs/) for requirements, architecture, and roadmap.
+> **Status:** In build. The devotee app (`apps/mobile`, React Native + `react-native-web`) runs on Android, iOS, and Web from one codebase; NestJS API + Supabase back it. See [`docs/`](docs/) for requirements, architecture, and roadmap.
 
 ## What it does
 
@@ -29,16 +29,13 @@ Mobile-first (Android + iOS) on **React Native (Expo)**, a **Node.js/TypeScript 
 
 | Doc | Purpose |
 | --- | --- |
-| [index.html](index.html) | Public **hero / landing page** (logo, goal, Register Now, Terms) |
-| [preview.html](preview.html) | Client review portal (links wireframes + all docs) |
-| [register.html](register.html) | Sign-up landing — accept T&C to enable Register Now |
-| [terms.html](terms.html) | Terms & Conditions (draft; payment terms TBD) |
 | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) | Functional and non-functional requirements, roles, user stories |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, tech stack, data model, integrations |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Phased delivery plan, MVP scope, milestones |
 | [docs/GLOSSARY.md](docs/GLOSSARY.md) | Domain terms (devotional + technical) |
 | [docs/BRANDING.md](docs/BRANDING.md) | Devotional name options + visual identity |
-| [docs/wireframes/index.html](docs/wireframes/index.html) | Clickable wireframe gallery (open in a browser) |
-| [docs/DEPLOY.md](docs/DEPLOY.md) | How to deploy the preview portal to Render |
-| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Engineering setup — run the monorepo (mobile + API) |
+| [docs/wireframes/index.html](docs/wireframes/index.html) | Clickable wireframe gallery (design reference; open in a browser) |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Engineering setup — run the monorepo (mobile web + API) |
+| [docs/DEPLOY-MOBILE.md](docs/DEPLOY-MOBILE.md) | Build the Android/iOS apps with EAS |
+| [supabase/README.md](supabase/README.md) | Supabase setup — auth (email + Google), schema, admin |
 | [CLAUDE.md](CLAUDE.md) | Context for AI-assisted development sessions |

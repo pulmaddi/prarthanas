@@ -10,11 +10,7 @@ The **client is non-technical** and provides **user/business requirements only**
 ## What this is
 **Clique** is a mobile-first (Android + iOS) meeting & community app for Hindu devotees in India. Temples, devotee groups, and Gurus/Swamijis host live audio/video gatherings, run **virtual rituals**, schedule recurring occasions, and broadcast group-level messages. Devotees pay for access.
 
-**Current state:** the monorepo is scaffolded (`apps/api` NestJS, `apps/mobile` Expo, `packages/shared`, `infra`) at Phase-1 skeleton level — modules express the architecture, several flows are stubbed (`TODO`). A static **front door** also lives at the repo root and deploys to Render:
-- `index.html` — public hero/landing page (logo, end-user goal, Register Now, Terms link)
-- `terms.html` — Terms & Conditions (draft; payment terms added later)
-- `preview.html` — client review portal → `view.html` (renders docs) + `docs/wireframes/`
-See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) to run the app and [docs/DEPLOY.md](docs/DEPLOY.md) for the static site.
+**Current state:** the monorepo is scaffolded (`apps/api` NestJS, `apps/mobile` Expo, `packages/shared`, `infra`) with the mobile app actively in build. The devotee product is **one codebase** in `apps/mobile` (React Native + `react-native-web`) that runs on **Android, iOS, and Web** — build product UI there, never as standalone HTML (see Working agreements). The earlier static "front door" (root `index.html`/`terms.html`/`preview.html` + `admin/` + `render.yaml`) has been **removed** in favour of the app's web build. Design records remain under `docs/wireframes/`. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) to run the app (`cd apps/mobile && npm run web`) and [docs/DEPLOY-MOBILE.md](docs/DEPLOY-MOBILE.md) for builds.
 
 ## Source of truth
 - [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) — functional (FR-*) and non-functional (NFR-*) requirements, roles, user stories, open questions.
