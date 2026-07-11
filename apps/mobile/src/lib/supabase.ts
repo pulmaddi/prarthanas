@@ -1,5 +1,5 @@
 import 'react-native-url-polyfill/auto';
-import { Platform } from 'react-native';
+import { Platform, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 
@@ -31,19 +31,71 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   },
 });
 
+// Deep link the OAuth callback back into the native app. Must match the
+// `scheme` in app.json and be allow-listed in Supabase → Auth → URL config.
+export const NATIVE_AUTH_REDIRECT = 'ishta://auth-callback';
+
 /**
- * Google OAuth sign-in. Fully supported on web (redirects the page to Google
- * and back). On native it needs an in-app browser flow (follow-up).
+ * Google OAuth sign-in.
+ * - Web: redirects the page to Google and back (tokens parsed from the URL).
+ * - Native: opens the system browser; Google → Supabase → deep-links back to
+ *   NATIVE_AUTH_REDIRECT with the session, completed by setSessionFromUrl()
+ *   (wired to a Linking listener in App.tsx).
  */
 export async function signInWithGoogle() {
   const redirectTo =
-    isWeb && typeof window !== 'undefined' ? window.location.origin : undefined;
+    isWeb && typeof window !== 'undefined'
+      ? window.location.origin
+      : NATIVE_AUTH_REDIRECT;
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo },
+    options: { redirectTo, skipBrowserRedirect: !isWeb },
   });
   if (error) throw error;
+  if (!isWeb) {
+    if (!data?.url) throw new Error('Could not start Google sign-in.');
+    await Linking.openURL(data.url); // hand off to the browser for consent
+  }
   return data;
+}
+
+/**
+ * Complete a native OAuth sign-in from the deep-link callback URL. Handles both
+ * the implicit flow (tokens in the URL fragment) and PKCE (an auth code in the
+ * query). Returns the new session, or null if the URL carried no auth payload.
+ */
+export async function setSessionFromUrl(url: string) {
+  const [beforeHash, afterHash] = url.split('#');
+  const queryStr = beforeHash.includes('?')
+    ? beforeHash.slice(beforeHash.indexOf('?') + 1)
+    : '';
+  const params = new URLSearchParams(queryStr);
+  if (afterHash) {
+    new URLSearchParams(afterHash).forEach((v, k) => params.set(k, v));
+  }
+
+  const errorDescription = params.get('error_description');
+  if (errorDescription) throw new Error(errorDescription);
+
+  const access_token = params.get('access_token');
+  const refresh_token = params.get('refresh_token');
+  if (access_token && refresh_token) {
+    const { data, error } = await supabase.auth.setSession({
+      access_token,
+      refresh_token,
+    });
+    if (error) throw error;
+    return data.session;
+  }
+
+  const code = params.get('code');
+  if (code) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) throw error;
+    return data.session;
+  }
+
+  return null;
 }
 
 /**

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors, radius } from '../theme';
 import { signInWithGoogle, isSupabaseConfigured } from '../lib/supabase';
 import { t } from '../i18n';
 
 /**
- * "Continue with Google" button. Implemented for web (Supabase OAuth redirect).
- * Hidden on native for now (needs an in-app browser flow — follow-up).
+ * "Continue with Google" button. Works on web (page redirect) and native
+ * (system browser → deep-link callback; see signInWithGoogle + App.tsx).
  */
 export default function GoogleButton({
   onError,
@@ -16,13 +16,19 @@ export default function GoogleButton({
   disabled?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
-  if (Platform.OS !== 'web' || !isSupabaseConfigured) return null;
 
   const onPress = async () => {
     if (disabled) return;
+    if (!isSupabaseConfigured) {
+      onError?.(
+        "Google sign-in isn't configured yet — add the Supabase key and enable the Google provider.",
+      );
+      return;
+    }
     try {
       setBusy(true);
-      await signInWithGoogle(); // redirects the page to Google
+      await signInWithGoogle(); // web: redirects; native: opens the browser
+      setBusy(false);
     } catch (e: any) {
       setBusy(false);
       onError?.(e?.message ?? 'Google sign-in failed.');

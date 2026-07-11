@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Linking } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFonts, Marcellus_400Regular } from '@expo-google-fonts/marcellus';
 import {
@@ -8,13 +9,17 @@ import {
 } from '@expo-google-fonts/mukta';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { colors, fonts } from './src/theme';
 import { t, setLocale } from './src/i18n';
 import { AuthProvider, useAuth } from './src/lib/auth';
+import { setSessionFromUrl } from './src/lib/supabase';
 import { LocaleContext, type Lang } from './src/lib/locale';
 import type { RootStackParamList, MainTabParamList } from './src/navigation/types';
 
@@ -51,6 +56,9 @@ const tabIcon =
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
+
+// Ref so the OAuth deep-link handler can navigate once a session lands.
+export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 function MainTabs() {
   const { hostType } = useAuth();
@@ -125,13 +133,33 @@ export default function App() {
     Mukta_500Medium,
     Mukta_600SemiBold,
   });
+
+  // Complete a native Google OAuth sign-in when the browser deep-links back.
+  useEffect(() => {
+    const handleUrl = async (url: string | null) => {
+      if (!url || !url.includes('auth-callback')) return;
+      try {
+        const session = await setSessionFromUrl(url);
+        if (session && navigationRef.isReady()) {
+          navigationRef.reset({ index: 0, routes: [{ name: 'Main' }] });
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('[auth] Google sign-in callback failed', e);
+      }
+    };
+    Linking.getInitialURL().then(handleUrl);
+    const sub = Linking.addEventListener('url', ({ url }) => handleUrl(url));
+    return () => sub.remove();
+  }, []);
+
   if (!fontsLoaded) return null;
 
   return (
     <SafeAreaProvider>
       <LocaleContext.Provider value={{ lang, changeLang }}>
       <AuthProvider>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <StatusBar style="light" />
         <Stack.Navigator
           initialRouteName="Splash"
