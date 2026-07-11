@@ -41,6 +41,7 @@ When requirements change, **update these docs first**, then code.
 - Be respectful and accurate with devotional terminology; see GLOSSARY. Functional descriptions only — no theological claims.
 
 ## Working agreements
+- **One product codebase — web + mobile parity.** The devotee app is a single Expo/React-Native codebase in [`apps/mobile`](apps/mobile) that targets **Android, iOS, and Web** (via `react-native-web`). Build every product feature here — **never as standalone HTML**. Each new feature must render and be verified in **both** the local web view (`cd apps/mobile && npm run web` → http://localhost:8081) **and** the mobile app before it's considered done.
 - Build vertical slices (API + mobile + tests), not horizontal layers, so the core loop (follow → pay → join event) is demoable early.
 - Reference requirements by ID (e.g. "implements FR-32, FR-33") in PRs/commits.
 - Keep this file and `docs/` in sync with reality as the project evolves.
