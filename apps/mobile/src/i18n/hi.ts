@@ -3,6 +3,7 @@ export default {
   tagline: 'अपने भीतर का मार्ग आलोकित करें',
   namaste: 'नमस्ते',
   roles: {
+    admin: 'एडमिन',
     devotee: 'भक्त',
     priest: 'पुजारी',
     guru: 'गुरु',

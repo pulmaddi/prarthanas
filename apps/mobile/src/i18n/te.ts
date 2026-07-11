@@ -3,6 +3,7 @@ export default {
   tagline: 'మీ అంతరంగ మార్గాన్ని వెలిగించండి',
   namaste: 'నమస్తే',
   roles: {
+    admin: 'అడ్మిన్',
     devotee: 'భక్తుడు',
     priest: 'పూజారి',
     guru: 'ఆధ్యాత్మిక గురువు',

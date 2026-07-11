@@ -35,8 +35,9 @@ export default function HomeScreen({ navigation }: Props) {
   const fullName = profile?.name?.trim() || t('profile.devotee');
   const firstName = fullName.split(' ')[0];
   const initial = (firstName[0] || '🙏').toUpperCase();
-  const roleLabel =
-    hostType === 'priest'
+  const roleLabel = isAdmin
+    ? t('roles.admin')
+    : hostType === 'priest'
       ? t('roles.priest')
       : hostType === 'guru'
         ? t('roles.guru')

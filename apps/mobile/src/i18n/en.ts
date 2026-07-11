@@ -3,6 +3,7 @@ export default {
   tagline: 'Light Your Inner Path',
   namaste: 'Namaste',
   roles: {
+    admin: 'Admin',
     devotee: 'Devotee',
     priest: 'Priest',
     guru: 'Spiritual Guru',
