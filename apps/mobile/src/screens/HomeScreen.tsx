@@ -146,7 +146,7 @@ export default function HomeScreen({ navigation }: Props) {
               activeOpacity={0.8}
               onPress={() =>
                 profile?.ishta_daiva
-                  ? rootNav.navigate('Pooja')
+                  ? rootNav.navigate('GuidedPooja')
                   : rootNav.navigate('MyIshtaDaiva')
               }
             >
@@ -166,7 +166,7 @@ export default function HomeScreen({ navigation }: Props) {
             <TouchableOpacity
               style={styles.idpBtn}
               activeOpacity={0.8}
-              onPress={() => rootNav.navigate('Pooja', { vaara: true })}
+              onPress={() => rootNav.navigate('GuidedPooja', { vaara: true })}
             >
               <Image
                 source={require('../../assets/WeekdayPooja.png')}

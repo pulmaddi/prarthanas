@@ -14,6 +14,7 @@ export type RootStackParamList = {
   AdminHosts: undefined;
   AdminHostsManage: undefined;
   Pooja: { deityName?: string; vaara?: boolean; day?: number } | undefined;
+  GuidedPooja: { deityName?: string; vaara?: boolean; day?: number } | undefined;
   LiveRoom: { meetingId: string; title: string; deityName?: string; hostId: string };
   RitualBooking: { occasionId: string; title: string };
   LiveMeeting: { occasionInstanceId: string; title: string };
