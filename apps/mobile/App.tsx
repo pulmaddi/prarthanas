@@ -51,10 +51,22 @@ import PoojaScreen from './src/screens/PoojaScreen';
 import LiveRoomScreen from './src/screens/LiveRoomScreen';
 
 // Crisp vector tab icons from @expo/vector-icons (bundled with Expo).
+// Footer tab icon: outline when inactive, solid when active — a cleaner, more
+// elegant read than a single static glyph. Falls back to the outline if no
+// solid variant is given.
 const tabIcon =
-  (name: keyof typeof MaterialCommunityIcons.glyphMap) =>
-  ({ color, size }: { color: string; size: number }) =>
-    <MaterialCommunityIcons name={name} size={size ?? 24} color={color} />;
+  (
+    outline: keyof typeof MaterialCommunityIcons.glyphMap,
+    solid?: keyof typeof MaterialCommunityIcons.glyphMap,
+  ) =>
+  ({ color, focused }: { color: string; size: number; focused: boolean }) =>
+    (
+      <MaterialCommunityIcons
+        name={focused && solid ? solid : outline}
+        size={24}
+        color={color}
+      />
+    );
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -70,33 +82,48 @@ function MainTabs() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.turmeric, // turmeric — high contrast on maroon
-        tabBarInactiveTintColor: 'rgba(255,255,255,0.6)',
-        tabBarLabelStyle: { fontSize: 10, fontFamily: fonts.body },
+        tabBarInactiveTintColor: 'rgba(255,248,236,0.55)', // soft ivory
+        tabBarShowLabel: true,
+        tabBarLabelStyle: {
+          fontSize: 10.5,
+          fontFamily: fonts.medium,
+          marginTop: 3,
+          letterSpacing: 0.2,
+        },
+        tabBarIconStyle: { marginTop: 4 },
+        tabBarItemStyle: { paddingVertical: 4 },
         tabBarStyle: {
           backgroundColor: colors.maroon,
-          borderTopColor: 'rgba(255,255,255,0.12)',
-          height: 60,
-          paddingBottom: 6,
+          borderTopColor: 'rgba(255,255,255,0.10)',
+          borderTopWidth: 1,
+          height: 66,
+          paddingBottom: 8,
           paddingTop: 6,
+          // subtle lift off the content
+          elevation: 12,
+          shadowColor: '#000',
+          shadowOpacity: 0.18,
+          shadowOffset: { width: 0, height: -2 },
+          shadowRadius: 8,
         },
       }}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ title: t('tabs.home'), tabBarIcon: tabIcon('home-variant') }}
+        options={{ title: t('tabs.home'), tabBarIcon: tabIcon('home-outline', 'home') }}
       />
       {isHost ? (
         <>
           <Tab.Screen
             name="Meetings"
             component={MeetingsScreen}
-            options={{ title: t('tabs.meetings'), tabBarIcon: tabIcon('calendar-clock') }}
+            options={{ title: t('tabs.meetings'), tabBarIcon: tabIcon('calendar-blank-outline', 'calendar') }}
           />
           <Tab.Screen
             name="MyNotifications"
             component={NotificationsScreen}
-            options={{ title: t('tabs.myNotifications'), tabBarIcon: tabIcon('bell-ring') }}
+            options={{ title: t('tabs.myNotifications'), tabBarIcon: tabIcon('bullhorn-outline', 'bullhorn') }}
           />
         </>
       ) : (
@@ -109,17 +136,17 @@ function MainTabs() {
           <Tab.Screen
             name="JoinCommunity"
             component={JoinCommunityScreen}
-            options={{ title: t('tabs.joinCommunity'), tabBarIcon: tabIcon('account-group') }}
+            options={{ title: t('tabs.joinCommunity'), tabBarIcon: tabIcon('account-group-outline', 'account-group') }}
           />
           <Tab.Screen
             name="JoinMeeting"
             component={JoinMeetingScreen}
-            options={{ title: t('tabs.joinMeeting'), tabBarIcon: tabIcon('video') }}
+            options={{ title: t('tabs.joinMeeting'), tabBarIcon: tabIcon('video-outline', 'video') }}
           />
           <Tab.Screen
             name="Notifications"
             component={NotificationsInboxScreen}
-            options={{ title: t('tabs.notifications'), tabBarIcon: tabIcon('bell-outline') }}
+            options={{ title: t('tabs.notifications'), tabBarIcon: tabIcon('bell-outline', 'bell') }}
           />
         </>
       )}
