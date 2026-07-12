@@ -7,6 +7,7 @@ export type RootStackParamList = {
   Main: undefined;
   Profile: undefined;
   MyProfile: undefined;
+  MyIshtaDaiva: undefined;
   ChangePassword: undefined;
   Admin: undefined;
   AdminVaara: undefined;

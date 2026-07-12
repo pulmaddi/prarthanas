@@ -40,6 +40,7 @@ import HostProfileScreen from './src/screens/HostProfileScreen';
 import SubscribeScreen from './src/screens/SubscribeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import MyProfileScreen from './src/screens/MyProfileScreen';
+import MyIshtaDaivaScreen from './src/screens/MyIshtaDaivaScreen';
 import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 import AdminScreen from './src/screens/AdminScreen';
 import AdminVaaraScreen from './src/screens/AdminVaaraScreen';
@@ -180,6 +181,7 @@ export default function App() {
           <Stack.Screen name="HostProfile" component={HostProfileScreen} options={{ title: '' }} />
           <Stack.Screen name="Subscribe" component={SubscribeScreen} options={{ title: 'Subscribe' }} />
           <Stack.Screen name="MyProfile" component={MyProfileScreen} options={{ title: t('profile.myProfile') }} />
+          <Stack.Screen name="MyIshtaDaiva" component={MyIshtaDaivaScreen} options={{ title: t('profile.myIshtaDaiva') }} />
           <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ title: t('profile.changePassword') }} />
           <Stack.Screen name="Admin" component={AdminScreen} options={{ title: t('profile.admin') }} />
           <Stack.Screen name="AdminVaara" component={AdminVaaraScreen} options={{ title: t('profile.adminVaara') }} />

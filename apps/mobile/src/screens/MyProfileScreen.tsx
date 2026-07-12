@@ -12,15 +12,12 @@ import { Button } from '../components/ui';
 import { t } from '../i18n';
 import { useAuth } from '../lib/auth';
 import { useLocale, LANGUAGES, type Lang } from '../lib/locale';
-import { useDeities } from '../lib/deities';
 
 export default function MyProfileScreen() {
   const { profile, email, updateProfile } = useAuth();
   const { lang, changeLang } = useLocale();
-  const { deities } = useDeities();
   const [name, setName] = useState(profile?.name ?? '');
   const [phone, setPhone] = useState(profile?.phone ?? '');
-  const [ishta, setIshta] = useState(profile?.ishta_daiva ?? '');
   const [city, setCity] = useState(profile?.city ?? '');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
@@ -38,7 +35,6 @@ export default function MyProfileScreen() {
       await updateProfile({
         name: name.trim(),
         phone: phone.trim(),
-        ishta_daiva: ishta.trim(),
         city: city.trim(),
       });
       setMsg('Profile updated ✓');
@@ -87,34 +83,6 @@ export default function MyProfileScreen() {
           placeholderTextColor={colors.muted}
           keyboardType="phone-pad"
         />
-      </View>
-
-      <View style={styles.field}>
-        <Text style={styles.label}>{t('myProfile.ishtaDaiva')}</Text>
-        <TextInput
-          style={styles.input}
-          value={ishta}
-          onChangeText={setIshta}
-          placeholder={t('myProfile.ishtaDaivaPlaceholder')}
-          placeholderTextColor={colors.muted}
-          autoCapitalize="words"
-        />
-        <View style={styles.deities}>
-          {deities.map((d) => {
-            const active = ishta === d.display_name;
-            return (
-              <TouchableOpacity
-                key={d.key}
-                style={[styles.chip, active && styles.chipOn]}
-                onPress={() => setIshta(d.display_name)}
-              >
-                <Text style={[styles.chipText, active && styles.chipTextOn]}>
-                  🙏 {d.display_name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
       </View>
 
       <View style={styles.field}>

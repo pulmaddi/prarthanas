@@ -197,6 +197,8 @@ export default {
     devotee: 'Devotee',
     account: 'Account',
     about: 'About',
+    myIshtaDaiva: 'My Ishta Daiva',
+    myIshtaDaivaHint: 'Choose the deity you worship as your Ishta Daiva.',
     myProfile: 'My Profile',
     changePassword: 'Change password',
     notifications: 'Notifications',

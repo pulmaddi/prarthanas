@@ -197,6 +197,8 @@ export default {
     devotee: 'భక్తుడు',
     account: 'ఖాతా',
     about: 'గురించి',
+    myIshtaDaiva: 'నా ఇష్ట దైవం',
+    myIshtaDaivaHint: 'మీరు ఆరాధించే దేవుణ్ణి మీ ఇష్ట దైవంగా ఎంచుకోండి.',
     myProfile: 'నా ప్రొఫైల్',
     changePassword: 'పాస్‌వర్డ్ మార్చండి',
     notifications: 'నోటిఫికేషన్లు',

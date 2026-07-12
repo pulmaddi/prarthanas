@@ -57,29 +57,17 @@ export default function ProfileScreen() {
           </Text>
         </View>
 
-        <Text style={styles.section}>{t('profile.account')}</Text>
         <View style={styles.card}>
+          <MenuRow
+            icon="🙏"
+            label={t('profile.myIshtaDaiva')}
+            onPress={() => nav.navigate('MyIshtaDaiva')}
+          />
+          <View style={styles.divider} />
           <MenuRow
             icon="👤"
             label={t('profile.myProfile')}
             onPress={() => nav.navigate('MyProfile')}
-          />
-          <View style={styles.divider} />
-          <MenuRow
-            icon="🔑"
-            label={t('profile.changePassword')}
-            onPress={() => nav.navigate('ChangePassword')}
-          />
-          <View style={styles.divider} />
-          <MenuRow icon="🔔" label={t('profile.notifications')} />
-        </View>
-
-        <Text style={styles.section}>{t('profile.about')}</Text>
-        <View style={styles.card}>
-          <MenuRow
-            icon="📄"
-            label={t('profile.terms')}
-            onPress={() => nav.navigate('Terms')}
           />
         </View>
 

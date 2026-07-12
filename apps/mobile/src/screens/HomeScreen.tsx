@@ -147,7 +147,7 @@ export default function HomeScreen({ navigation }: Props) {
               onPress={() =>
                 profile?.ishta_daiva
                   ? rootNav.navigate('Pooja')
-                  : rootNav.navigate('MyProfile')
+                  : rootNav.navigate('MyIshtaDaiva')
               }
             >
               <Image

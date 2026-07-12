@@ -197,6 +197,8 @@ export default {
     devotee: 'भक्त',
     account: 'खाता',
     about: 'परिचय',
+    myIshtaDaiva: 'मेरा इष्ट देव',
+    myIshtaDaivaHint: 'जिस देवता की आप उपासना करते हैं, उन्हें अपना इष्ट देव चुनें।',
     myProfile: 'मेरी प्रोफ़ाइल',
     changePassword: 'पासवर्ड बदलें',
     notifications: 'सूचनाएं',
