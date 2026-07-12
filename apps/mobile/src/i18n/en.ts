@@ -86,6 +86,11 @@ export default {
     inbox: 'Inbox',
     meetings: 'Meetings',
     myNotifications: 'My Notifications',
+    notifications: 'Notifications',
+  },
+  notify: {
+    empty: 'No notifications yet',
+    hint: 'Updates from the priests, gurus, and temples you follow will appear here.',
   },
   host: {
     meetingInvites: 'Meeting Invites',

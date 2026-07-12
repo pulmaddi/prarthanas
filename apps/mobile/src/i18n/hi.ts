@@ -86,6 +86,11 @@ export default {
     inbox: 'इनबॉक्स',
     meetings: 'मीटिंग',
     myNotifications: 'मेरी सूचनाएं',
+    notifications: 'सूचनाएं',
+  },
+  notify: {
+    empty: 'अभी कोई सूचना नहीं',
+    hint: 'आप जिन पुजारियों, गुरुओं और मंदिरों को फ़ॉलो करते हैं, उनके अपडेट यहाँ दिखेंगे।',
   },
   host: {
     meetingInvites: 'मीटिंग आमंत्रण',

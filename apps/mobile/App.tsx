@@ -34,6 +34,7 @@ import JoinCommunityScreen from './src/screens/JoinCommunityScreen';
 import JoinMeetingScreen from './src/screens/JoinMeetingScreen';
 import MeetingsScreen from './src/screens/MeetingsScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
+import NotificationsInboxScreen from './src/screens/NotificationsInboxScreen';
 import RitualBookingScreen from './src/screens/RitualBookingScreen';
 import LiveMeetingScreen from './src/screens/LiveMeetingScreen';
 import HostProfileScreen from './src/screens/HostProfileScreen';
@@ -114,6 +115,11 @@ function MainTabs() {
             name="JoinMeeting"
             component={JoinMeetingScreen}
             options={{ title: t('tabs.joinMeeting'), tabBarIcon: tabIcon('video') }}
+          />
+          <Tab.Screen
+            name="Notifications"
+            component={NotificationsInboxScreen}
+            options={{ title: t('tabs.notifications'), tabBarIcon: tabIcon('bell-outline') }}
           />
         </>
       )}
