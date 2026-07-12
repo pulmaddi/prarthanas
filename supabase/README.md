@@ -113,6 +113,7 @@ HTML tool was removed — the product is one `apps/mobile` codebase now.)
 | [`hosts.sql`](hosts.sql) | `host_accounts` (priest/guru/temple_exec) + admin-managed RLS. |
 | [`follows.sql`](follows.sql) | `follows` table + PII-free `hosts_public` directory view. |
 | [`host-content.sql`](host-content.sql) | `host_meetings` (invites) + `host_notifications` (broadcasts); read open to authenticated, writes owner-only. |
+| [`pooja-ritual.sql`](pooja-ritual.sql) | Guided-pooja masters: `ritual_items` (name/image/order; Deity is dynamic) + `pooja_steps` (ordered instructions/actions) + `ritual-items` Storage bucket. Public read, admin write. |
 
 > **Coming with the Live Ritual Room (Virtual Temple, ARCHITECTURE §8):** a migration adding
 > meeting `status`/`livekit_room`/`deity`/`hls_url` columns and a `speaker_requests` (raise-hand)
