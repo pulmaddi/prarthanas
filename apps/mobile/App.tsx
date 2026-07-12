@@ -47,6 +47,7 @@ import AdminScreen from './src/screens/AdminScreen';
 import AdminVaaraScreen from './src/screens/AdminVaaraScreen';
 import AdminHostsScreen from './src/screens/AdminHostsScreen';
 import AdminHostsManageScreen from './src/screens/AdminHostsManageScreen';
+import AdminRitualItemsScreen from './src/screens/AdminRitualItemsScreen';
 import PoojaScreen from './src/screens/PoojaScreen';
 import GuidedPoojaScreen from './src/screens/GuidedPoojaScreen';
 import LiveRoomScreen from './src/screens/LiveRoomScreen';
@@ -221,6 +222,7 @@ export default function App() {
           <Stack.Screen name="AdminVaara" component={AdminVaaraScreen} options={{ title: t('profile.adminVaara') }} />
           <Stack.Screen name="AdminHosts" component={AdminHostsScreen} options={{ title: t('profile.adminHosts') }} />
           <Stack.Screen name="AdminHostsManage" component={AdminHostsManageScreen} options={{ title: t('profile.adminHostsManage') }} />
+          <Stack.Screen name="AdminRitualItems" component={AdminRitualItemsScreen} options={{ title: t('profile.adminRitual') }} />
           <Stack.Screen name="Pooja" component={PoojaScreen} options={{ headerShown: false }} />
           <Stack.Screen name="GuidedPooja" component={GuidedPoojaScreen} options={{ headerShown: false }} />
           <Stack.Screen name="LiveRoom" component={LiveRoomScreen} options={{ headerShown: false }} />

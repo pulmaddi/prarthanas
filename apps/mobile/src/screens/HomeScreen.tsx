@@ -112,6 +112,15 @@ export default function HomeScreen({ navigation }: Props) {
               style={styles.drawerItem}
               onPress={() => {
                 setMenuOpen(false);
+                rootNav.navigate('AdminRitualItems');
+              }}
+            >
+              <Text style={styles.drawerItemText}>🧺 {t('profile.adminRitual')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => {
+                setMenuOpen(false);
                 rootNav.navigate('AdminHosts');
               }}
             >
