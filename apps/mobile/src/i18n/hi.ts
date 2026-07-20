@@ -233,7 +233,7 @@ export default {
     admin: 'इष्ट देव सेटिंग',
     adminVaara: 'वार पूजा सेटिंग्स',
     adminRitual: 'पूजा सामग्री',
-    adminHosts: 'पुजारी / गुरु / मंदिर जोड़ें',
+    adminHosts: 'होस्ट जोड़ें',
     adminHostsManage: 'होस्ट प्रबंधन',
   },
   hosts: {

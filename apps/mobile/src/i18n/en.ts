@@ -233,7 +233,7 @@ export default {
     admin: 'Ishta Daiva Setting',
     adminVaara: 'Vaara Pooja Settings',
     adminRitual: 'Ritual Items',
-    adminHosts: 'Onboard Priest / Guru / Temple',
+    adminHosts: 'Onboard Hosts',
     adminHostsManage: 'Manage Hosts',
   },
   hosts: {

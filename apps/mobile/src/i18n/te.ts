@@ -233,7 +233,7 @@ export default {
     admin: 'ఇష్ట దైవం సెట్టింగ్',
     adminVaara: 'వార పూజ సెట్టింగ్స్',
     adminRitual: 'పూజా సామగ్రి',
-    adminHosts: 'పూజారి / గురు / ఆలయం చేర్చండి',
+    adminHosts: 'హోస్ట్‌లను చేర్చండి',
     adminHostsManage: 'హోస్ట్‌ల నిర్వహణ',
   },
   hosts: {
