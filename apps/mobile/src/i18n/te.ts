@@ -8,6 +8,8 @@ export default {
     priest: 'పూజారి',
     guru: 'ఆధ్యాత్మిక గురువు',
     templeExec: 'ఆలయ కార్యనిర్వాహకుడు',
+    numerologist: 'సంఖ్యా శాస్త్రవేత్త',
+    astrologer: 'జ్యోతిష్కుడు',
   },
   auth: { google: 'Google తో కొనసాగించండి', or: 'లేదా' },
   welcome: {

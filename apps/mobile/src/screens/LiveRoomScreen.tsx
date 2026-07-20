@@ -25,13 +25,20 @@ import PriestVideoTile from '../components/PriestVideoTile';
 type Props = NativeStackScreenProps<RootStackParamList, 'LiveRoom'>;
 
 function roleLabelFromType(ht?: string | null): string {
-  return ht === 'priest'
-    ? t('roles.priest')
-    : ht === 'guru'
-      ? t('roles.guru')
-      : ht === 'temple_exec'
-        ? t('roles.templeExec')
-        : t('roles.devotee');
+  switch (ht) {
+    case 'priest':
+      return t('roles.priest');
+    case 'guru':
+      return t('roles.guru');
+    case 'temple_exec':
+      return t('roles.templeExec');
+    case 'numerologist':
+      return t('roles.numerologist');
+    case 'astrologer':
+      return t('roles.astrologer');
+    default:
+      return t('roles.devotee');
+  }
 }
 
 const PALETTE: { key: string; emoji: string; label: string }[] = [
@@ -74,7 +81,7 @@ function Avatar({ name, gold }: { name: string; gold?: boolean }) {
 
 export default function LiveRoomScreen({ route, navigation }: Props) {
   const { meetingId, title, deityName, hostId } = route.params;
-  const { profile, hostType, session } = useAuth();
+  const { profile, hostTypes, session } = useAuth();
   const { width } = useWindowDimensions();
   const wide = width >= 820;
   const isOrganizer = !!session?.user.id && session.user.id === hostId;
@@ -88,7 +95,7 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
     ? {
         user_id: session.user.id,
         name: profile?.name?.trim() || t('profile.devotee'),
-        role: roleLabelFromType(hostType),
+        role: roleLabelFromType(hostTypes[0]),
       }
     : null;
 
@@ -103,13 +110,13 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
       if (!isSupabaseConfigured) return;
       const { data } = await supabase
         .from('hosts_public')
-        .select('name,host_type')
+        .select('name,host_types')
         .eq('user_id', hostId)
         .maybeSingle();
       if (alive && data)
         setOrganizer({
           name: (data as any).name || t('room.organizer'),
-          role: roleLabelFromType((data as any).host_type),
+          role: roleLabelFromType((data as any).host_types?.[0]),
         });
     })();
     return () => {

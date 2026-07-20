@@ -8,6 +8,8 @@ export default {
     priest: 'Priest',
     guru: 'Spiritual Guru',
     templeExec: 'Temple Executive',
+    numerologist: 'Numerologist',
+    astrologer: 'Astrologer',
   },
   auth: { google: 'Continue with Google', or: 'or' },
   welcome: {

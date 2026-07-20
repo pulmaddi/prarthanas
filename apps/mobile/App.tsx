@@ -77,8 +77,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 function MainTabs() {
-  const { hostType } = useAuth();
-  const isHost = !!hostType;
+  const { isHost } = useAuth();
   return (
     <Tab.Navigator
       screenOptions={{

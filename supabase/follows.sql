@@ -23,7 +23,7 @@ create policy "follows_own_all" on public.follows
 -- Public directory of hosts for discovery — name/type/city only (no phone).
 -- (Runs with owner rights, bypassing host_accounts RLS, so anyone can browse.)
 create or replace view public.hosts_public as
-  select user_id, host_type, name, city from public.host_accounts;
+  select user_id, host_types, name, city from public.host_accounts;
 
 grant select on public.hosts_public to anon, authenticated;
 

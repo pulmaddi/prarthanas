@@ -1,19 +1,25 @@
 -- ============================================================
--- Ishta — Host onboarding (Priest / Guru / Temple Executive).
--- Run in the Supabase SQL Editor. Requires admin.sql (is_admin()).
--- These accounts are created by an ADMIN only (no self-signup grants
--- host access): the admin creates the auth user, then records the role
--- here — writable only by admins (RLS). Everyone else can read their own.
+-- Ishta — Host onboarding (Priest / Guru / Temple Executive /
+-- Numerologist / Astrologer). Run in the Supabase SQL Editor.
+-- Requires admin.sql (is_admin()).
+-- One host profile per user; a user can hold MULTIPLE roles (host_types
+-- array). Created by an ADMIN only (no self-signup grants host access):
+-- writable only by admins (RLS); everyone else can read their own.
+-- (Existing installs: migrate the single host_type column to host_types.)
 -- ============================================================
 
 create table if not exists public.host_accounts (
   user_id    uuid primary key references auth.users (id) on delete cascade,
-  host_type  text not null check (host_type in ('priest', 'guru', 'temple_exec')),
+  host_types text[] not null,
   name       text,
   phone      text,
   city       text,
   org_name   text,            -- temple / ashram / organisation
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  constraint host_types_allowed check (
+    array_length(host_types, 1) >= 1
+    and host_types <@ array['priest', 'guru', 'temple_exec', 'numerologist', 'astrologer']::text[]
+  )
 );
 
 alter table public.host_accounts enable row level security;

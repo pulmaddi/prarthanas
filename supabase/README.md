@@ -110,7 +110,7 @@ HTML tool was removed — the product is one `apps/mobile` codebase now.)
 | [`deities.sql`](deities.sql) | Ishta Daiva deity catalog + seed. |
 | [`admin.sql`](admin.sql) | `admins` table + `is_admin()` for the local admin app. |
 | [`profiles-roles.sql`](profiles-roles.sql) | Adds `profiles.email` + admin read policy; makes onboarding additive (everyone is a Devotee; host roles are added on top). |
-| [`hosts.sql`](hosts.sql) | `host_accounts` (priest/guru/temple_exec) + admin-managed RLS. |
+| [`hosts.sql`](hosts.sql) | `host_accounts` — one profile per host, **`host_types` array** (priest / guru / temple_exec / numerologist / astrologer; multiple allowed) + admin-managed RLS. |
 | [`follows.sql`](follows.sql) | `follows` table + PII-free `hosts_public` directory view. |
 | [`host-content.sql`](host-content.sql) | `host_meetings` (invites) + `host_notifications` (broadcasts); read open to authenticated, writes owner-only. |
 | [`pooja-ritual.sql`](pooja-ritual.sql) | Guided-pooja masters: `ritual_items` (name/image/order; Deity is dynamic) + `pooja_steps` (ordered instructions/actions) + `ritual-items` Storage bucket. Public read, admin write. |

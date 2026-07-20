@@ -19,14 +19,20 @@ export type Profile = {
   state: string | null;
 } | null;
 
-export type HostType = 'priest' | 'guru' | 'temple_exec' | null;
+export type HostType =
+  | 'priest'
+  | 'guru'
+  | 'temple_exec'
+  | 'numerologist'
+  | 'astrologer';
 
 type AuthState = {
   session: Session | null;
   email: string | null;
   profile: Profile;
   isAdmin: boolean;
-  hostType: HostType;
+  hostTypes: HostType[];
+  isHost: boolean;
   loading: boolean;
   refresh: () => Promise<void>;
   updateProfile: (patch: {
@@ -45,7 +51,8 @@ const AuthContext = createContext<AuthState>({
   email: null,
   profile: null,
   isAdmin: false,
-  hostType: null,
+  hostTypes: [],
+  isHost: false,
   loading: true,
   refresh: async () => {},
   updateProfile: async () => {},
@@ -58,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [hostType, setHostType] = useState<HostType>(null);
+  const [hostTypes, setHostTypes] = useState<HostType[]>([]);
   const [loading, setLoading] = useState(true);
 
   const checkAdmin = async (userId: string | undefined) => {
@@ -72,13 +79,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const checkHost = async (userId: string | undefined) => {
-    if (!userId || !isSupabaseConfigured) return setHostType(null);
+    if (!userId || !isSupabaseConfigured) return setHostTypes([]);
     const { data } = await supabase
       .from('host_accounts')
-      .select('host_type')
+      .select('host_types')
       .eq('user_id', userId)
       .maybeSingle();
-    setHostType(((data as { host_type: HostType } | null)?.host_type) ?? null);
+    setHostTypes(((data as { host_types: HostType[] } | null)?.host_types) ?? []);
   };
 
   const fetchProfile = async (userId: string | undefined) => {
@@ -121,7 +128,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: session?.user.email ?? null,
       profile,
       isAdmin,
-      hostType,
+      hostTypes,
+      isHost: hostTypes.length > 0,
       loading,
       refresh: () => fetchProfile(session?.user.id),
       updateProfile: async (patch) => {
@@ -136,10 +144,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(null);
         setProfile(null);
         setIsAdmin(false);
-        setHostType(null);
+        setHostTypes([]);
       },
     }),
-    [session, profile, isAdmin, hostType, loading],
+    [session, profile, isAdmin, hostTypes, loading],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

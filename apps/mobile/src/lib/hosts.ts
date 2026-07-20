@@ -4,7 +4,7 @@ import { useAuth } from './auth';
 
 export type PublicHost = {
   user_id: string;
-  host_type: string; // 'priest' | 'guru' | 'temple_exec'
+  host_types: string[]; // any of priest | guru | temple_exec | numerologist | astrologer
   name: string | null;
   city: string | null;
 };
@@ -23,7 +23,7 @@ export function useHostDirectory() {
     if (!isSupabaseConfigured) return;
     const { data } = await supabase
       .from('hosts_public')
-      .select('user_id,host_type,name,city')
+      .select('user_id,host_types,name,city')
       .limit(60);
     setHosts((data as PublicHost[]) ?? []);
     if (uid) {
@@ -54,7 +54,8 @@ export function useHostDirectory() {
     });
   };
 
-  const byType = (ty: string) => hosts.filter((h) => h.host_type === ty);
+  const byType = (ty: string) =>
+    hosts.filter((h) => (h.host_types ?? []).includes(ty));
 
   return {
     priests: byType('priest'),

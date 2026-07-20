@@ -17,11 +17,13 @@ const TYPES: { key: string; label: string }[] = [
   { key: 'priest', label: 'Priest' },
   { key: 'guru', label: 'Guru' },
   { key: 'temple_exec', label: 'Temple Exec' },
+  { key: 'numerologist', label: 'Numerologist' },
+  { key: 'astrologer', label: 'Astrologer' },
 ];
 
 type HostRow = {
   user_id: string;
-  host_type: string;
+  host_types: string[];
   name: string | null;
   phone: string | null;
   city: string | null;
@@ -29,7 +31,9 @@ type HostRow = {
 
 function HostEditRow({ row, onChanged }: { row: HostRow; onChanged: () => void }) {
   const [name, setName] = useState(row.name ?? '');
-  const [hostType, setHostType] = useState(row.host_type);
+  const [types, setTypes] = useState<string[]>(row.host_types ?? []);
+  const toggleType = (k: string) =>
+    setTypes((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]));
   const [phone, setPhone] = useState(row.phone ?? '');
   const [city, setCity] = useState(row.city ?? '');
   const [busy, setBusy] = useState(false);
@@ -40,13 +44,14 @@ function HostEditRow({ row, onChanged }: { row: HostRow; onChanged: () => void }
     setErr('');
     setMsg('');
     if (name.trim().length < 2) return setErr('Enter a name.');
+    if (types.length === 0) return setErr('Select at least one role.');
     try {
       setBusy(true);
       const { error } = await supabase
         .from('host_accounts')
         .update({
           name: name.trim(),
-          host_type: hostType,
+          host_types: types,
           phone: phone.trim() || null,
           city: city.trim() || null,
         })
@@ -79,17 +84,21 @@ function HostEditRow({ row, onChanged }: { row: HostRow; onChanged: () => void }
         placeholderTextColor={colors.muted}
       />
       <View style={styles.chips}>
-        {TYPES.map((ty) => (
-          <TouchableOpacity
-            key={ty.key}
-            style={[styles.chip, hostType === ty.key && styles.chipOn]}
-            onPress={() => setHostType(ty.key)}
-          >
-            <Text style={[styles.chipText, hostType === ty.key && styles.chipTextOn]}>
-              {ty.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {TYPES.map((ty) => {
+          const on = types.includes(ty.key);
+          return (
+            <TouchableOpacity
+              key={ty.key}
+              style={[styles.chip, on && styles.chipOn]}
+              onPress={() => toggleType(ty.key)}
+            >
+              <Text style={[styles.chipText, on && styles.chipTextOn]}>
+                {on ? '✓ ' : ''}
+                {ty.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
       <View style={styles.two}>
         <TextInput
@@ -130,7 +139,7 @@ export default function AdminHostsManageScreen() {
   const load = async () => {
     const { data } = await supabase
       .from('host_accounts')
-      .select('user_id,host_type,name,phone,city')
+      .select('user_id,host_types,name,phone,city')
       .order('created_at', { ascending: false });
     setRows((data as HostRow[]) ?? []);
     setLoading(false);

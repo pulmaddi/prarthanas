@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Modal,
 } from 'react-native';
 import { colors, radius, spacing } from '../theme';
 import { Button } from '../components/ui';
@@ -18,17 +17,21 @@ const TYPES: { key: string; label: string }[] = [
   { key: 'priest', label: 'Priest' },
   { key: 'guru', label: 'Spiritual Guru' },
   { key: 'temple_exec', label: 'Temple Executive' },
+  { key: 'numerologist', label: 'Numerologist' },
+  { key: 'astrologer', label: 'Astrologer' },
 ];
 const TYPE_LABEL: Record<string, string> = {
   priest: 'Priest',
   guru: 'Spiritual Guru',
   temple_exec: 'Temple Executive',
+  numerologist: 'Numerologist',
+  astrologer: 'Astrologer',
 };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type HostRow = {
   user_id: string;
-  host_type: string;
+  host_types: string[];
   name: string | null;
   org_name: string | null;
   city: string | null;
@@ -36,14 +39,16 @@ type HostRow = {
 
 export default function AdminHostsScreen() {
   const { isAdmin } = useAuth();
-  const [hostType, setHostType] = useState('priest');
+  const [types, setTypes] = useState<string[]>(['priest']);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
-  const [typeOpen, setTypeOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  const toggleType = (k: string) =>
+    setTypes((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]));
   const [err, setErr] = useState('');
   const [created, setCreated] = useState<{ email: string; password: string | null } | null>(null);
   const [rows, setRows] = useState<HostRow[]>([]);
@@ -51,7 +56,7 @@ export default function AdminHostsScreen() {
   const loadRows = async () => {
     const { data } = await supabase
       .from('host_accounts')
-      .select('user_id,host_type,name,org_name,city')
+      .select('user_id,host_types,name,org_name,city')
       .order('created_at', { ascending: false });
     if (data) setRows(data as HostRow[]);
   };
@@ -71,6 +76,7 @@ export default function AdminHostsScreen() {
     setErr('');
     setCreated(null);
     if (name.trim().length < 2) return setErr('Please enter the full name.');
+    if (types.length === 0) return setErr('Select at least one role.');
     if (!EMAIL_RE.test(email)) return setErr('Please enter a valid email (username).');
     const emailLc = email.trim().toLowerCase();
     try {
@@ -97,7 +103,7 @@ export default function AdminHostsScreen() {
       // Grant/refresh the host role (admin-gated by RLS). Upsert so re-assigning is safe.
       const { error } = await supabase.from('host_accounts').upsert({
         user_id: userId,
-        host_type: hostType,
+        host_types: types,
         name: name.trim(),
         phone: phone.trim() || null,
         city: city.trim() || null,
@@ -132,47 +138,24 @@ export default function AdminHostsScreen() {
       <Text style={styles.hint}>{t('hosts.hint')}</Text>
 
       <Text style={styles.label}>{t('hosts.type')}</Text>
-      <TouchableOpacity
-        style={styles.select}
-        activeOpacity={0.7}
-        onPress={() => setTypeOpen(true)}
-      >
-        <Text style={styles.selectText}>{TYPE_LABEL[hostType]}</Text>
-        <Text style={styles.selectChevron}>▾</Text>
-      </TouchableOpacity>
-
-      <Modal
-        visible={typeOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setTypeOpen(false)}
-      >
-        <TouchableOpacity
-          style={styles.ddBackdrop}
-          activeOpacity={1}
-          onPress={() => setTypeOpen(false)}
-        >
-          <View style={styles.ddSheet}>
-            {TYPES.map((ty) => (
-              <TouchableOpacity
-                key={ty.key}
-                style={styles.ddOption}
-                onPress={() => {
-                  setHostType(ty.key);
-                  setTypeOpen(false);
-                }}
-              >
-                <Text
-                  style={[styles.ddOptionText, hostType === ty.key && styles.ddOptionOn]}
-                >
-                  {ty.label}
-                </Text>
-                {hostType === ty.key && <Text style={styles.ddCheck}>✓</Text>}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      <View style={styles.typeChips}>
+        {TYPES.map((ty) => {
+          const on = types.includes(ty.key);
+          return (
+            <TouchableOpacity
+              key={ty.key}
+              style={[styles.typeChip, on && styles.typeChipOn]}
+              onPress={() => toggleType(ty.key)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.typeChipText, on && styles.typeChipTextOn]}>
+                {on ? '✓ ' : ''}
+                {ty.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
       {[
         { label: t('hosts.name'), v: name, set: setName, ph: 'Full name', cap: 'words' as const },
@@ -217,7 +200,7 @@ export default function AdminHostsScreen() {
         <View key={r.user_id} style={styles.rowCard}>
           <Text style={styles.rowName}>{r.name || '—'}</Text>
           <Text style={styles.rowMeta}>
-            {TYPE_LABEL[r.host_type] ?? r.host_type}
+            {(r.host_types ?? []).map((x) => TYPE_LABEL[x] ?? x).join(' · ')}
             {r.org_name ? ` · ${r.org_name}` : ''}
             {r.city ? ` · ${r.city}` : ''}
           </Text>
@@ -246,6 +229,18 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   field: {},
+  typeChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 2 },
+  typeChip: {
+    borderColor: colors.line,
+    borderWidth: 1,
+    borderRadius: radius.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    backgroundColor: colors.white,
+  },
+  typeChipOn: { backgroundColor: colors.maroon, borderColor: colors.maroon },
+  typeChipText: { color: colors.ink, fontSize: 13 },
+  typeChipTextOn: { color: colors.white, fontWeight: '700' },
   select: {
     flexDirection: 'row',
     alignItems: 'center',

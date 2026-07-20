@@ -8,6 +8,8 @@ export default {
     priest: 'पुजारी',
     guru: 'गुरु',
     templeExec: 'मंदिर कार्यकारी',
+    numerologist: 'अंक ज्योतिषी',
+    astrologer: 'ज्योतिषी',
   },
   auth: { google: 'Google से जारी रखें', or: 'या' },
   welcome: {

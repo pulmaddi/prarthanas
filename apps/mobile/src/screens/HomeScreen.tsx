@@ -28,22 +28,25 @@ type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
   const rootNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { profile, isAdmin, hostType } = useAuth();
+  const { profile, isAdmin, hostTypes, isHost } = useAuth();
   const { today } = useWeekdayDeities();
   const { priests, gurus, temples, followed, follow, unfollow } = useHostDirectory();
   const [menuOpen, setMenuOpen] = useState(false);
   const fullName = profile?.name?.trim() || t('profile.devotee');
   const firstName = fullName.split(' ')[0];
   const initial = (firstName[0] || '🙏').toUpperCase();
+  const HOST_LABEL: Record<string, string> = {
+    priest: t('roles.priest'),
+    guru: t('roles.guru'),
+    temple_exec: t('roles.templeExec'),
+    numerologist: t('roles.numerologist'),
+    astrologer: t('roles.astrologer'),
+  };
   const roleLabel = isAdmin
     ? t('roles.admin')
-    : hostType === 'priest'
-      ? t('roles.priest')
-      : hostType === 'guru'
-        ? t('roles.guru')
-        : hostType === 'temple_exec'
-          ? t('roles.templeExec')
-          : t('roles.devotee');
+    : hostTypes.length
+      ? hostTypes.map((h) => HOST_LABEL[h] ?? h).join(' · ')
+      : t('roles.devotee');
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -192,7 +195,7 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {hostType ? (
+        {isHost ? (
           /* Host (Priest / Guru / Temple Exec): meeting invites + notifications */
           <HostHomeSections
             onOpenMeetings={() => navigation.navigate('Meetings')}
