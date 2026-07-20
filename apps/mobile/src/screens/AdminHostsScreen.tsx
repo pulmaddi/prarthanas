@@ -7,6 +7,9 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { Button } from '../components/ui';
 import { t } from '../i18n';
@@ -38,6 +41,7 @@ type HostRow = {
 };
 
 export default function AdminHostsScreen() {
+  const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { isAdmin } = useAuth();
   const [types, setTypes] = useState<string[]>(['priest']);
   const [name, setName] = useState('');
@@ -198,12 +202,21 @@ export default function AdminHostsScreen() {
       {rows.length === 0 && <Text style={styles.hint}>{t('hosts.none')}</Text>}
       {rows.map((r) => (
         <View key={r.user_id} style={styles.rowCard}>
-          <Text style={styles.rowName}>{r.name || '—'}</Text>
-          <Text style={styles.rowMeta}>
-            {(r.host_types ?? []).map((x) => TYPE_LABEL[x] ?? x).join(' · ')}
-            {r.org_name ? ` · ${r.org_name}` : ''}
-            {r.city ? ` · ${r.city}` : ''}
-          </Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowName}>{r.name || '—'}</Text>
+            <Text style={styles.rowMeta}>
+              {(r.host_types ?? []).map((x) => TYPE_LABEL[x] ?? x).join(' · ')}
+              {r.org_name ? ` · ${r.org_name}` : ''}
+              {r.city ? ` · ${r.city}` : ''}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.editBtn}
+            onPress={() => nav.navigate('AdminHostsManage')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.editText}>{t('admin.edit')}</Text>
+          </TouchableOpacity>
         </View>
       ))}
     </ScrollView>
@@ -290,6 +303,9 @@ const styles = StyleSheet.create({
   createdText: { color: colors.ink, fontSize: 13, marginBottom: 6 },
   cred: { fontSize: 14, color: colors.ink, fontWeight: '600' },
   rowCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     backgroundColor: colors.white,
     borderColor: colors.line,
     borderWidth: 1,
@@ -299,4 +315,12 @@ const styles = StyleSheet.create({
   },
   rowName: { fontSize: 14, fontWeight: '600', color: colors.ink },
   rowMeta: { fontSize: 12, color: colors.muted, marginTop: 2 },
+  editBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.maroon,
+  },
+  editText: { color: colors.maroon, fontWeight: '700', fontSize: 13 },
 });
