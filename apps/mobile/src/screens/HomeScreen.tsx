@@ -171,6 +171,9 @@ export default function HomeScreen({ navigation }: Props) {
             <Text style={styles.idpLabel} numberOfLines={2}>
               {t('home.ishtaDaivaPooja')}
             </Text>
+            <Text style={styles.idpSub} numberOfLines={1}>
+              {profile?.ishta_daiva || t('home.chooseIshta')}
+            </Text>
           </View>
 
           {/* Weekday Pooja — opens today's deity */}

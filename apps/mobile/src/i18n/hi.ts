@@ -72,6 +72,7 @@ export default {
     seeAll: 'सभी देखें',
     join: 'जुड़ें',
     ishtaDaivaPooja: 'इष्ट देव पूजा करें',
+    chooseIshta: 'इष्ट देव चुनें',
     weekdayPooja: 'वार पूजा',
     today: 'आज',
     forYour: 'आपके',
