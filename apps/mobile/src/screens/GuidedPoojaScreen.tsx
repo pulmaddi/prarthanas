@@ -227,18 +227,25 @@ export default function GuidedPoojaScreen({ navigation, route }: Props) {
           </>
         ) : (
           <>
-            <Text style={styles.msgText}>{stepText}</Text>
-            {step?.action === 'place' && <Text style={styles.msgHint}>← {t('guidedPooja.dragHint')}</Text>}
-            {!!prompt && <Text style={styles.prompt}>{prompt}</Text>}
-            <View style={styles.msgAction}>
-              <Button
-                label={t('guidedPooja.done')}
+            <View style={styles.msgRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.msgText}>{stepText}</Text>
+                {step?.action === 'place' && (
+                  <Text style={styles.msgHint}>← {t('guidedPooja.dragHint')}</Text>
+                )}
+              </View>
+              <TouchableOpacity
+                style={styles.doneBtn}
+                activeOpacity={0.85}
                 onPress={() => {
                   if (step?.action === 'info') advance();
                   else setPrompt(stepText); // must perform the action first
                 }}
-              />
+              >
+                <Text style={styles.doneText}>{t('guidedPooja.done')}</Text>
+              </TouchableOpacity>
             </View>
+            {!!prompt && <Text style={styles.prompt}>{prompt}</Text>}
           </>
         )}
       </View>
@@ -324,9 +331,17 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   msgText: { fontSize: 15, lineHeight: 22, color: colors.ink, fontFamily: fonts.body },
-  msgHint: { fontSize: 13, color: colors.saffron, fontFamily: fonts.semibold },
+  msgHint: { fontSize: 13, color: colors.saffron, fontFamily: fonts.semibold, marginTop: 4 },
   prompt: { fontSize: 13, color: colors.live, fontFamily: fonts.semibold },
-  msgAction: { marginTop: 2 },
+  msgRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  doneBtn: {
+    backgroundColor: colors.saffron,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    borderRadius: radius.pill,
+    ...shadow.glow,
+  },
+  doneText: { color: colors.white, fontFamily: fonts.semibold, fontSize: 13 },
   endRow: { flexDirection: 'row', gap: 10, marginTop: 2 },
 
   ghost: {
