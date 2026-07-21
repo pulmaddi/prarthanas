@@ -93,6 +93,16 @@ A host (Priest / Spiritual Guru / Temple Executive) performs a live, guided puja
 - **FR-49** **Access:** for MVP a live ritual room is **free for followers** — any devotee following the host may join. (Paid ritual rooms remain FR-32; deferred pending the app-store IAP question, open Q7.)
 - **FR-50** Offering positions are stored **relative to the deity's local coordinate space** (not the screen) so the host's broadcast offerings align on every device regardless of screen size.
 
+### 3.5b Guided self-pooja (solo, data-driven)
+A single devotee performs a **self-guided** pooja (Ishta Daiva or Vaara) on their own device — a step-by-step altar setup — distinct from the multi-user Live Ritual Room (§3.5a).
+
+- **FR-51** Tapping **Perform Ishta Daiva Pooja** or **Vaara Pooja** opens **one shared Guided Pooja screen**; the only difference is the **deity** (the chosen Ishta Daiva vs *today's* Vaara weekday deity), whose image/audio come from the deity catalog. If no Ishta Daiva is chosen, tapping routes the user to pick one first.
+- **FR-52** Layout: a **left palette** of ritual items (each disabled until its step), a **central canvas** (altar) where items are **dragged and placed** (snap to centre), and a **footer** showing the current instruction, step by step.
+- **FR-53** **Items and steps are data-driven** (admin-managed, no app release). `ritual_items` = name (+hi/te), image, order; a **Deity** item is **dynamic** (`image_source='deity'` → uses the pooja's deity, no upload). `pooja_steps` = ordered instructions (+hi/te), an `action` type, and `is_active` to roll steps out one at a time. See `supabase/pooja-ritual.sql`.
+- **FR-54** Step `action` types: **`info`** (acknowledge — a **Done** button advances) and **`place`** (the item's palette entry enables; the devotee drags it to the centre, it snaps onto the altar, and the flow **auto-advances** — no Done needed). On a `place` step, tapping **Done** before placing shows a prompt to perform the action first. (New action types — pour, offer, aarti — are added in code as the flow grows.)
+- **FR-55** An in-app admin **master form** manages ritual items (Admin → Ritual Items: name/image/order/source/active). Pooja steps are managed via the datastore for now (an in-app steps form is a later nicety).
+- **FR-56** After the final step the altar is complete; the devotee can **continue to worship** (the ambient worship screen — deity + aarti/offerings/audio) or return home.
+
 ### 3.6 Communication & broadcasts
 - **FR-26** Hosts broadcast **group-level messages/announcements** (text + media) to all followers or a subscriber segment; delivered via push + in-app inbox.
 - **FR-27** Information sharing: hosts post updates, images, audio (bhajans), and documents to their profile feed.

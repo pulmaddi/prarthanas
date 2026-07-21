@@ -104,6 +104,10 @@ export default {
     done: 'हो गया',
     backHome: 'होम पर वापस',
     dropHere: 'यहाँ रखें',
+    noSteps: 'पूजा के चरण अभी सेट नहीं हैं।',
+    ready: 'आपकी वेदी तैयार है। 🙏',
+    worship: 'पूजा जारी रखें',
+    dragHint: 'इसे केंद्र में खींचें',
     items: {
       deity: 'देवता',
       platform: 'लकड़ी का पटरा',

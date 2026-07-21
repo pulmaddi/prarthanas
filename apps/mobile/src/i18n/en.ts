@@ -104,6 +104,10 @@ export default {
     done: 'Done',
     backHome: 'Back to Home',
     dropHere: 'Place here',
+    noSteps: 'Pooja steps are not set up yet.',
+    ready: 'Your altar is ready. 🙏',
+    worship: 'Continue to worship',
+    dragHint: 'Drag it to the centre',
     items: {
       deity: 'Deity',
       platform: 'Wooden Platform',

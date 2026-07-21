@@ -48,3 +48,41 @@ export function useRitualItems() {
   }, []);
   return { items: items.filter((i) => i.is_active) };
 }
+
+export type PoojaStep = {
+  step_order: number;
+  item_key: string | null;
+  action: 'info' | 'place';
+  instruction: string;
+  instruction_hi: string | null;
+  instruction_te: string | null;
+};
+
+/** Active, ordered steps for a pooja flow (default the shared 'common' flow). */
+export function usePoojaSteps(poojaType = 'common') {
+  const [steps, setSteps] = useState<PoojaStep[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!isSupabaseConfigured) {
+        if (active) setLoading(false);
+        return;
+      }
+      const { data } = await supabase
+        .from('pooja_steps')
+        .select('step_order,item_key,action,instruction,instruction_hi,instruction_te')
+        .eq('pooja_type', poojaType)
+        .eq('is_active', true)
+        .order('step_order', { ascending: true });
+      if (active) {
+        setSteps((data as PoojaStep[]) ?? []);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [poojaType]);
+  return { steps, loading };
+}
