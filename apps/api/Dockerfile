@@ -21,6 +21,7 @@ RUN pnpm --filter @clique/shared build \
 # --- Runtime ---
 FROM base AS runtime
 ENV NODE_ENV=production
+RUN apk add --no-cache openssl
 COPY --from=build /app /app
 WORKDIR /app/apps/api
 EXPOSE 3000
