@@ -47,8 +47,9 @@ services:
         value: INR
 
   # ── Web App (Expo static export) ─────────────────────────────
-  - type: static
+  - type: web
     name: prarthanas-web
+    env: static
     buildCommand: cd apps/mobile && npm install --legacy-peer-deps && npx expo export --platform web
     staticPublishPath: apps/mobile/dist
     envVars:
