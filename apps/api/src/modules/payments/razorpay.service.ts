@@ -10,15 +10,23 @@ import Razorpay from 'razorpay';
 @Injectable()
 export class RazorpayService {
   private readonly logger = new Logger(RazorpayService.name);
-  private readonly client: Razorpay;
+  private _client: Razorpay | null = null;
   private readonly webhookSecret: string;
 
   constructor(private readonly config: ConfigService) {
-    this.client = new Razorpay({
-      key_id: this.config.get<string>('RAZORPAY_KEY_ID', ''),
-      key_secret: this.config.get<string>('RAZORPAY_KEY_SECRET', ''),
-    });
     this.webhookSecret = this.config.get<string>('RAZORPAY_WEBHOOK_SECRET', '');
+    const keyId = this.config.get<string>('RAZORPAY_KEY_ID', '');
+    const keySecret = this.config.get<string>('RAZORPAY_KEY_SECRET', '');
+    if (keyId && keySecret) {
+      this._client = new Razorpay({ key_id: keyId, key_secret: keySecret });
+    } else {
+      this.logger.warn('Razorpay credentials not set — payment endpoints will be unavailable');
+    }
+  }
+
+  private get client(): Razorpay {
+    if (!this._client) throw new Error('Razorpay is not configured (missing RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET)');
+    return this._client;
   }
 
   /** Create a Razorpay order for a pay-per-event / ritual checkout. */
