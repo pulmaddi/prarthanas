@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 
 const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ??
   (Constants.expoConfig?.extra?.apiBaseUrl as string) ??
   'http://localhost:3000/api/v1';
 
