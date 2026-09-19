@@ -12,90 +12,103 @@ import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, shadow, spacing } from '../theme';
 import { Button } from '../components/ui';
 import GoogleButton from '../components/GoogleButton';
+import { useBreakpoint } from '../lib/useBreakpoint';
 import { t } from '../i18n';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
+const POINTS: [string, string][] = [
+  ['📿', 'welcome.point1'],
+  ['🪔', 'welcome.point2'],
+  ['🛕', 'welcome.point3'],
+];
+
 export default function WelcomeScreen({ navigation }: Props) {
   const [accepted, setAccepted] = useState(false);
+  const { isDesktop } = useBreakpoint();
+
+  const brandPanel = (
+    <View style={[styles.brand, isDesktop && styles.brandDesktop]}>
+      <View style={styles.logoBadge}>
+        <Image source={require('../../assets/logo.jpeg')} style={styles.logo} resizeMode="contain" />
+      </View>
+      <Text style={styles.tag}>{t('tagline')}</Text>
+      <Text style={styles.purpose}>{t('welcome.purpose')}</Text>
+      <View style={styles.points}>
+        {POINTS.map(([icon, key]) => (
+          <View key={key} style={styles.point}>
+            <Text style={styles.pointIcon}>{icon}</Text>
+            <Text style={styles.pointText}>{t(key)}</Text>
+          </View>
+        ))}
+      </View>
+      <Text style={styles.langs}>English · हिन्दी · తెలుగు</Text>
+    </View>
+  );
+
+  const formPanel = (
+    <View style={[styles.footer, isDesktop && styles.footerDesktop]}>
+      {isDesktop && (
+        <Text style={styles.desktopFormTitle}>Join Prarthanas</Text>
+      )}
+      <TouchableOpacity style={styles.termsRow} activeOpacity={0.8} onPress={() => setAccepted((v) => !v)}>
+        <View style={[styles.checkbox, accepted && styles.checkboxOn]}>
+          {accepted && <Text style={styles.check}>✓</Text>}
+        </View>
+        <Text style={styles.termsText}>
+          {t('welcome.accept')}{' '}
+          <Text style={styles.link} onPress={() => navigation.navigate('Terms')}>
+            {t('welcome.terms')}
+          </Text>
+        </Text>
+      </TouchableOpacity>
+      <View style={!accepted && styles.disabled}>
+        <Button label={`🙏 ${t('welcome.registerNow')}`} onPress={() => accepted && navigation.navigate('Register')} />
+      </View>
+      <GoogleButton disabled={!accepted} />
+      {!accepted && <Text style={styles.hint}>{t('welcome.acceptHint')}</Text>}
+      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <Text style={styles.signin}>{t('welcome.haveAccount')}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  if (isDesktop) {
+    return (
+      <View style={styles.desktopRoot}>
+        <ScrollView style={styles.desktopLeft} contentContainerStyle={styles.desktopLeftContent}>
+          {brandPanel}
+        </ScrollView>
+        <ScrollView style={styles.desktopRight} contentContainerStyle={styles.desktopRightContent}>
+          {formPanel}
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Logo + identity */}
-        <View style={styles.logoBadge}>
-          <Image
-            source={require('../../assets/logo.jpeg')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-        <Text style={styles.tag}>{t('tagline')}</Text>
-
-        {/* Purpose of the app */}
-        <Text style={styles.purpose}>{t('welcome.purpose')}</Text>
-
-        <View style={styles.points}>
-          {[
-            ['📿', t('welcome.point1')],
-            ['🪔', t('welcome.point2')],
-            ['🛕', t('welcome.point3')],
-          ].map(([icon, label]) => (
-            <View key={label} style={styles.point}>
-              <Text style={styles.pointIcon}>{icon}</Text>
-              <Text style={styles.pointText}>{label}</Text>
-            </View>
-          ))}
-        </View>
-
-        <Text style={styles.langs}>English · हिन्दी · తెలుగు</Text>
-      </ScrollView>
-
-      {/* Accept T&C + Register */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.termsRow}
-          activeOpacity={0.8}
-          onPress={() => setAccepted((v) => !v)}
-        >
-          <View style={[styles.checkbox, accepted && styles.checkboxOn]}>
-            {accepted && <Text style={styles.check}>✓</Text>}
-          </View>
-          <Text style={styles.termsText}>
-            {t('welcome.accept')}{' '}
-            <Text
-              style={styles.link}
-              onPress={() => navigation.navigate('Terms')}
-            >
-              {t('welcome.terms')}
-            </Text>
-          </Text>
-        </TouchableOpacity>
-
-        <View style={!accepted && styles.disabled}>
-          <Button
-            label={`🙏 ${t('welcome.registerNow')}`}
-            onPress={() => accepted && navigation.navigate('Register')}
-          />
-        </View>
-
-        <GoogleButton disabled={!accepted} />
-
-        {!accepted && (
-          <Text style={styles.hint}>{t('welcome.acceptHint')}</Text>
-        )}
-
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.signin}>{t('welcome.haveAccount')}</Text>
-        </TouchableOpacity>
-      </View>
+      <ScrollView contentContainerStyle={styles.scroll}>{brandPanel}</ScrollView>
+      {formPanel}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // ── Desktop layout ──────────────────────────────────────────
+  desktopRoot: { flex: 1, flexDirection: 'row' },
+  desktopLeft: { flex: 1, backgroundColor: colors.maroon },
+  desktopLeftContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 48 },
+  desktopRight: { width: 420, backgroundColor: colors.cream },
+  desktopRightContent: { flexGrow: 1, justifyContent: 'center', padding: 40 },
+  brandDesktop: { alignItems: 'flex-start' },
+  footerDesktop: { borderTopLeftRadius: 0, borderTopRightRadius: 0, backgroundColor: 'transparent', padding: 0 },
+  desktopFormTitle: { fontSize: 26, fontWeight: '800', color: colors.maroon, marginBottom: 20 },
+
+  // ── Mobile layout ───────────────────────────────────────────
   container: { flex: 1, backgroundColor: colors.maroon },
   scroll: { alignItems: 'center', paddingTop: 64, paddingHorizontal: spacing.xl, paddingBottom: 20 },
+  brand: { alignItems: 'center' },
   logoBadge: {
     alignItems: 'center',
     justifyContent: 'center',

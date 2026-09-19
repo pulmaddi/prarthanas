@@ -7,15 +7,17 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius, spacing, shadow } from '../theme';
 import { Button } from '../components/ui';
 import { t } from '../i18n';
 import { useAuth } from '../lib/auth';
 import { useLocale, LANGUAGES, type Lang } from '../lib/locale';
+import { useBreakpoint } from '../lib/useBreakpoint';
 
 export default function MyProfileScreen() {
   const { profile, email, updateProfile } = useAuth();
   const { lang, changeLang } = useLocale();
+  const { isDesktop } = useBreakpoint();
   const [name, setName] = useState(profile?.name ?? '');
   const [phone, setPhone] = useState(profile?.phone ?? '');
   const [city, setCity] = useState(profile?.city ?? '');
@@ -45,14 +47,8 @@ export default function MyProfileScreen() {
     }
   };
 
-  return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.body}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={styles.hint}>{t('myProfile.subtitle')}</Text>
-
+  const leftCol = (
+    <>
       <View style={styles.field}>
         <Text style={styles.label}>{t('myProfile.name')}</Text>
         <TextInput
@@ -95,7 +91,11 @@ export default function MyProfileScreen() {
           placeholderTextColor={colors.muted}
         />
       </View>
+    </>
+  );
 
+  const rightCol = (
+    <>
       <View style={styles.field}>
         <Text style={styles.label}>{t('myProfile.language')}</Text>
         <View style={styles.chips}>
@@ -127,7 +127,33 @@ export default function MyProfileScreen() {
       {!!err && <Text style={styles.err}>{err}</Text>}
       {!!msg && <Text style={styles.ok}>{msg}</Text>}
 
-      <Button label={busy ? '…' : t('myProfile.save')} onPress={onSave} />
+      <View style={isDesktop ? { marginTop: 'auto' as any, paddingTop: 24 } : {}}>
+        <Button label={busy ? '…' : t('myProfile.save')} onPress={onSave} />
+      </View>
+    </>
+  );
+
+  return (
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.body, isDesktop && styles.bodyDesktop]}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text style={styles.hint}>{t('myProfile.subtitle')}</Text>
+      {isDesktop ? (
+        <View style={styles.card}>
+          <View style={styles.twoCol}>
+            <View style={styles.col}>{leftCol}</View>
+            <View style={styles.colDivider} />
+            <View style={styles.col}>{rightCol}</View>
+          </View>
+        </View>
+      ) : (
+        <>
+          {leftCol}
+          {rightCol}
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -135,6 +161,11 @@ export default function MyProfileScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
   body: { padding: spacing.lg, paddingBottom: 40 },
+  bodyDesktop: { maxWidth: 860, alignSelf: 'center', width: '100%', padding: 40, paddingBottom: 60 },
+  card: { backgroundColor: colors.white, borderRadius: 16, padding: 32, ...shadow.card },
+  twoCol: { flexDirection: 'row', gap: 0 },
+  col: { flex: 1 },
+  colDivider: { width: 1, backgroundColor: colors.line, marginHorizontal: 28 },
   hint: { fontSize: 13, color: colors.muted, marginBottom: 8 },
   field: { marginTop: 14 },
   label: { fontSize: 12, fontWeight: '600', color: colors.muted, marginBottom: 6 },

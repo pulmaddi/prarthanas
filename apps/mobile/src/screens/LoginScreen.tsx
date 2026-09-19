@@ -13,6 +13,7 @@ import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, shadow, spacing } from '../theme';
 import { Button } from '../components/ui';
 import GoogleButton from '../components/GoogleButton';
+import { useBreakpoint } from '../lib/useBreakpoint';
 import { t } from '../i18n';
 import { signIn, isSupabaseConfigured } from '../lib/supabase';
 
@@ -25,6 +26,7 @@ export default function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const { isDesktop } = useBreakpoint();
 
   const onSignIn = async () => {
     if (!EMAIL_RE.test(email)) return setError('Please enter a valid email address.');
@@ -48,53 +50,51 @@ export default function LoginScreen({ navigation }: Props) {
   return (
     <ScrollView
       style={styles.screen}
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[styles.container, isDesktop && styles.containerDesktop]}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.logoWrap}>
-        <Image
-          source={require('../../assets/logo.jpeg')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+      <View style={[styles.card, isDesktop && styles.cardDesktop]}>
+        <View style={styles.logoWrap}>
+          <Image source={require('../../assets/logo.jpeg')} style={styles.logo} resizeMode="contain" />
+        </View>
+
+        <Text style={styles.h1}>{t('login.title')}</Text>
+        <Text style={styles.sub}>{t('login.subtitle')}</Text>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>{t('login.email')}</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="you@example.com"
+            placeholderTextColor={colors.muted}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+          />
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>{t('login.password')}</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="••••••••"
+            placeholderTextColor={colors.muted}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+        </View>
+
+        {!!error && <Text style={styles.error}>{error}</Text>}
+
+        <Button label={busy ? '…' : t('login.signIn')} onPress={onSignIn} />
+        <GoogleButton onError={setError} />
+        <TouchableOpacity onPress={() => navigation.replace('Register')}>
+          <Text style={styles.alt}>{t('login.noAccount')}</Text>
+        </TouchableOpacity>
       </View>
-
-      <Text style={styles.h1}>{t('login.title')}</Text>
-      <Text style={styles.sub}>{t('login.subtitle')}</Text>
-
-      <View style={styles.field}>
-        <Text style={styles.label}>{t('login.email')}</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="you@example.com"
-          placeholderTextColor={colors.muted}
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-        />
-      </View>
-
-      <View style={styles.field}>
-        <Text style={styles.label}>{t('login.password')}</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="••••••••"
-          placeholderTextColor={colors.muted}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-      </View>
-
-      {!!error && <Text style={styles.error}>{error}</Text>}
-
-      <Button label={busy ? '…' : t('login.signIn')} onPress={onSignIn} />
-      <GoogleButton onError={setError} />
-      <TouchableOpacity onPress={() => navigation.replace('Register')}>
-        <Text style={styles.alt}>{t('login.noAccount')}</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -102,6 +102,21 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
   container: { padding: spacing.xl, paddingBottom: 40 },
+  containerDesktop: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: spacing.xl,
+  },
+  card: { width: '100%' },
+  cardDesktop: {
+    maxWidth: 460,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 36,
+    ...shadow.card,
+  },
   logoWrap: {
     alignSelf: 'center',
     marginTop: 24,

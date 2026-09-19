@@ -13,6 +13,7 @@ import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, shadow, spacing } from '../theme';
 import { Button } from '../components/ui';
 import GoogleButton from '../components/GoogleButton';
+import { useBreakpoint } from '../lib/useBreakpoint';
 import { t, setLocale } from '../i18n';
 import { signUpWithProfile, isSupabaseConfigured } from '../lib/supabase';
 
@@ -33,6 +34,7 @@ export default function RegisterScreen({ navigation }: Props) {
   const [lang, setLang] = useState<'en' | 'hi' | 'te'>('en');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const { isDesktop } = useBreakpoint();
 
   const onCreate = async () => {
     if (name.trim().length < 2) return setError('Please enter your name.');
@@ -64,9 +66,10 @@ export default function RegisterScreen({ navigation }: Props) {
   return (
     <ScrollView
       style={styles.screen}
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[styles.container, isDesktop && styles.containerDesktop]}
       keyboardShouldPersistTaps="handled"
     >
+      <View style={[styles.card, isDesktop && styles.cardDesktop]}>
       <View style={styles.logoWrap}>
         <Image
           source={require('../../assets/logo.jpeg')}
@@ -161,6 +164,7 @@ export default function RegisterScreen({ navigation }: Props) {
         onPress={() => navigation.navigate('Login')}
       />
       <GoogleButton onError={setError} />
+      </View>
     </ScrollView>
   );
 }
@@ -168,6 +172,9 @@ export default function RegisterScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
   container: { padding: spacing.xl, paddingBottom: 40 },
+  containerDesktop: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
+  card: { width: '100%' },
+  cardDesktop: { maxWidth: 480, backgroundColor: colors.white, borderRadius: 16, padding: 36, ...shadow.card },
   logoWrap: {
     alignSelf: 'center',
     marginTop: 16,

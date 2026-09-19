@@ -6,6 +6,8 @@ import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { t } from '../i18n';
 import { useAuth } from '../lib/auth';
+import { useBreakpoint } from '../lib/useBreakpoint';
+import WebPageWrapper from '../components/WebPageWrapper';
 
 const LANG_LABEL: Record<string, string> = {
   en: 'English',
@@ -16,6 +18,7 @@ const LANG_LABEL: Record<string, string> = {
 export default function ProfileScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { profile, email, signOut } = useAuth();
+  const { isDesktop } = useBreakpoint();
 
   const name = profile?.name?.trim() || t('profile.devotee');
   const initial = (name[0] || '🙏').toUpperCase();
@@ -45,7 +48,8 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.body}>
+      <WebPageWrapper maxWidth={640}>
+      <ScrollView contentContainerStyle={[styles.body, isDesktop && styles.bodyDesktop]}>
         <View style={styles.header}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{initial}</Text>
@@ -77,6 +81,7 @@ export default function ProfileScreen() {
 
         <Text style={styles.version}>Ishta · v0.1</Text>
       </ScrollView>
+      </WebPageWrapper>
     </View>
   );
 }
@@ -97,6 +102,7 @@ const styles = StyleSheet.create({
   email: { color: colors.muted, fontSize: 13, marginTop: 2 },
   lang: { color: colors.muted, fontSize: 12, marginTop: 8 },
   body: { padding: spacing.lg, paddingBottom: 40 },
+  bodyDesktop: { padding: 40, paddingBottom: 60 },
   section: {
     fontSize: 12,
     fontWeight: '700',
