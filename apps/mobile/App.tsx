@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Linking } from 'react-native';
+import { Platform, View, Linking } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFonts, Marcellus_400Regular } from '@expo-google-fonts/marcellus';
 import {
@@ -12,9 +12,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   NavigationContainer,
   createNavigationContainerRef,
+  useNavigation,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator, BottomTabBar } from '@react-navigation/bottom-tabs';
 
 import { colors, fonts } from './src/theme';
 import { t, setLocale } from './src/i18n';
@@ -22,6 +23,8 @@ import { AuthProvider, useAuth } from './src/lib/auth';
 import { setSessionFromUrl } from './src/lib/supabase';
 import { LocaleContext, type Lang } from './src/lib/locale';
 import type { RootStackParamList, MainTabParamList } from './src/navigation/types';
+import { useBreakpoint } from './src/lib/useBreakpoint';
+import WebSideNav from './src/components/WebSideNav';
 
 import SplashScreen from './src/screens/SplashScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -76,82 +79,94 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 // Ref so the OAuth deep-link handler can navigate once a session lands.
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
+const mobileTabBarStyle = {
+  backgroundColor: colors.maroon,
+  borderTopColor: 'rgba(255,255,255,0.10)',
+  borderTopWidth: 1,
+  height: 66,
+  paddingBottom: 8,
+  paddingTop: 6,
+  elevation: 12,
+  shadowColor: '#000',
+  shadowOpacity: 0.18,
+  shadowOffset: { width: 0, height: -2 },
+  shadowRadius: 8,
+};
+
 function MainTabs() {
   const { isHost } = useAuth();
+  const { isDesktop } = useBreakpoint();
+  const rootNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const renderTabBar = (props: React.ComponentProps<typeof BottomTabBar>) => {
+    if (isDesktop) return <WebSideNav {...props} rootNav={rootNav} />;
+    return <BottomTabBar {...props} />;
+  };
+
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.turmeric, // turmeric — high contrast on maroon
-        tabBarInactiveTintColor: 'rgba(255,248,236,0.55)', // soft ivory
-        tabBarShowLabel: true,
-        tabBarLabelStyle: {
-          fontSize: 10.5,
-          fontFamily: fonts.medium,
-          marginTop: 3,
-          letterSpacing: 0.2,
-        },
-        tabBarIconStyle: { marginTop: 4 },
-        tabBarItemStyle: { paddingVertical: 4 },
-        tabBarStyle: {
-          backgroundColor: colors.maroon,
-          borderTopColor: 'rgba(255,255,255,0.10)',
-          borderTopWidth: 1,
-          height: 66,
-          paddingBottom: 8,
-          paddingTop: 6,
-          // subtle lift off the content
-          elevation: 12,
-          shadowColor: '#000',
-          shadowOpacity: 0.18,
-          shadowOffset: { width: 0, height: -2 },
-          shadowRadius: 8,
-        },
-      }}
-    >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ title: t('tabs.home'), tabBarIcon: tabIcon('home-outline', 'home') }}
-      />
-      {isHost ? (
-        <>
-          <Tab.Screen
-            name="Meetings"
-            component={MeetingsScreen}
-            options={{ title: t('tabs.meetings'), tabBarIcon: tabIcon('calendar-blank-outline', 'calendar') }}
-          />
-          <Tab.Screen
-            name="MyNotifications"
-            component={NotificationsScreen}
-            options={{ title: t('tabs.myNotifications'), tabBarIcon: tabIcon('bullhorn-outline', 'bullhorn') }}
-          />
-        </>
-      ) : (
-        <>
-          <Tab.Screen
-            name="TodaysPuja"
-            component={RitualsScreen}
-            options={{ title: t('tabs.todaysPuja'), tabBarIcon: tabIcon('candle') }}
-          />
-          <Tab.Screen
-            name="JoinCommunity"
-            component={JoinCommunityScreen}
-            options={{ title: t('tabs.joinCommunity'), tabBarIcon: tabIcon('account-group-outline', 'account-group') }}
-          />
-          <Tab.Screen
-            name="JoinMeeting"
-            component={JoinMeetingScreen}
-            options={{ title: t('tabs.joinMeeting'), tabBarIcon: tabIcon('video-outline', 'video') }}
-          />
-          <Tab.Screen
-            name="Notifications"
-            component={NotificationsInboxScreen}
-            options={{ title: t('tabs.notifications'), tabBarIcon: tabIcon('bell-outline', 'bell') }}
-          />
-        </>
-      )}
-    </Tab.Navigator>
+    <View style={{ flex: 1, flexDirection: isDesktop ? 'row' : 'column' }}>
+      <Tab.Navigator
+        tabBar={renderTabBar}
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: colors.turmeric,
+          tabBarInactiveTintColor: 'rgba(255,248,236,0.55)',
+          tabBarShowLabel: true,
+          tabBarLabelStyle: {
+            fontSize: 10.5,
+            fontFamily: fonts.medium,
+            marginTop: 3,
+            letterSpacing: 0.2,
+          },
+          tabBarIconStyle: { marginTop: 4 },
+          tabBarItemStyle: { paddingVertical: 4 },
+          tabBarStyle: isDesktop ? { display: 'none' } : mobileTabBarStyle,
+        }}
+      >
+        <Tab.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ title: t('tabs.home'), tabBarIcon: tabIcon('home-outline', 'home') }}
+        />
+        {isHost ? (
+          <>
+            <Tab.Screen
+              name="Meetings"
+              component={MeetingsScreen}
+              options={{ title: t('tabs.meetings'), tabBarIcon: tabIcon('calendar-blank-outline', 'calendar') }}
+            />
+            <Tab.Screen
+              name="MyNotifications"
+              component={NotificationsScreen}
+              options={{ title: t('tabs.myNotifications'), tabBarIcon: tabIcon('bullhorn-outline', 'bullhorn') }}
+            />
+          </>
+        ) : (
+          <>
+            <Tab.Screen
+              name="TodaysPuja"
+              component={RitualsScreen}
+              options={{ title: t('tabs.todaysPuja'), tabBarIcon: tabIcon('candle') }}
+            />
+            <Tab.Screen
+              name="JoinCommunity"
+              component={JoinCommunityScreen}
+              options={{ title: t('tabs.joinCommunity'), tabBarIcon: tabIcon('account-group-outline', 'account-group') }}
+            />
+            <Tab.Screen
+              name="JoinMeeting"
+              component={JoinMeetingScreen}
+              options={{ title: t('tabs.joinMeeting'), tabBarIcon: tabIcon('video-outline', 'video') }}
+            />
+            <Tab.Screen
+              name="Notifications"
+              component={NotificationsInboxScreen}
+              options={{ title: t('tabs.notifications'), tabBarIcon: tabIcon('bell-outline', 'bell') }}
+            />
+          </>
+        )}
+      </Tab.Navigator>
+    </View>
   );
 }
 

@@ -20,15 +20,18 @@ import { t } from '../i18n';
 import { useAuth } from '../lib/auth';
 import { useWeekdayDeities } from '../lib/weekdayDeities';
 import { useHostDirectory } from '../lib/hosts';
+import { useBreakpoint } from '../lib/useBreakpoint';
 import HostFollowSection from '../components/HostFollowSection';
 import HostHomeSections from '../components/HostHomeSections';
 import SectionHeader from '../components/SectionHeader';
+import WebPageWrapper from '../components/WebPageWrapper';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
   const rootNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { profile, isAdmin, hostTypes, isHost } = useAuth();
+  const { isDesktop } = useBreakpoint();
   const { today } = useWeekdayDeities();
   const { priests, gurus, temples, followed, follow, unfollow } = useHostDirectory();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -50,7 +53,8 @@ export default function HomeScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.topbar}>
+      {/* On desktop the sidebar carries identity; hide the mobile topbar */}
+      {!isDesktop && <View style={styles.topbar}>
         <View style={styles.topLeft}>
           {isAdmin && (
             <TouchableOpacity
@@ -81,7 +85,15 @@ export default function HomeScreen({ navigation }: Props) {
         >
           <Text style={{ color: colors.white, fontWeight: '700' }}>{initial}</Text>
         </TouchableOpacity>
-      </View>
+      </View>}
+      {/* Desktop greeting bar */}
+      {isDesktop && (
+        <View style={styles.desktopGreet}>
+          <MaterialCommunityIcons name="hands-pray" size={18} color={colors.turmeric} />
+          <Text style={styles.desktopGreetText}>{t('namaste')}, {firstName}</Text>
+          <View style={styles.rolePill}><Text style={styles.roleText}>{roleLabel}</Text></View>
+        </View>
+      )}
 
       {/* Left admin drawer */}
       <Modal
@@ -147,114 +159,114 @@ export default function HomeScreen({ navigation }: Props) {
         </View>
       </Modal>
 
-      <ScrollView contentContainerStyle={styles.body}>
-        {/* Daily Rituals — pooja shortcuts (compact icons, no background) */}
-        <SectionHeader icon="candle" title={t('home.dailyRituals')} />
-        <View style={styles.idpWrap}>
-          {/* Ishta Daiva Pooja */}
-          <View style={styles.idpItem}>
-            <TouchableOpacity
-              style={styles.idpBtn}
-              activeOpacity={0.8}
-              onPress={() =>
-                profile?.ishta_daiva
-                  ? rootNav.navigate('GuidedPooja')
-                  : rootNav.navigate('MyIshtaDaiva')
+      <WebPageWrapper>
+        <ScrollView contentContainerStyle={[styles.body, isDesktop && styles.bodyDesktop]}>
+          {/* Daily Rituals */}
+          <SectionHeader icon="candle" title={t('home.dailyRituals')} />
+          <View style={styles.idpWrap}>
+            <View style={styles.idpItem}>
+              <TouchableOpacity
+                style={styles.idpBtn}
+                activeOpacity={0.8}
+                onPress={() =>
+                  profile?.ishta_daiva
+                    ? rootNav.navigate('GuidedPooja')
+                    : rootNav.navigate('MyIshtaDaiva')
+                }
+              >
+                <Image
+                  source={require('../../assets/IsthaDaivaPooja.png')}
+                  style={styles.idpIcon}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+              <Text style={styles.idpLabel} numberOfLines={2}>
+                {t('home.ishtaDaivaPooja')}
+              </Text>
+              <Text style={styles.idpSub} numberOfLines={1}>
+                {profile?.ishta_daiva || t('home.chooseIshta')}
+              </Text>
+            </View>
+
+            <View style={styles.idpItem}>
+              <TouchableOpacity
+                style={styles.idpBtn}
+                activeOpacity={0.8}
+                onPress={() => rootNav.navigate('GuidedPooja', { vaara: true })}
+              >
+                <Image
+                  source={require('../../assets/WeekdayPooja.png')}
+                  style={styles.idpIcon}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+              <Text style={styles.idpLabel} numberOfLines={2}>
+                {t('home.weekdayPooja')}
+              </Text>
+              <Text style={styles.idpSub} numberOfLines={1}>
+                {t('home.today')}: {today().deity_name}
+              </Text>
+            </View>
+          </View>
+
+          {isHost ? (
+            <HostHomeSections
+              onOpenMeetings={() => navigation.navigate('Meetings')}
+              onOpenNotifications={() => navigation.navigate('MyNotifications')}
+              onOpenRoom={(m) =>
+                rootNav.navigate('LiveRoom', {
+                  meetingId: m.id,
+                  title: m.title,
+                  deityName: m.deity_name ?? undefined,
+                  hostId: m.host_id,
+                })
               }
-            >
-              <Image
-                source={require('../../assets/IsthaDaivaPooja.png')}
-                style={styles.idpIcon}
-                resizeMode="cover"
-              />
-            </TouchableOpacity>
-            <Text style={styles.idpLabel} numberOfLines={2}>
-              {t('home.ishtaDaivaPooja')}
-            </Text>
-            <Text style={styles.idpSub} numberOfLines={1}>
-              {profile?.ishta_daiva || t('home.chooseIshta')}
-            </Text>
-          </View>
-
-          {/* Weekday Pooja — opens today's deity */}
-          <View style={styles.idpItem}>
-            <TouchableOpacity
-              style={styles.idpBtn}
-              activeOpacity={0.8}
-              onPress={() => rootNav.navigate('GuidedPooja', { vaara: true })}
-            >
-              <Image
-                source={require('../../assets/WeekdayPooja.png')}
-                style={styles.idpIcon}
-                resizeMode="cover"
-              />
-            </TouchableOpacity>
-            <Text style={styles.idpLabel} numberOfLines={2}>
-              {t('home.weekdayPooja')}
-            </Text>
-            <Text style={styles.idpSub} numberOfLines={1}>
-              {t('home.today')}: {today().deity_name}
-            </Text>
-          </View>
-        </View>
-
-        {isHost ? (
-          /* Host (Priest / Guru / Temple Exec): meeting invites + notifications */
-          <HostHomeSections
-            onOpenMeetings={() => navigation.navigate('Meetings')}
-            onOpenNotifications={() => navigation.navigate('MyNotifications')}
-            onOpenRoom={(m) =>
-              rootNav.navigate('LiveRoom', {
-                meetingId: m.id,
-                title: m.title,
-                deityName: m.deity_name ?? undefined,
-                hostId: m.host_id,
-              })
-            }
-          />
-        ) : (
-          <>
-            {/* My Priests */}
-            <HostFollowSection
-              title={t('home.myPriests')}
-              icon="account-tie"
-              hosts={priests}
-              followed={followed}
-              onFollow={follow}
-              onUnfollow={unfollow}
-              prompt={t('home.followPriestPrompt')}
-              emptyText={t('home.noPriests')}
-              fallbackName="Priest"
             />
-
-            {/* My Spiritual Guru */}
-            <HostFollowSection
-              title={t('home.mySpiritualGuru')}
-              icon="meditation"
-              hosts={gurus}
-              followed={followed}
-              onFollow={follow}
-              onUnfollow={unfollow}
-              prompt={t('home.followGuruPrompt')}
-              emptyText={t('home.noGurus')}
-              fallbackName="Guru"
-            />
-
-            {/* My Temple */}
-            <HostFollowSection
-              title={t('home.myTemple')}
-              icon="town-hall"
-              hosts={temples}
-              followed={followed}
-              onFollow={follow}
-              onUnfollow={unfollow}
-              prompt={t('home.followTemplePrompt')}
-              emptyText={t('home.noTemples')}
-              fallbackName="Temple"
-            />
-          </>
-        )}
-      </ScrollView>
+          ) : (
+            <View style={[styles.hostGrid, isDesktop && styles.hostGridDesktop]}>
+              <View style={isDesktop ? styles.hostGridCol : undefined}>
+                <HostFollowSection
+                  title={t('home.myPriests')}
+                  icon="account-tie"
+                  hosts={priests}
+                  followed={followed}
+                  onFollow={follow}
+                  onUnfollow={unfollow}
+                  prompt={t('home.followPriestPrompt')}
+                  emptyText={t('home.noPriests')}
+                  fallbackName="Priest"
+                />
+              </View>
+              <View style={isDesktop ? styles.hostGridCol : undefined}>
+                <HostFollowSection
+                  title={t('home.mySpiritualGuru')}
+                  icon="meditation"
+                  hosts={gurus}
+                  followed={followed}
+                  onFollow={follow}
+                  onUnfollow={unfollow}
+                  prompt={t('home.followGuruPrompt')}
+                  emptyText={t('home.noGurus')}
+                  fallbackName="Guru"
+                />
+              </View>
+              <View style={isDesktop ? styles.hostGridCol : undefined}>
+                <HostFollowSection
+                  title={t('home.myTemple')}
+                  icon="town-hall"
+                  hosts={temples}
+                  followed={followed}
+                  onFollow={follow}
+                  onUnfollow={unfollow}
+                  prompt={t('home.followTemplePrompt')}
+                  emptyText={t('home.noTemples')}
+                  fallbackName="Temple"
+                />
+              </View>
+            </View>
+          )}
+        </ScrollView>
+      </WebPageWrapper>
     </SafeAreaView>
   );
 }
@@ -328,6 +340,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   body: { padding: spacing.lg, paddingBottom: 30 },
+  bodyDesktop: { padding: 32, paddingBottom: 48 },
+  desktopGreet: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    backgroundColor: colors.ivory,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.sandal,
+  },
+  desktopGreetText: { fontSize: 15, fontWeight: '600', color: colors.maroon },
+  hostGrid: {},
+  hostGridDesktop: { flexDirection: 'row', flexWrap: 'wrap', gap: 0 },
+  hostGridCol: { flex: 1, minWidth: 280 },
   section: { fontSize: 15, fontWeight: '700', color: colors.ink },
   idpWrap: { flexDirection: 'row', gap: 18, marginTop: 4, marginBottom: 10 },
   idpItem: { width: 92, alignItems: 'center' },
