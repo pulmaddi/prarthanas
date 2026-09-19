@@ -45,12 +45,20 @@ services:
       - key: DEFAULT_CURRENCY
         value: INR
 
-  # ── Web App (Expo static export) ─────────────────────────────
+  # ── Web (marketing site at / + Expo app at /app) ────────────
   - type: web
     name: prarthanas-web
     env: static
-    buildCommand: pnpm --filter @clique/mobile export:web
+    buildCommand: pnpm --filter @clique/mobile export:web && bash scripts/web-postbuild.sh
     staticPublishPath: apps/mobile/dist
+    routes:
+      # Expo SPA: serve app/index.html for all /app/* paths
+      - type: rewrite
+        source: /app
+        destination: /app/index.html
+      - type: rewrite
+        source: /app/*
+        destination: /app/index.html
     envVars:
       - key: EXPO_PUBLIC_API_URL
         sync: false
