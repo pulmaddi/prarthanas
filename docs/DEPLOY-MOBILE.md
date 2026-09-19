@@ -1,4 +1,4 @@
-# Mobile builds & store release — Ishta
+﻿# Mobile builds & store release — Prarthanas
 
 How to build the Android/iOS apps with **EAS** (Expo Application Services). No Mac
 needed — EAS builds in the cloud.
@@ -12,7 +12,7 @@ Register store accounts as an **Organization** (company as legal seller, company
 bank + GSTIN for payouts). See the discussion in chat / ARCHITECTURE §7 (IAP risk).
 
 ## One-time setup (already done in the repo)
-- `app.json` — bundle id `com.ishta.app`, icon/splash, camera/mic permissions,
+- `app.json` — bundle id `com.prarthanas.app`, icon/splash, camera/mic permissions,
   `@livekit/react-native` + `expo-build-properties` (min SDK 24) plugins.
 - `eas.json` — build profiles:
   - **preview** → installable **APK** for phone testing (sideload).
@@ -25,7 +25,7 @@ bank + GSTIN for payouts). See the discussion in chat / ARCHITECTURE §7 (IAP ri
 > `.env`, so these must live in `eas.json`.
 >
 > **Google sign-in** works on the native app via a deep-link callback. It requires
-> `ishta://auth-callback` allow-listed in **Supabase → Auth → URL Configuration →
+> `prarthanas://auth-callback` allow-listed in **Supabase → Auth → URL Configuration →
 > Redirect URLs**, plus the Google provider enabled (the Google *Web* OAuth client
 > is shared with the web app — no Android client). Full steps:
 > [`supabase/README.md` → Google sign-in (OAuth)](../supabase/README.md#google-sign-in-oauth).

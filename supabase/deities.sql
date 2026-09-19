@@ -1,5 +1,5 @@
--- ============================================================
--- Ishta — Deities catalog (run in the Supabase SQL Editor)
+﻿-- ============================================================
+-- Prarthanas — Deities catalog (run in the Supabase SQL Editor)
 -- A reference table of deities for the Ishta Daiva picker + images.
 -- Manage rows in the Table Editor; upload images to the 'deities'
 -- Storage bucket (file name = image_path). No custom admin page needed.

@@ -5,11 +5,11 @@ import { colors, spacing } from '../theme';
 const SECTIONS: { h: string; body: string }[] = [
   {
     h: '1. Acceptance of terms',
-    body: 'By creating an account or using Ishta, you agree to these Terms & Conditions and our Privacy Policy. If you do not agree, please do not use the app.',
+    body: 'By creating an account or using Prarthanas, you agree to these Terms & Conditions and our Privacy Policy. If you do not agree, please do not use the app.',
   },
   {
     h: '2. The service',
-    body: 'Ishta connects devotees with temples, Gurus/Swamijis and devotee groups for live audio/video gatherings, guided virtual rituals, information sharing and community messages. We provide the platform; devotional content and ceremonies are provided by the respective hosts.',
+    body: 'Prarthanas connects devotees with temples, Gurus/Swamijis and devotee groups for live audio/video gatherings, guided virtual rituals, information sharing and community messages. We provide the platform; devotional content and ceremonies are provided by the respective hosts.',
   },
   {
     h: '3. Eligibility & accounts',

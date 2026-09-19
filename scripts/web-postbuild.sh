@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # Runs after "expo export --platform web".
 # Moves the Expo SPA into dist/app/ and copies the marketing website to dist/ root.
 # Result:
-#   /          -> Ishta marketing website (index.html)
+#   /          -> Prarthanas marketing website (index.html)
 #   /app       -> Expo web app (SPA entry)
 #   /app/*     -> Expo SPA (client-side routes, handled by render.yaml rewrite)
 

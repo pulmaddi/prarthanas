@@ -33,7 +33,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 // Deep link the OAuth callback back into the native app. Must match the
 // `scheme` in app.json and be allow-listed in Supabase → Auth → URL config.
-export const NATIVE_AUTH_REDIRECT = 'ishta://auth-callback';
+export const NATIVE_AUTH_REDIRECT = 'prarthanas://auth-callback';
 
 /**
  * Google OAuth sign-in.

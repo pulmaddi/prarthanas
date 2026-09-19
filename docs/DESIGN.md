@@ -1,6 +1,6 @@
-# Ishta — Design System / Brand Spec
+﻿# Prarthanas — Design System / Brand Spec
 
-Portable design tokens for the **Ishta** brand ("Light Your Inner Path").
+Portable design tokens for the **Prarthanas** brand ("Light Your Inner Path").
 Framework-agnostic — usable for web, React Native, Flutter, or native apps.
 Palette theme: **Saffron · Turmeric · Sandalwood**, with maroon + ivory support tones.
 
@@ -111,6 +111,6 @@ Footer signature: **"Connecting Souls, Elevating Spirits."**
 ---
 
 ### Quick prompt for the mobile-app project
-> "Use the Ishta design system in DESIGN.md — saffron `#E8620A` primary, turmeric `#F2A900` secondary,
+> "Use the Prarthanas design system in DESIGN.md — saffron `#E8620A` primary, turmeric `#F2A900` secondary,
 > ivory `#FFF8EC` background, maroon `#7A1E12` headings; Marcellus for headings and Mukta for body;
 > pill buttons, 16px card radius, warm maroon-tinted shadows, lotus/diya/Om motifs."

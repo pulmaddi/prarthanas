@@ -1,4 +1,4 @@
--- Scheduling fields for host_meetings: meeting vs special pooja, date/time,
+﻿-- Scheduling fields for host_meetings: meeting vs special pooja, date/time,
 -- recurrence (one-time / daily / weekly / monthly).
 --
 -- Self-contained: creates host_meetings + host_notifications (with RLS) if they

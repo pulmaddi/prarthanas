@@ -1,4 +1,4 @@
-/* Ishta — shared interactions: nav, active link, scroll reveal, countdown, form */
+﻿/* Prarthanas — shared interactions: nav, active link, scroll reveal, countdown, form */
 (function () {
   "use strict";
 

@@ -1,5 +1,5 @@
--- ============================================================
--- Ishta — Guided Pooja masters: ritual items + step sequence
+﻿-- ============================================================
+-- Prarthanas — Guided Pooja masters: ritual items + step sequence
 -- Run in the Supabase SQL Editor.
 -- Requires admin.sql first (defines public.is_admin()).
 -- ============================================================
@@ -38,7 +38,7 @@ create policy "ritual_items_admin_write" on public.ritual_items
 -- `is_active` lets you roll steps out one at a time.
 create table if not exists public.pooja_steps (
   id              uuid primary key default gen_random_uuid(),
-  pooja_type      text not null default 'common',  -- shared by Ishta + Vaara for now
+  pooja_type      text not null default 'common',  -- shared by Prarthanas + Vaara for now
   step_order      int  not null,
   item_key        text references public.ritual_items (item_key) on delete set null,
   action          text not null default 'info'

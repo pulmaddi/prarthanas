@@ -1,5 +1,5 @@
--- ============================================================
--- Ishta — Vaara Pooja (weekday deities). Run in the Supabase SQL Editor.
+﻿-- ============================================================
+-- Prarthanas — Vaara Pooja (weekday deities). Run in the Supabase SQL Editor.
 -- One row per weekday (0=Sun … 6=Sat) with deity name + image/audio.
 -- Images/audio live in the existing public 'deities' bucket under weekday/…
 -- Managed via the in-app Admin (admins only); everyone reads.

@@ -1,9 +1,9 @@
-# Architecture — Clique
+﻿# Architecture — Clique
 
 **Status:** Proposed (planning phase). This is a recommendation to validate with the client, not a built system.
 **Last updated:** 2026-06-22
 
-> **Current build note (Ishta app):** to move fast, the mobile app currently talks to **Supabase** directly (`@supabase/supabase-js`) for registration/login (Supabase Auth — email/password **and Google OAuth**, the latter via a system-browser flow that deep-links back to `ishta://auth-callback`) and stores user data in Supabase Postgres (`profiles` table, Row-Level Security). Supabase is hosted Postgres, so this is consistent with the data model below. The **NestJS API** (`apps/api`, Prisma) is scaffolded and will sit in front of the same Postgres for server-gated concerns (payments, live-room media tokens) — see §5–6. SMS/OTP auth is deferred. Setup: [`supabase/README.md`](../supabase/README.md).
+> **Current build note (Ishta app):** to move fast, the mobile app currently talks to **Supabase** directly (`@supabase/supabase-js`) for registration/login (Supabase Auth — email/password **and Google OAuth**, the latter via a system-browser flow that deep-links back to `prarthanas://auth-callback`) and stores user data in Supabase Postgres (`profiles` table, Row-Level Security). Supabase is hosted Postgres, so this is consistent with the data model below. The **NestJS API** (`apps/api`, Prisma) is scaffolded and will sit in front of the same Postgres for server-gated concerns (payments, live-room media tokens) — see §5–6. SMS/OTP auth is deferred. Setup: [`supabase/README.md`](../supabase/README.md).
 
 ---
 

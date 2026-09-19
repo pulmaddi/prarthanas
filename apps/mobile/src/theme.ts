@@ -1,4 +1,4 @@
-// Ishta design system — "Light Your Inner Path"
+// Prarthanas design system — "Divine Connect"
 // Saffron · turmeric · sandalwood. Matches the website. See docs/BRANDING.md.
 import { StyleSheet } from 'react-native';
 

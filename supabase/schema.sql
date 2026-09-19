@@ -1,5 +1,5 @@
--- ============================================================
--- Ishta — Supabase schema (run in the Supabase SQL Editor)
+﻿-- ============================================================
+-- Prarthanas — Supabase schema (run in the Supabase SQL Editor)
 -- Auth is handled by Supabase Auth (auth.users). This adds a
 -- public "profiles" row per user with name + preferred language,
 -- protected by Row-Level Security.

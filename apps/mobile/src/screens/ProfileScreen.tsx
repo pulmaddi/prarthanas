@@ -79,7 +79,7 @@ export default function ProfileScreen() {
           <MenuRow icon="🚪" label={t('profile.logout')} danger onPress={onLogout} />
         </View>
 
-        <Text style={styles.version}>Ishta · v0.1</Text>
+        <Text style={styles.version}>Prarthanas · v0.1</Text>
       </ScrollView>
       </WebPageWrapper>
     </View>

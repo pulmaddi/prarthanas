@@ -1,5 +1,5 @@
--- ============================================================
--- Ishta — Admin access (run in the Supabase SQL Editor)
+﻿-- ============================================================
+-- Prarthanas — Admin access (run in the Supabase SQL Editor)
 -- Lets a logged-in ADMIN user manage the deities catalog + images
 -- from the local admin web app, using the public anon key + their
 -- session. Row-Level Security restricts writes to admins only.

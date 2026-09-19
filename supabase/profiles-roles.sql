@@ -1,5 +1,5 @@
--- ============================================================
--- Ishta — roles model: everyone is a Devotee by default; host roles
+﻿-- ============================================================
+-- Prarthanas — roles model: everyone is a Devotee by default; host roles
 -- (Priest/Guru/Temple Exec via host_accounts) are ADDITIONAL and can be
 -- granted to an existing account. This adds profiles.email + admin read
 -- so an admin can find a user by email and grant them a host role.

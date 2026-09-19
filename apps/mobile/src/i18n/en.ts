@@ -1,5 +1,5 @@
 export default {
-  appName: 'Ishta',
+  appName: 'Prarthanas',
   tagline: 'Light Your Inner Path',
   namaste: 'Namaste',
   roles: {

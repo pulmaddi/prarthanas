@@ -1,10 +1,10 @@
-# Supabase setup — Ishta
+﻿# Supabase setup — Prarthanas
 
 The mobile app talks to **Supabase** directly (`@supabase/supabase-js`) for
 registration and login. Supabase Auth handles email/password securely (hashed
 passwords, sessions); a `profiles` table stores name + preferred language.
 
-> Architecture note: this is the current data layer for the **Ishta** app.
+> Architecture note: this is the current data layer for the **Prarthanas** app.
 > The NestJS API (`apps/api`) can be reintroduced in front of the same Supabase
 > Postgres later for payments and live-room token gating (see ARCHITECTURE §).
 
@@ -12,7 +12,7 @@ passwords, sessions); a `profiles` table stores name + preferred language.
 
 ### 1. Create the project
 1. Go to <https://supabase.com> → **New project**.
-2. Pick a name (e.g. `ishta`), a strong DB password, and the region
+2. Pick a name (e.g. `prarthanas`), a strong DB password, and the region
    **closest to India** (e.g. `ap-south-1` Mumbai / Singapore) for latency
    and data-residency.
 3. Wait for it to provision (~2 min).
@@ -43,11 +43,11 @@ Restart the Expo dev server after editing `.env`.
 
 > **For EAS cloud builds** the same public URL + anon key are read from the
 > `env` block of each profile in [`apps/mobile/eas.json`](../apps/mobile/eas.json)
-> (a built APK has no `.env`). These are already set for the Ishta project.
+> (a built APK has no `.env`). These are already set for the Prarthanas project.
 
 ## Google sign-in (OAuth)
 
-Ishta supports **Continue with Google** on web and native (Android/iOS). The app
+Prarthanas supports **Continue with Google** on web and native (Android/iOS). The app
 never talks to Google directly — the flow is **app → Supabase → Google → Supabase
 → app**, so a single Google **Web application** OAuth client serves every platform
 (no separate Android client needed).
@@ -55,7 +55,7 @@ never talks to Google directly — the flow is **app → Supabase → Google →
 **Code:** `signInWithGoogle()` + `setSessionFromUrl()` in
 [`apps/mobile/src/lib/supabase.ts`](../apps/mobile/src/lib/supabase.ts); the native
 deep-link handler + `navigationRef` live in
-[`apps/mobile/App.tsx`](../apps/mobile/App.tsx). The app scheme (`ishta`) is set in
+[`apps/mobile/App.tsx`](../apps/mobile/App.tsx). The app scheme (`prarthanas`) is set in
 `app.json`.
 
 ### Setup (once per Supabase project)
@@ -65,7 +65,7 @@ deep-link handler + `navigationRef` live in
    https://<project-ref>.supabase.co/auth/v1/callback
    ```
 2. **Google Cloud → Auth Platform → Audience** — set **Publishing status = In
-   production** so any Google account can sign in. Ishta requests only basic scopes
+   production** so any Google account can sign in. Prarthanas requests only basic scopes
    (email, profile, openid), so **no Google verification/review is required**.
    (Leave it in *Testing* to restrict to listed test-user emails instead.)
 3. **Supabase → Authentication → Providers → Google** — enable, paste the client's
@@ -73,12 +73,12 @@ deep-link handler + `navigationRef` live in
 4. **Supabase → Authentication → URL Configuration → Redirect URLs** — add the
    native deep link (this is the mobile-only addition; web uses its site URL):
    ```
-   ishta://auth-callback
+   prarthanas://auth-callback
    ```
 
-> For the Ishta project (`azeawlwqtiqtbgjrazxl`) the Google client + provider are
+> For the Prarthanas project (`azeawlwqtiqtbgjrazxl`) the Google client + provider are
 > **already configured** (shared with the web app, same project URL). The only
-> mobile-specific addition is the `ishta://auth-callback` redirect URL in step 4.
+> mobile-specific addition is the `prarthanas://auth-callback` redirect URL in step 4.
 
 ## Deity images (Ishta Daiva)
 

@@ -1,13 +1,13 @@
-# Branding & Naming
+﻿# Branding & Naming
 
 ## Names in use
 
 - **Platform / project: `Clique`** — the reusable meeting/community platform. This is the **codebase identity**: the repo, the package scope (`@clique/*`), infra resources, and backend services all use it. Future "advanced meeting apps" are built on the same Clique platform.
-- **App brand: `Ishta`** — the **virtual-ritual app** built on Clique, and the name end users see. From *Ishta Devata* (इष्ट देवता / ఇష్ట దైవం) — one's cherished/chosen personal deity: an apt, warm, pan-India devotional name. Applied as **branding only** (display name, logo, splash, store listing, landing pages); the underlying platform stays brand-neutral so it can be re-skinned for other apps.
+- **App brand: `Prarthanas`** — the **virtual-ritual app** built on Clique, and the name end users see. From *Ishta Devata* (इष्ट देवता / ఇష్ట దైవం) — one's cherished/chosen personal deity: an apt, warm, pan-India devotional name. Applied as **branding only** (display name, logo, splash, store listing, landing pages); the underlying platform stays brand-neutral so it can be re-skinned for other apps.
 
-> The platform owns the architecture; **Ishta** is the current app skin (logo + this version). Other apps reuse the same Clique code with different logos/branding.
+> The platform owns the architecture; **Prarthanas** is the current app skin (logo + this version). Other apps reuse the same Clique code with different logos/branding.
 
-**Before launch:** verify "Ishta" trademark / Play Store / App Store / domain availability in India.
+**Before launch:** verify "Prarthanas" trademark / Play Store / App Store / domain availability in India.
 
 ## Other names considered (for reference)
 
@@ -26,4 +26,4 @@
 - **Transparent logos/icons sit directly on the background** — **never add a white/cream/opaque container, circle, tile, or "badge" behind a transparent logo or icon.** Supply assets with transparent backgrounds and place them as-is so they blend with the screen.
 - **Type:** a humanist sans with good Devanagari + Telugu script coverage (e.g. Noto Sans / Noto Sans Devanagari / Noto Sans Telugu).
 
-> The mobile app, landing pages and wireframes display the **Ishta** brand. The platform layer (packages, infra, backend) uses **Clique**.
+> The mobile app, landing pages and wireframes display the **Prarthanas** brand. The platform layer (packages, infra, backend) uses **Clique**.

@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Ishta",
-    "slug": "ishta",
-    "scheme": "ishta",
+    "name": "Prarthanas",
+    "slug": "prarthanas",
+    "scheme": "prarthanas",
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -17,14 +17,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ishta.app",
+      "bundleIdentifier": "com.prarthanas.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "Ishta uses your camera so a priest can appear on video during a live pooja.",
-        "NSMicrophoneUsageDescription": "Ishta uses your microphone so you can speak and hear during a live pooja."
+        "NSCameraUsageDescription": "Prarthanas uses your camera so a priest can appear on video during a live pooja.",
+        "NSMicrophoneUsageDescription": "Prarthanas uses your microphone so you can speak and hear during a live pooja."
       }
     },
     "android": {
-      "package": "com.ishta.app",
+      "package": "com.prarthanas.app",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",

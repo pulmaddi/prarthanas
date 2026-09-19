@@ -1,5 +1,5 @@
--- ============================================================
--- Ishta — Host onboarding (Priest / Guru / Temple Executive /
+﻿-- ============================================================
+-- Prarthanas — Host onboarding (Priest / Guru / Temple Executive /
 -- Numerologist / Astrologer). Run in the Supabase SQL Editor.
 -- Requires admin.sql (is_admin()).
 -- One host profile per user; a user can hold MULTIPLE roles (host_types

@@ -1,5 +1,5 @@
--- ============================================================
--- Ishta — Follows + public host directory. Run in the Supabase SQL Editor.
+﻿-- ============================================================
+-- Prarthanas — Follows + public host directory. Run in the Supabase SQL Editor.
 -- Devotees follow priests/gurus/temples. A PII-free view exposes hosts for
 -- discovery (name/type/city only — no phone/email). Requires hosts.sql.
 -- ============================================================

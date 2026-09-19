@@ -1,4 +1,4 @@
--- Host content: meeting invites + notification broadcasts
+﻿-- Host content: meeting invites + notification broadcasts
 -- Run in Supabase SQL Editor. Hosts (priest / guru / temple_exec) create these;
 -- followers read them. Read is open to authenticated; writes are owner-only.
 

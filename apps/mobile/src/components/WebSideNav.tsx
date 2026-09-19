@@ -26,7 +26,7 @@ export default function WebSideNav({ state, descriptors, navigation, rootNav }: 
       {/* Logo */}
       <View style={styles.logoWrap}>
         <Image
-          source={require('../../assets/ishta-logo.png')}
+          source={require('../../assets/icon.png')}
           style={styles.logo}
           resizeMode="contain"
         />
