@@ -49,7 +49,7 @@ services:
   - type: web
     name: prarthanas-web
     env: static
-    buildCommand: cd apps/mobile && npm install --legacy-peer-deps && npx expo export --platform web
+    buildCommand: pnpm --filter @clique/mobile export:web
     staticPublishPath: apps/mobile/dist
     envVars:
       - key: EXPO_PUBLIC_API_URL
