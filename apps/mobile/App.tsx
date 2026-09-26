@@ -104,9 +104,14 @@ function MainTabs() {
   };
 
   return (
-    <View style={{ flex: 1, flexDirection: isDesktop ? 'row' : 'column' }}>
+    <View style={{ flex: 1 }}>
       <Tab.Navigator
         tabBar={renderTabBar}
+        // On desktop the sidebar is position:fixed so it's out of flow.
+        // Shift every screen's content right by the sidebar width so nothing
+        // is hidden underneath it. The navigator background matches the app
+        // so the brief exposed strip (before the screen mounts) is cream.
+        sceneContainerStyle={isDesktop ? { marginLeft: 232, backgroundColor: colors.bg } : undefined}
         screenOptions={{
           headerShown: false,
           tabBarActiveTintColor: colors.turmeric,

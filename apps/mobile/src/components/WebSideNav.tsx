@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -20,9 +20,16 @@ const ICONS: Record<string, [keyof typeof MaterialCommunityIcons.glyphMap, keyof
   MyNotifications: ['bullhorn-outline',       'bullhorn'],
 };
 
+// On web the tab navigator renders the tab bar below screens (column layout).
+// We escape that by fixing the sidebar to the left viewport edge so it
+// always spans full height regardless of where the tab bar wrapper sits.
+const webFixed = Platform.OS === 'web'
+  ? ({ position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 100 } as any)
+  : {};
+
 export default function WebSideNav({ state, descriptors, navigation, rootNav }: Props) {
   return (
-    <View style={styles.sidebar}>
+    <View style={[styles.sidebar, webFixed]}>
       {/* Logo */}
       <View style={styles.logoWrap}>
         <Image
