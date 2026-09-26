@@ -72,7 +72,7 @@ export default function RegisterScreen({ navigation }: Props) {
       <View style={[styles.card, isDesktop && styles.cardDesktop]}>
       <View style={styles.logoWrap}>
         <Image
-          source={require('../../assets/logo.jpeg')}
+          source={require('../../assets/logo-web.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     ...shadow.card,
   },
-  logo: { width: 140, height: 120 },
+  logo: { width: 180, height: 117 },
   h1: { fontSize: 22, fontWeight: '700', color: colors.maroon, marginTop: 18 },
   sub: { fontSize: 13, color: colors.muted, marginTop: 4, marginBottom: 8 },
   field: { marginTop: 14 },

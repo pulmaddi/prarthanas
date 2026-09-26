@@ -30,7 +30,7 @@ export default function WelcomeScreen({ navigation }: Props) {
   const brandPanel = (
     <View style={[styles.brand, isDesktop && styles.brandDesktop]}>
       <View style={styles.logoBadge}>
-        <Image source={require('../../assets/logo.jpeg')} style={styles.logo} resizeMode="contain" />
+        <Image source={require('../../assets/logo-web.png')} style={styles.logo} resizeMode="contain" />
       </View>
       <Text style={styles.tag}>{t('tagline')}</Text>
       <Text style={styles.purpose}>{t('welcome.purpose')}</Text>
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     ...shadow.card,
   },
-  logo: { width: 170, height: 170 },
+  logo: { width: 210, height: 137 },
   tag: { color: colors.cream, fontSize: 14, opacity: 0.9, marginTop: 16 },
   purpose: {
     color: colors.cream,

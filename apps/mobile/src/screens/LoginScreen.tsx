@@ -55,7 +55,7 @@ export default function LoginScreen({ navigation }: Props) {
     >
       <View style={[styles.card, isDesktop && styles.cardDesktop]}>
         <View style={styles.logoWrap}>
-          <Image source={require('../../assets/logo.jpeg')} style={styles.logo} resizeMode="contain" />
+          <Image source={require('../../assets/logo-web.png')} style={styles.logo} resizeMode="contain" />
         </View>
 
         <Text style={styles.h1}>{t('login.title')}</Text>
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     ...shadow.card,
   },
-  logo: { width: 160, height: 140 },
+  logo: { width: 200, height: 130 },
   h1: { fontSize: 22, fontWeight: '700', color: colors.maroon, marginTop: 18 },
   sub: { fontSize: 13, color: colors.muted, marginTop: 4, marginBottom: 8 },
   field: { marginTop: 14 },

@@ -31,7 +31,7 @@ export default function SplashScreen({ navigation }: Props) {
     <View style={styles.container}>
       <View style={styles.logoCard}>
         <Image
-          source={require('../../assets/logo.jpeg')}
+          source={require('../../assets/logo-web.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 26,
     ...shadow.card,
   },
-  logo: { width: 200, height: 200 },
+  logo: { width: 240, height: 156 },
   tag: { color: colors.cream, fontSize: 13, marginTop: 16, opacity: 0.9 },
   langs: { color: colors.cream, fontSize: 11, position: 'absolute', bottom: 40, opacity: 0.8 },
 });
