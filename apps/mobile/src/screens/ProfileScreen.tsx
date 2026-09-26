@@ -17,7 +17,7 @@ const LANG_LABEL: Record<string, string> = {
 
 export default function ProfileScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { profile, email, signOut } = useAuth();
+  const { profile, email, isAdmin, signOut } = useAuth();
   const { isDesktop } = useBreakpoint();
 
   const name = profile?.name?.trim() || t('profile.devotee');
@@ -74,6 +74,21 @@ export default function ProfileScreen() {
             onPress={() => nav.navigate('MyProfile')}
           />
         </View>
+
+        {isAdmin && (
+          <View style={[styles.card, { marginTop: 22 }]}>
+            <Text style={styles.section}>{t('profile.adminSection')}</Text>
+            <MenuRow icon="🧑‍🏫" label={t('profile.adminHosts')} onPress={() => nav.navigate('AdminHosts')} />
+            <View style={styles.divider} />
+            <MenuRow icon="🗂️" label={t('profile.adminHostsManage')} onPress={() => nav.navigate('AdminHostsManage')} />
+            <View style={styles.divider} />
+            <MenuRow icon="📅" label={t('profile.adminVaara')} onPress={() => nav.navigate('AdminVaara')} />
+            <View style={styles.divider} />
+            <MenuRow icon="🧺" label={t('profile.adminRitual')} onPress={() => nav.navigate('AdminRitualItems')} />
+            <View style={styles.divider} />
+            <MenuRow icon="👤" label={t('profile.admin')} onPress={() => nav.navigate('Admin')} />
+          </View>
+        )}
 
         <View style={[styles.card, { marginTop: 22 }]}>
           <MenuRow icon="🚪" label={t('profile.logout')} danger onPress={onLogout} />

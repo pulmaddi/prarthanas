@@ -5,6 +5,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { colors, fonts } from '../theme';
+import { useAuth } from '../lib/auth';
 
 type Props = BottomTabBarProps & {
   rootNav: NativeStackNavigationProp<RootStackParamList>;
@@ -27,7 +28,16 @@ const webFixed = Platform.OS === 'web'
   ? ({ position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 100 } as any)
   : {};
 
+const ADMIN_LINKS: { icon: keyof typeof MaterialCommunityIcons.glyphMap; label: string; screen: keyof RootStackParamList }[] = [
+  { icon: 'account-supervisor', label: 'Onboard Hosts', screen: 'AdminHosts' },
+  { icon: 'format-list-bulleted', label: 'Manage Hosts', screen: 'AdminHostsManage' },
+  { icon: 'calendar-star', label: 'Vaara Deities', screen: 'AdminVaara' },
+  { icon: 'basket', label: 'Ritual Items', screen: 'AdminRitualItems' },
+  { icon: 'shield-account', label: 'Admin Panel', screen: 'Admin' },
+];
+
 export default function WebSideNav({ state, descriptors, navigation, rootNav }: Props) {
+  const { isAdmin } = useAuth();
   return (
     <View style={[styles.sidebar, webFixed]}>
       {/* Logo */}
@@ -64,6 +74,25 @@ export default function WebSideNav({ state, descriptors, navigation, rootNav }: 
           );
         })}
       </View>
+
+      {/* Admin section */}
+      {isAdmin && (
+        <View style={styles.adminSection}>
+          <View style={styles.divider} />
+          <Text style={styles.adminLabel}>ADMIN</Text>
+          {ADMIN_LINKS.map((link) => (
+            <TouchableOpacity
+              key={link.screen}
+              style={styles.item}
+              onPress={() => rootNav.navigate(link.screen as any)}
+              accessibilityRole="button"
+            >
+              <MaterialCommunityIcons name={link.icon} size={18} color={colors.turmeric} />
+              <Text style={[styles.label, styles.adminLinkText]}>{link.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {/* Footer: profile */}
       <View style={styles.footer}>
@@ -130,4 +159,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)',
     marginBottom: 12,
   },
+  adminSection: { paddingHorizontal: 10 },
+  adminLabel: {
+    fontFamily: fonts.medium,
+    fontSize: 10,
+    color: colors.turmeric,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    paddingHorizontal: 12,
+    marginBottom: 4,
+  },
+  adminLinkText: { color: 'rgba(255,248,236,0.85)', fontSize: 13 },
 });
