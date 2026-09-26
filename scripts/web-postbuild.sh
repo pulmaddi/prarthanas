@@ -23,6 +23,14 @@ WEBSITE="apps/website"
 echo "▶ Renaming Expo entry: dist/index.html -> dist/app.html"
 mv "$DIST/index.html" "$DIST/app.html"
 
+# Expo generates relative asset paths (e.g. _expo/static/js/...).
+# When Render rewrites /app -> /app.html, the browser URL stays /app,
+# so relative paths resolve to /app/_expo/... (404) instead of /_expo/...
+# Injecting <base href="/"> makes the browser always resolve relative
+# paths from the site root regardless of the rewrite URL.
+echo "▶ Injecting <base href=\"/\"> into app.html..."
+sed -i 's|<head>|<head><base href="/">|' "$DIST/app.html"
+
 echo "▶ Copying marketing website to dist root..."
 cp -r "$WEBSITE/." "$DIST/"
 
