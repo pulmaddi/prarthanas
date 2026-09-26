@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Platform, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -40,7 +40,7 @@ export default function WebSideNav({ state, descriptors, navigation, rootNav }: 
   const { isAdmin } = useAuth();
   return (
     <View style={[styles.sidebar, webFixed]}>
-      {/* Logo */}
+      {/* Logo — pinned at top */}
       <View style={styles.logoWrap}>
         <Image
           source={require('../../assets/icon.png')}
@@ -50,8 +50,13 @@ export default function WebSideNav({ state, descriptors, navigation, rootNav }: 
         <Text style={styles.logoSub}>Prarthanas</Text>
       </View>
 
-      {/* Nav items */}
-      <View style={styles.nav}>
+      {/* Scrollable middle: nav tabs + admin links */}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Main nav items */}
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const label = descriptors[route.key]?.options?.title ?? route.name;
@@ -73,30 +78,30 @@ export default function WebSideNav({ state, descriptors, navigation, rootNav }: 
             </TouchableOpacity>
           );
         })}
-      </View>
 
-      {/* Admin section */}
-      {isAdmin && (
-        <View style={styles.adminSection}>
-          <View style={styles.divider} />
-          <Text style={styles.adminLabel}>ADMIN</Text>
-          {ADMIN_LINKS.map((link) => (
-            <TouchableOpacity
-              key={link.screen}
-              style={styles.item}
-              onPress={() => rootNav.navigate(link.screen as any)}
-              accessibilityRole="button"
-            >
-              <MaterialCommunityIcons name={link.icon} size={18} color={colors.turmeric} />
-              <Text style={[styles.label, styles.adminLinkText]}>{link.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
+        {/* Admin section — only for admins, directly below nav items */}
+        {isAdmin && (
+          <>
+            <View style={styles.sectionDivider} />
+            <Text style={styles.sectionLabel}>Admin</Text>
+            {ADMIN_LINKS.map((link) => (
+              <TouchableOpacity
+                key={link.screen}
+                style={styles.item}
+                onPress={() => rootNav.navigate(link.screen as any)}
+                accessibilityRole="button"
+              >
+                <MaterialCommunityIcons name={link.icon} size={18} color={colors.turmeric} />
+                <Text style={[styles.label, styles.adminLinkText]}>{link.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+      </ScrollView>
 
-      {/* Footer: profile */}
+      {/* Profile — pinned at bottom */}
       <View style={styles.footer}>
-        <View style={styles.divider} />
+        <View style={styles.footerDivider} />
         <TouchableOpacity
           style={styles.item}
           onPress={() => rootNav.navigate('Profile')}
@@ -117,15 +122,15 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: 'rgba(255,255,255,0.08)',
     paddingTop: 24,
-    paddingBottom: 16,
-    justifyContent: 'space-between',
+    paddingBottom: 0,
+    flexDirection: 'column',
   },
   logoWrap: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.08)',
-    marginBottom: 12,
+    marginBottom: 8,
     gap: 4,
   },
   logo: { width: 110, height: 36 },
@@ -136,12 +141,13 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
-  nav: { flex: 1, paddingHorizontal: 10 },
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: 10, paddingBottom: 8 },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 11,
-    paddingVertical: 11,
+    paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 10,
     marginBottom: 2,
@@ -153,14 +159,13 @@ const styles = StyleSheet.create({
     color: 'rgba(255,248,236,0.6)',
   },
   labelActive: { color: colors.turmeric },
-  footer: { paddingHorizontal: 10 },
-  divider: {
+  sectionDivider: {
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.08)',
-    marginBottom: 12,
+    marginVertical: 10,
+    marginHorizontal: 12,
   },
-  adminSection: { paddingHorizontal: 10 },
-  adminLabel: {
+  sectionLabel: {
     fontFamily: fonts.medium,
     fontSize: 10,
     color: colors.turmeric,
@@ -170,4 +175,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   adminLinkText: { color: 'rgba(255,248,236,0.85)', fontSize: 13 },
+  footer: { paddingHorizontal: 10, paddingBottom: 16 },
+  footerDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    marginBottom: 8,
+    marginHorizontal: 2,
+  },
 });
