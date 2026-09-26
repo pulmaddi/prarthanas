@@ -135,7 +135,7 @@ section { position: relative; }
 .hero {
   position: relative; color: #fff; text-align: center;
   background: var(--gradient-warm); overflow: hidden;
-  padding: 56px 0 52px;
+  padding: 56px 0 140px;
 }
 .hero::after { /* temple silhouette baseline */
   content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 120px;
@@ -145,7 +145,7 @@ section { position: relative; }
 .hero .container { position: relative; z-index: 2; }
 .hero h1 { color: #fff; text-shadow: 0 4px 24px rgba(87,17,9,.35); }
 .hero .lead { max-width: 600px; margin: 12px auto 0; font-size: .98rem; color: #fff8ec; }
-.hero-cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+.hero-cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 22px; position: relative; z-index: 3; }
 .hero .om-crown { font-size: 1.7rem; margin-bottom: 4px; opacity: .9; }
 
 /* floating diyas */
