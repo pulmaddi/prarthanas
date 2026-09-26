@@ -1,26 +1,30 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # Runs after "expo export --platform web".
-# Moves the Expo SPA into dist/app/ and copies the marketing website to dist/ root.
-# Result:
-#   /          -> Prarthanas marketing website (index.html)
-#   /app       -> Expo web app (SPA entry)
-#   /app/*     -> Expo SPA (client-side routes, handled by render.yaml rewrite)
+#
+# Strategy: rename the Expo SPA entry to app.html so the marketing website
+# can own index.html at the dist root. The Expo bundles (_expo/, assets/)
+# stay at the dist root with their original paths — keeping their relative
+# references valid and avoiding any conflict with Render's /app/* rewrite rule
+# (which would otherwise intercept /_expo/static/js/... requests and return
+# HTML instead of JS, causing a blank page).
+#
+# Final dist layout:
+#   /              -> apps/website/index.html  (marketing landing page)
+#   /app.html      -> Expo SPA entry point
+#   /app, /app/*   -> rewritten to /app.html by render.yaml
+#   /_expo/...     -> Expo JS bundles  (never caught by /app/* rewrite)
+#   /assets/...    -> merged Expo + website static assets
 
 set -e
 
 DIST="apps/mobile/dist"
-APP_DIR="$DIST/app"
 WEBSITE="apps/website"
 
-echo "▶ Moving Expo SPA into $APP_DIR..."
-mkdir -p "$APP_DIR"
+echo "▶ Renaming Expo entry: dist/index.html -> dist/app.html"
+mv "$DIST/index.html" "$DIST/app.html"
 
-mv "$DIST/index.html" "$APP_DIR/index.html"
-[ -d "$DIST/_expo" ]  && mv "$DIST/_expo"  "$APP_DIR/_expo"
-[ -d "$DIST/assets" ] && mv "$DIST/assets" "$APP_DIR/assets"
-
-echo "▶ Copying marketing website to $DIST root..."
+echo "▶ Copying marketing website to dist root..."
 cp -r "$WEBSITE/." "$DIST/"
 
-echo "✅ Done — website at /, Expo app at /app"
+echo "✅ Done — website at /, Expo SPA entry at /app.html"
 ls "$DIST"

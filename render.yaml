@@ -52,13 +52,15 @@ services:
     buildCommand: pnpm --filter @clique/mobile export:web && bash scripts/web-postbuild.sh
     staticPublishPath: apps/mobile/dist
     routes:
-      # Expo SPA: serve app/index.html for all /app/* paths
+      # Expo SPA: serve app.html (at dist root) for all /app and /app/* paths.
+      # Assets (_expo/, assets/) stay at root so they are never caught by
+      # this rewrite rule, which would return HTML instead of JS bundles.
       - type: rewrite
         source: /app
-        destination: /app/index.html
+        destination: /app.html
       - type: rewrite
         source: /app/*
-        destination: /app/index.html
+        destination: /app.html
     envVars:
       - key: EXPO_PUBLIC_API_URL
         sync: false
