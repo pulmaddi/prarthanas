@@ -9,6 +9,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -20,34 +21,29 @@ import { useAuth } from '../lib/auth';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useRoomPresence, type Participant } from '../lib/roomPresence';
 import { useDeities, deityFileUrl } from '../lib/deities';
-import PriestVideoTile from '../components/PriestVideoTile';
+import { useLiveRoom } from '../hooks/useLiveRoom';
+import VideoTile from '../components/VideoTile';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LiveRoom'>;
 
 function roleLabelFromType(ht?: string | null): string {
   switch (ht) {
-    case 'priest':
-      return t('roles.priest');
-    case 'guru':
-      return t('roles.guru');
-    case 'temple_exec':
-      return t('roles.templeExec');
-    case 'numerologist':
-      return t('roles.numerologist');
-    case 'astrologer':
-      return t('roles.astrologer');
-    default:
-      return t('roles.devotee');
+    case 'priest':       return t('roles.priest');
+    case 'guru':         return t('roles.guru');
+    case 'temple_exec':  return t('roles.templeExec');
+    case 'numerologist': return t('roles.numerologist');
+    case 'astrologer':   return t('roles.astrologer');
+    default:             return t('roles.devotee');
   }
 }
 
 const PALETTE: { key: string; emoji: string; label: string }[] = [
-  { key: 'flowers', emoji: '🌸', label: t('pooja.flowers') },
-  { key: 'kumkuma', emoji: '🔴', label: t('room.kumkuma') },
-  { key: 'sandal', emoji: '🟡', label: t('room.sandal') },
-  { key: 'saffron', emoji: '🟠', label: t('pooja.saffron') },
-  { key: 'water', emoji: '💧', label: t('room.water') },
-  { key: 'aarti', emoji: '🪔', label: t('pooja.aarti') },
+  { key: 'flowers',  emoji: '🌸', label: t('pooja.flowers') },
+  { key: 'kumkuma',  emoji: '🔴', label: t('room.kumkuma') },
+  { key: 'sandal',   emoji: '🟡', label: t('room.sandal') },
+  { key: 'saffron',  emoji: '🟠', label: t('pooja.saffron') },
+  { key: 'water',    emoji: '💧', label: t('room.water') },
+  { key: 'aarti',    emoji: '🪔', label: t('pooja.aarti') },
 ];
 
 let _oid = 0;
@@ -62,7 +58,7 @@ function FloatingOffering({ emoji, x, onDone }: { emoji: string; x: number; onDo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [-6, 120] });
-  const opacity = anim.interpolate({ inputRange: [0, 0.65, 1], outputRange: [1, 1, 0] });
+  const opacity    = anim.interpolate({ inputRange: [0, 0.65, 1], outputRange: [1, 1, 0] });
   return (
     <Animated.Text style={[styles.offering, { left: x, transform: [{ translateY }], opacity }]}>
       {emoji}
@@ -70,7 +66,7 @@ function FloatingOffering({ emoji, x, onDone }: { emoji: string; x: number; onDo
   );
 }
 
-function Avatar({ name, gold }: { name: string; gold?: boolean }) {
+function PresenceAvatar({ name, gold }: { name: string; gold?: boolean }) {
   const initial = (name.trim()[0] || '🙏').toUpperCase();
   return (
     <View style={[styles.avatar, gold && styles.avatarGold]}>
@@ -86,11 +82,25 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
   const wide = width >= 820;
   const isOrganizer = !!session?.user.id && session.user.id === hostId;
 
+  // LiveKit integration
+  const {
+    participants: lkParticipants,
+    isMicOn,
+    isCamOn,
+    toggleMic,
+    toggleCam,
+    disconnect,
+    error: lkError,
+    connecting,
+  } = useLiveRoom(meetingId);
+
+  // Deity whiteboard state
   const { deities, imageUrlForName } = useDeities();
   const [chosenName, setChosenName] = useState<string | undefined>(deityName || undefined);
   const [pickerOpen, setPickerOpen] = useState(false);
   const deityImg = imageUrlForName(chosenName);
 
+  // Supabase Realtime presence (devotee list)
   const me: Participant | null = session?.user.id
     ? {
         user_id: session.user.id,
@@ -98,8 +108,8 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
         role: roleLabelFromType(hostTypes[0]),
       }
     : null;
+  const presenceParticipants = useRoomPresence(meetingId, me);
 
-  const participants = useRoomPresence(meetingId, me);
   const [organizer, setOrganizer] = useState<{ name: string; role: string } | null>(null);
   const [offers, setOffers] = useState<Offer[]>([]);
   const canvasW = useRef(320);
@@ -119,9 +129,7 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
           role: roleLabelFromType((data as any).host_types?.[0]),
         });
     })();
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [hostId]);
 
   const offer = (emoji: string) => {
@@ -136,13 +144,21 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
       void supabase.from('host_meetings').update({ deity_name: name }).eq('id', meetingId);
   };
 
-  // Participants: presence-first, organizer enriched from hosts_public.
-  const organizerFromPresence = participants.find((p) => p.user_id === hostId);
+  const handleLeave = () => {
+    disconnect();
+    navigation.goBack();
+  };
+
+  // Merge presence participants with LiveKit participant list for the panel.
+  const organizerFromPresence = presenceParticipants.find((p) => p.user_id === hostId);
   const organizerEntry: Participant | null = organizer
     ? { user_id: hostId, name: organizer.name, role: organizer.role }
     : organizerFromPresence ?? null;
-  const others = participants.filter((p) => p.user_id !== hostId);
-  const count = others.length + (organizerEntry ? 1 : 0);
+  const otherPresence = presenceParticipants.filter((p) => p.user_id !== hostId);
+  const count = otherPresence.length + (organizerEntry ? 1 : 0);
+
+  // Host video tile (first LiveKit participant who is the host, or first remote participant)
+  const hostLkParticipant = lkParticipants.find((p) => !p.isLocal) ?? lkParticipants[0];
 
   const ParticipantsPanel = (
     <View style={[styles.panel, wide ? styles.panelWide : styles.panelNarrow]}>
@@ -152,7 +168,7 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
       <ScrollView>
         {organizerEntry && (
           <View style={styles.pRow}>
-            <Avatar name={organizerEntry.name} gold />
+            <PresenceAvatar name={organizerEntry.name} gold />
             <View style={{ flex: 1 }}>
               <Text style={styles.pName}>{organizerEntry.name || t('room.organizer')}</Text>
               <Text style={styles.pRole}>{organizerEntry.role || t('roles.priest')}</Text>
@@ -162,9 +178,9 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
             </View>
           </View>
         )}
-        {others.map((p) => (
+        {otherPresence.map((p) => (
           <View key={p.user_id} style={styles.pRow}>
-            <Avatar name={p.name} />
+            <PresenceAvatar name={p.name} />
             <View style={{ flex: 1 }}>
               <Text style={styles.pName}>{p.name || t('profile.devotee')}</Text>
               <Text style={styles.pRole}>{p.role || t('roles.devotee')}</Text>
@@ -182,76 +198,114 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
         <View style={styles.liveBadge}>
           <Text style={styles.liveText}>● {t('room.live')}</Text>
         </View>
-        <Text style={styles.topTitle} numberOfLines={1}>
-          {title}
-        </Text>
+        <Text style={styles.topTitle} numberOfLines={1}>{title}</Text>
+
+        {/* Media controls */}
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          style={[styles.controlBtn, !isMicOn && styles.controlBtnOff]}
+          onPress={toggleMic}
+          accessibilityLabel={isMicOn ? 'Mute microphone' : 'Unmute microphone'}
+          hitSlop={6}
+        >
+          <MaterialCommunityIcons
+            name={isMicOn ? 'microphone' : 'microphone-off'}
+            size={18}
+            color={colors.white}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.controlBtn, !isCamOn && styles.controlBtnOff]}
+          onPress={toggleCam}
+          accessibilityLabel={isCamOn ? 'Turn off camera' : 'Turn on camera'}
+          hitSlop={6}
+        >
+          <MaterialCommunityIcons
+            name={isCamOn ? 'video' : 'video-off'}
+            size={18}
+            color={colors.white}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleLeave}
           style={styles.closeBtn}
           hitSlop={8}
           accessibilityLabel={t('pooja.end')}
         >
-          <MaterialCommunityIcons name="close" size={22} color={colors.white} />
+          <MaterialCommunityIcons name="phone-hangup" size={20} color={colors.white} />
         </TouchableOpacity>
       </View>
 
+      {/* Connecting overlay */}
+      {connecting && (
+        <View style={styles.connectingOverlay}>
+          <ActivityIndicator size="large" color={colors.turmeric} />
+          <Text style={styles.connectingText}>Joining room…</Text>
+        </View>
+      )}
+
+      {/* LiveKit error banner */}
+      {!!lkError && !connecting && (
+        <View style={styles.errorBanner}>
+          <MaterialCommunityIcons name="alert-circle-outline" size={16} color={colors.white} />
+          <Text style={styles.errorText}>{lkError}</Text>
+        </View>
+      )}
+
       <View style={[styles.body, wide && styles.bodyWide]}>
-        {/* Left column: deity whiteboard (top) + palette (bottom) */}
+        {/* Left column: deity whiteboard + offering palette */}
         <View style={styles.leftCol}>
           <View
             style={styles.canvas}
             onLayout={(e) => (canvasW.current = e.nativeEvent.layout.width)}
           >
-          {deityImg ? (
-            /* Full deity view: blurred cover backdrop fills the board; the full
-               murti sits on top uncropped (contain). */
-            <>
-              <Image source={{ uri: deityImg }} style={styles.deityBackdrop} resizeMode="cover" blurRadius={16} />
-              <View style={styles.backdropDim} />
-              <Image source={{ uri: deityImg }} style={styles.deityFore} resizeMode="contain" />
-              {!!chosenName && (
-                <View style={styles.deityNameBar}>
-                  <Text style={styles.deityNameFull}>{chosenName}</Text>
+            {deityImg ? (
+              <>
+                <Image source={{ uri: deityImg }} style={styles.deityBackdrop} resizeMode="cover" blurRadius={16} />
+                <View style={styles.backdropDim} />
+                <Image source={{ uri: deityImg }} style={styles.deityFore} resizeMode="contain" />
+                {!!chosenName && (
+                  <View style={styles.deityNameBar}>
+                    <Text style={styles.deityNameFull}>{chosenName}</Text>
+                  </View>
+                )}
+                {isOrganizer && (
+                  <TouchableOpacity
+                    style={styles.changeFab}
+                    activeOpacity={0.85}
+                    onPress={() => setPickerOpen(true)}
+                  >
+                    <MaterialCommunityIcons name="image-edit" size={16} color={colors.white} />
+                    <Text style={styles.changeFabText}>{t('room.changeDeity')}</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            ) : (
+              <>
+                <View style={styles.medallion}>
+                  <Text style={styles.om}>🕉️</Text>
                 </View>
-              )}
-              {isOrganizer && (
-                <TouchableOpacity
-                  style={styles.changeFab}
-                  activeOpacity={0.85}
-                  onPress={() => setPickerOpen(true)}
-                >
-                  <MaterialCommunityIcons name="image-edit" size={16} color={colors.white} />
-                  <Text style={styles.changeFabText}>{t('room.changeDeity')}</Text>
-                </TouchableOpacity>
-              )}
-            </>
-          ) : (
-            /* Not chosen yet — placeholder + choose (organizer only) */
-            <>
-              <View style={styles.medallion}>
-                <Text style={styles.om}>🕉️</Text>
-              </View>
-              <Text style={styles.deityName}>{chosenName || t('room.deityPlaceholder')}</Text>
-              {isOrganizer && (
-                <TouchableOpacity style={styles.chooseBtn} activeOpacity={0.85} onPress={() => setPickerOpen(true)}>
-                  <MaterialCommunityIcons name="image-edit" size={16} color={colors.maroon} />
-                  <Text style={styles.chooseText}>{t('room.chooseDeity')}</Text>
-                </TouchableOpacity>
-              )}
-            </>
-          )}
-
-          {offers.map((o) => (
-            <FloatingOffering
-              key={o.id}
-              emoji={o.emoji}
-              x={o.x}
-              onDone={() => setOffers((cur) => cur.filter((c) => c.id !== o.id))}
-            />
-          ))}
+                <Text style={styles.deityName}>{chosenName || t('room.deityPlaceholder')}</Text>
+                {isOrganizer && (
+                  <TouchableOpacity style={styles.chooseBtn} activeOpacity={0.85} onPress={() => setPickerOpen(true)}>
+                    <MaterialCommunityIcons name="image-edit" size={16} color={colors.maroon} />
+                    <Text style={styles.chooseText}>{t('room.chooseDeity')}</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
+            {offers.map((o) => (
+              <FloatingOffering
+                key={o.id}
+                emoji={o.emoji}
+                x={o.x}
+                onDone={() => setOffers((cur) => cur.filter((c) => c.id !== o.id))}
+              />
+            ))}
           </View>
 
-          {/* Offering palette (under the deity) */}
+          {/* Offering palette */}
           <View style={styles.paletteWrap}>
             <Text style={styles.paletteHint}>{t('room.tapToOffer')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.palette}>
@@ -270,20 +324,37 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
           </View>
         </View>
 
-        {/* Right column: moderator video (top) + participants (bottom) */}
+        {/* Right column: participant video grid + presence panel */}
         <View style={[styles.rightCol, wide ? styles.rightColWide : styles.rightColNarrow]}>
-          <View style={[styles.videoBox, wide ? styles.videoBoxWide : styles.videoBoxNarrow]}>
-            <PriestVideoTile
-              name={organizerEntry?.name || t('roles.priest')}
-              role={organizerEntry?.role || t('roles.priest')}
-              canPublish={isOrganizer}
-            />
-          </View>
+          {/* LiveKit video tiles */}
+          {lkParticipants.length > 0 ? (
+            <ScrollView style={styles.videoGrid} contentContainerStyle={styles.videoGridContent}>
+              {lkParticipants.map((p) => (
+                <VideoTile
+                  key={p.identity}
+                  track={p.videoTrack as any}
+                  isLocal={p.isLocal}
+                  name={p.name}
+                  audioMuted={p.audioMuted}
+                  style={styles.videoTile}
+                />
+              ))}
+            </ScrollView>
+          ) : (
+            <View style={[styles.videoBox, wide ? styles.videoBoxWide : styles.videoBoxNarrow]}>
+              <View style={styles.videoPlaceholder}>
+                <Text style={styles.videoPlaceholderText}>
+                  {connecting ? 'Connecting…' : 'Waiting for participants'}
+                </Text>
+              </View>
+            </View>
+          )}
+
           {ParticipantsPanel}
         </View>
       </View>
 
-      {/* Deity picker (organizer only) */}
+      {/* Deity picker modal */}
       <Modal visible={pickerOpen} transparent animationType="fade" onRequestClose={() => setPickerOpen(false)}>
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
@@ -310,9 +381,7 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
                         <Text style={{ fontSize: 30 }}>🕉️</Text>
                       )}
                     </View>
-                    <Text style={styles.gridName} numberOfLines={1}>
-                      {d.display_name}
-                    </Text>
+                    <Text style={styles.gridName} numberOfLines={1}>{d.display_name}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -332,14 +401,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.maroon,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
     paddingHorizontal: spacing.lg,
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
   liveBadge: { backgroundColor: colors.live, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   liveText: { color: colors.white, fontSize: 10, fontWeight: '800' },
-  topTitle: { flex: 1, color: colors.white, fontSize: 16, fontWeight: '700' },
-  closeBtn: {
+  topTitle: { flex: 1, color: colors.white, fontSize: 15, fontWeight: '700' },
+  controlBtn: {
     width: 34,
     height: 34,
     borderRadius: 17,
@@ -347,6 +416,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  controlBtnOff: { backgroundColor: colors.live },
+  closeBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.live,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  connectingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(42,10,18,0.88)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 50,
+    gap: 14,
+  },
+  connectingText: { color: colors.cream, fontSize: 16, fontWeight: '600' },
+  errorBanner: {
+    backgroundColor: 'rgba(200,40,40,0.85)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 8,
+  },
+  errorText: { color: colors.white, fontSize: 13, flex: 1 },
   body: { flex: 1 },
   bodyWide: { flexDirection: 'row' },
   leftCol: { flex: 1 },
@@ -371,7 +471,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  medallionImg: { width: 154, height: 154, borderRadius: 77 },
   om: { fontSize: 84 },
   deityBackdrop: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
   backdropDim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(42,10,18,0.28)' },
@@ -399,13 +498,24 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   changeFabText: { color: colors.white, fontWeight: '700', fontSize: 12 },
-  // right column
   rightCol: {},
-  rightColWide: { width: 300, margin: spacing.md, marginLeft: spacing.sm },
-  rightColNarrow: { marginHorizontal: spacing.md, marginBottom: spacing.md },
+  rightColWide: { width: 300, margin: spacing.md, marginLeft: spacing.sm, gap: 10 },
+  rightColNarrow: { marginHorizontal: spacing.md, marginBottom: spacing.md, gap: 8 },
+  videoGrid: { flexGrow: 0 },
+  videoGridContent: { gap: 6 },
+  videoTile: { width: '100%', height: 160 },
   videoBox: { borderRadius: radius.lg, overflow: 'hidden', marginBottom: 10 },
   videoBoxWide: { height: 180 },
   videoBoxNarrow: { height: 150 },
+  videoPlaceholder: {
+    flex: 1,
+    minHeight: 150,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoPlaceholderText: { color: 'rgba(255,255,255,0.45)', fontSize: 13 },
   deityName: { color: colors.maroon, fontSize: 18, fontWeight: '800', marginTop: 16 },
   chooseBtn: {
     flexDirection: 'row',
@@ -421,7 +531,6 @@ const styles = StyleSheet.create({
   },
   chooseText: { color: colors.maroon, fontWeight: '700', fontSize: 13 },
   offering: { position: 'absolute', top: 24, fontSize: 26 },
-  // participants
   panel: { backgroundColor: colors.cream, borderRadius: radius.lg, padding: spacing.md },
   panelWide: { flex: 1 },
   panelNarrow: { maxHeight: 180 },
@@ -447,7 +556,6 @@ const styles = StyleSheet.create({
   pRole: { fontSize: 11, color: colors.muted },
   orgTag: { backgroundColor: colors.gold, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   orgTagText: { fontSize: 9, fontWeight: '800', color: colors.maroon },
-  // palette (in the left column, under the deity)
   paletteWrap: { paddingTop: 10, paddingBottom: 6, paddingHorizontal: spacing.md },
   paletteHint: { color: 'rgba(255,255,255,0.75)', fontSize: 11, textAlign: 'center', marginBottom: 8 },
   palette: { gap: 10, alignItems: 'center' },
@@ -460,7 +568,6 @@ const styles = StyleSheet.create({
   },
   palEmoji: { fontSize: 26 },
   palLabel: { color: colors.white, fontSize: 10, marginTop: 2 },
-  // modal
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
