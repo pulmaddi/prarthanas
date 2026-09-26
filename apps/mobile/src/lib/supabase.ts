@@ -43,9 +43,11 @@ export const NATIVE_AUTH_REDIRECT = 'prarthanas://auth-callback';
  *   (wired to a Linking listener in App.tsx).
  */
 export async function signInWithGoogle() {
+  // On web the token lands back at /app (the Expo SPA entry), not the
+  // root origin (which serves the marketing site and never processes tokens).
   const redirectTo =
     isWeb && typeof window !== 'undefined'
-      ? window.location.origin
+      ? `${window.location.origin}/app`
       : NATIVE_AUTH_REDIRECT;
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
