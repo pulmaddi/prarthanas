@@ -160,7 +160,7 @@ export default function HomeScreen({ navigation }: Props) {
       </Modal>
 
       <WebPageWrapper>
-        <ScrollView contentContainerStyle={[styles.body, isDesktop && styles.bodyDesktop]}>
+        <ScrollView style={styles.scrollFill} contentContainerStyle={[styles.body, isDesktop && styles.bodyDesktop]}>
           {/* Daily Rituals */}
           <SectionHeader icon="candle" title={t('home.dailyRituals')} />
           <View style={styles.idpWrap}>
@@ -339,8 +339,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  body: { padding: spacing.lg, paddingBottom: 30 },
-  bodyDesktop: { padding: 32, paddingBottom: 48 },
+  scrollFill: { flex: 1 },
+  body: { padding: spacing.lg, paddingBottom: 30, flexGrow: 1 },
+  bodyDesktop: { padding: 32, paddingBottom: 48, flexGrow: 1 },
   desktopGreet: {
     flexDirection: 'row',
     alignItems: 'center',
