@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -276,9 +276,37 @@ function AddForm({
 
 export default function AdminVaaraScreen() {
   const { isAdmin } = useAuth();
+  const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { rows, reload } = useWeekdayDeities();
   const [editingDay, setEditingDay] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+
+  const formOpen = showAddForm || editingDay !== null;
+
+  const handleDone = () => {
+    setEditingDay(null);
+    setShowAddForm(false);
+    clearWeekdayCache();
+    reload();
+  };
+
+  // When a form is open, override the header back button so it returns to
+  // the list view inside this screen instead of popping the whole screen.
+  useEffect(() => {
+    nav.setOptions({
+      headerLeft: formOpen
+        ? () => (
+            <TouchableOpacity
+              onPress={handleDone}
+              style={{ paddingHorizontal: 8, paddingVertical: 4 }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialCommunityIcons name="arrow-left" size={24} color={colors.maroon} />
+            </TouchableOpacity>
+          )
+        : undefined,
+    });
+  }, [formOpen]);
 
   if (!isAdmin) {
     return (
@@ -293,15 +321,6 @@ export default function AdminVaaraScreen() {
       const found = rows?.find((r: WeekdayDeity) => r.day === i);
       return found ?? { day: i, day_name: dayName };
     });
-
-  const handleDone = () => {
-    setEditingDay(null);
-    setShowAddForm(false);
-    clearWeekdayCache();
-    reload();
-  };
-
-  const formOpen = showAddForm || editingDay !== null;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.body}>
