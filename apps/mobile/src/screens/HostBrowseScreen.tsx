@@ -57,14 +57,20 @@ export default function HostBrowseScreen({ route }: Props) {
       setBusy(false);
     };
 
+    const isTemple = (h.host_types ?? []).includes('temple_exec');
+    const displayName = isTemple ? (h.org_name || h.name || meta.label) : (h.name || meta.label);
+    const displaySub = isTemple
+      ? [h.location, h.city].filter(Boolean).join(', ')
+      : h.city;
+
     return (
       <View style={styles.row}>
         <View style={[styles.avatar, { backgroundColor: meta.accent }]}>
           <Text style={styles.avatarText}>{initial}</Text>
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.name}>{h.name || meta.label}</Text>
-          {!!h.city && <Text style={styles.city}>{h.city}</Text>}
+          <Text style={styles.name}>{displayName}</Text>
+          {!!displaySub && <Text style={styles.city}>{displaySub}</Text>}
         </View>
         <TouchableOpacity
           style={[styles.followBtn, isFollowed && styles.followBtnOn, busy && { opacity: 0.5 }]}

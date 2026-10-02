@@ -47,7 +47,11 @@ const HOST_CATS: HostCategory[] = [
 
 function followedSummary(list: PublicHost[]): string {
   if (list.length === 0) return 'None selected';
-  if (list.length === 1) return list[0].name || 'Selected';
+  if (list.length === 1) {
+    const h = list[0];
+    const isTemple = (h.host_types ?? []).includes('temple_exec');
+    return (isTemple ? h.org_name : h.name) || 'Selected';
+  }
   return `${list.length} selected`;
 }
 
