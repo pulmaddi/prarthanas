@@ -45,7 +45,9 @@ export default function AdminHostsScreen() {
     const title = filterType ? (ONBOARD_TITLE[filterType] ?? `Onboard ${filterType}`) : 'Onboard Host';
     nav.setOptions({ title });
   }, [filterType]);
+  const isTemple = filterType === 'temple_exec';
   const [name, setName] = useState('');
+  const [orgName, setOrgName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
@@ -56,6 +58,7 @@ export default function AdminHostsScreen() {
 
   const reset = () => {
     setName('');
+    setOrgName('');
     setEmail('');
     setPassword('');
     setPhone('');
@@ -65,7 +68,8 @@ export default function AdminHostsScreen() {
   const onCreate = async () => {
     setErr('');
     setCreated(null);
-    if (name.trim().length < 2) return setErr('Please enter the full name.');
+    if (isTemple && orgName.trim().length < 2) return setErr('Please enter the temple name.');
+    if (name.trim().length < 2) return setErr('Please enter the contact person name.');
     if (!EMAIL_RE.test(email)) return setErr('Please enter a valid email (username).');
     const emailLc = email.trim().toLowerCase();
     try {
@@ -93,7 +97,7 @@ export default function AdminHostsScreen() {
         name: name.trim(),
         phone: phone.trim() || null,
         city: city.trim() || null,
-        org_name: null,
+        org_name: orgName.trim() || null,
       });
       if (error) throw error;
       setCreated({ email: emailLc, password: isNew ? password : null });
@@ -132,11 +136,16 @@ export default function AdminHostsScreen() {
       </View>
 
       {[
-        { label: t('hosts.name'), v: name, set: setName, ph: 'Full name', cap: 'words' as const },
+        ...(isTemple ? [
+          { label: 'Temple Name', v: orgName, set: setOrgName, ph: 'e.g. Sri Venkateswara Temple', cap: 'words' as const },
+          { label: 'Contact Person Name', v: name, set: setName, ph: 'Full name', cap: 'words' as const },
+        ] : [
+          { label: t('hosts.name'), v: name, set: setName, ph: 'Full name', cap: 'words' as const },
+        ]),
         { label: t('hosts.email'), v: email, set: setEmail, ph: 'login@example.com', cap: 'none' as const, kb: 'email-address' as const },
         { label: t('hosts.password'), v: password, set: setPassword, ph: 'Set a password', secure: true },
         { label: t('hosts.phone'), v: phone, set: setPhone, ph: '+91 …', kb: 'phone-pad' as const },
-        { label: t('hosts.city'), v: city, set: setCity, ph: 'City' },
+        { label: isTemple ? 'Location' : t('hosts.city'), v: city, set: setCity, ph: isTemple ? 'City / Town' : 'City' },
       ].map((f) => (
         <View key={f.label} style={styles.field}>
           <Text style={styles.label}>{f.label}</Text>
@@ -146,8 +155,8 @@ export default function AdminHostsScreen() {
             onChangeText={f.set}
             placeholder={f.ph}
             placeholderTextColor={colors.muted}
-            secureTextEntry={f.secure}
-            keyboardType={f.kb}
+            secureTextEntry={(f as any).secure}
+            keyboardType={(f as any).kb}
             autoCapitalize={f.cap ?? 'sentences'}
           />
         </View>
