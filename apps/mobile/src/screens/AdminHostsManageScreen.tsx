@@ -303,21 +303,24 @@ export default function AdminHostsManageScreen() {
   const load = async () => {
     let q = supabase
       .from('host_accounts')
-      .select('user_id,host_types,name,phone,city,location,org_name,profiles(email)')
+      .select('user_id,host_types,name,phone,city,location,org_name')
       .order('created_at', { ascending: false });
     if (filterType) q = (q as any).contains('host_types', [filterType]);
-    const { data } = await q;
-    const rows: HostRow[] = ((data as any[]) ?? []).map((r) => ({
-      user_id: r.user_id,
-      host_types: r.host_types,
-      name: r.name,
-      phone: r.phone,
-      city: r.city,
-      location: r.location,
-      org_name: r.org_name,
-      email: (r.profiles as any)?.email ?? null,
-    }));
-    setRows(rows);
+    const { data: haData } = await q;
+    const haRows = (haData as any[]) ?? [];
+
+    // Fetch emails separately — no direct FK between host_accounts and profiles.
+    const userIds = haRows.map((r: any) => r.user_id);
+    const emailMap: Record<string, string | null> = {};
+    if (userIds.length > 0) {
+      const { data: profData } = await supabase
+        .from('profiles')
+        .select('id,email')
+        .in('id', userIds);
+      ((profData as any[]) ?? []).forEach((p) => { emailMap[p.id] = p.email ?? null; });
+    }
+
+    setRows(haRows.map((r: any) => ({ ...r, email: emailMap[r.user_id] ?? null })));
     setLoading(false);
   };
 
