@@ -66,7 +66,7 @@ function HostEditForm({
   onChanged: () => void;
 }) {
   const isTemple = filterType === 'temple_exec';
-  const hasLocation = isTemple || filterType === 'guru' || filterType === 'astrologer' || filterType === 'numerologist';
+  const hasLocation = isTemple || filterType === 'priest' || filterType === 'guru' || filterType === 'astrologer' || filterType === 'numerologist';
 
   const [name, setName] = useState(row.name ?? '');
   const [orgName, setOrgName] = useState(row.org_name ?? '');

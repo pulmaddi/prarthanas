@@ -46,7 +46,7 @@ export default function AdminHostsScreen() {
     nav.setOptions({ title });
   }, [filterType]);
   const isTemple = filterType === 'temple_exec';
-  const hasLocation = isTemple || filterType === 'guru' || filterType === 'astrologer' || filterType === 'numerologist';
+  const hasLocation = isTemple || filterType === 'priest' || filterType === 'guru' || filterType === 'astrologer' || filterType === 'numerologist';
   const [name, setName] = useState('');
   const [orgName, setOrgName] = useState('');
   const [location, setLocation] = useState('');
