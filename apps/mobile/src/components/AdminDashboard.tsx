@@ -7,13 +7,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
-  ScrollView,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius } from '../theme';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 type CardConfig = {
@@ -40,7 +39,7 @@ const CARDS: CardConfig[] = [
     countKey: 'vaara',
     manageLabel: 'Manage Days',
     manageScreen: 'AdminVaara',
-    newLabel: '+ Edit',
+    newLabel: 'Edit',
     newScreen: 'AdminVaara',
   },
   {
@@ -52,7 +51,7 @@ const CARDS: CardConfig[] = [
     countKey: 'ritualItems',
     manageLabel: 'Manage Items',
     manageScreen: 'AdminRitualItems',
-    newLabel: '+ New Item',
+    newLabel: 'New Item',
     newScreen: 'AdminRitualItems',
   },
   {
@@ -65,7 +64,7 @@ const CARDS: CardConfig[] = [
     manageLabel: 'Manage',
     manageScreen: 'AdminHostsManage',
     manageParams: { filterType: 'priest' },
-    newLabel: '+ Onboard',
+    newLabel: 'Onboard',
     newScreen: 'AdminHosts',
   },
   {
@@ -78,7 +77,7 @@ const CARDS: CardConfig[] = [
     manageLabel: 'Manage',
     manageScreen: 'AdminHostsManage',
     manageParams: { filterType: 'guru' },
-    newLabel: '+ Onboard',
+    newLabel: 'Onboard',
     newScreen: 'AdminHosts',
   },
   {
@@ -91,7 +90,7 @@ const CARDS: CardConfig[] = [
     manageLabel: 'Manage',
     manageScreen: 'AdminHostsManage',
     manageParams: { filterType: 'temple_exec' },
-    newLabel: '+ Onboard',
+    newLabel: 'Onboard',
     newScreen: 'AdminHosts',
   },
 ];
@@ -148,10 +147,14 @@ function DashCard({
       {/* Coloured top accent bar */}
       <View style={[styles.accent, { backgroundColor: card.accent }]} />
 
-      {/* Card body */}
+      {/* Card body — tapping the header area navigates to the manage screen */}
       <View style={styles.cardBody}>
-        {/* Icon + title row */}
-        <View style={styles.cardHeader}>
+        {/* Icon + title row (tappable) */}
+        <TouchableOpacity
+          style={styles.cardHeader}
+          onPress={goManage}
+          activeOpacity={0.75}
+        >
           <View style={[styles.iconCircle, { backgroundColor: card.accent + '20' }]}>
             <MaterialCommunityIcons name={card.icon} size={26} color={card.accent} />
           </View>
@@ -165,7 +168,7 @@ function DashCard({
               {countLabel(count, singular)}
             </Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Divider */}
         <View style={styles.divider} />
