@@ -15,7 +15,6 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
-import { Card, Title, Muted, Button } from '../components/ui';
 import { t } from '../i18n';
 import { useAuth } from '../lib/auth';
 import { useWeekdayDeities } from '../lib/weekdayDeities';
@@ -23,7 +22,7 @@ import { useHostDirectory } from '../lib/hosts';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import HostFollowSection from '../components/HostFollowSection';
 import HostHomeSections from '../components/HostHomeSections';
-import AdminHostSection from '../components/AdminHostSection';
+import AdminDashboard from '../components/AdminDashboard';
 import SectionHeader from '../components/SectionHeader';
 import WebPageWrapper from '../components/WebPageWrapper';
 
@@ -185,90 +184,110 @@ export default function HomeScreen({ navigation }: Props) {
 
       <WebPageWrapper>
         <ScrollView style={styles.scrollFill} contentContainerStyle={[styles.body, isDesktop && styles.bodyDesktop]}>
-          {/* Daily Rituals */}
-          <SectionHeader icon="candle" title={t('home.dailyRituals')} />
-          <View style={styles.idpWrap}>
-            <View style={styles.idpItem}>
-              <TouchableOpacity
-                style={styles.idpBtn}
-                activeOpacity={0.8}
-                onPress={() =>
-                  profile?.ishta_daiva
-                    ? rootNav.navigate('GuidedPooja')
-                    : rootNav.navigate('MyIshtaDaiva')
+          {isAdmin ? (
+            /* ── Admin home: full dashboard, no devotee-only rituals ── */
+            <AdminDashboard />
+          ) : isHost ? (
+            /* ── Host home: host-specific meeting sections ── */
+            <>
+              <SectionHeader icon="candle" title={t('home.dailyRituals')} />
+              <View style={styles.idpWrap}>
+                <View style={styles.idpItem}>
+                  <TouchableOpacity
+                    style={styles.idpBtn}
+                    activeOpacity={0.8}
+                    onPress={() =>
+                      profile?.ishta_daiva
+                        ? rootNav.navigate('GuidedPooja')
+                        : rootNav.navigate('MyIshtaDaiva')
+                    }
+                  >
+                    <Image
+                      source={require('../../assets/IsthaDaivaPooja.png')}
+                      style={styles.idpIcon}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.idpLabel} numberOfLines={2}>{t('home.ishtaDaivaPooja')}</Text>
+                  <Text style={styles.idpSub} numberOfLines={1}>
+                    {profile?.ishta_daiva || t('home.chooseIshta')}
+                  </Text>
+                </View>
+                <View style={styles.idpItem}>
+                  <TouchableOpacity
+                    style={styles.idpBtn}
+                    activeOpacity={0.8}
+                    onPress={() => rootNav.navigate('GuidedPooja', { vaara: true })}
+                  >
+                    <Image
+                      source={require('../../assets/WeekdayPooja.png')}
+                      style={styles.idpIcon}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.idpLabel} numberOfLines={2}>{t('home.weekdayPooja')}</Text>
+                  <Text style={styles.idpSub} numberOfLines={1}>
+                    {t('home.today')}: {today().deity_name}
+                  </Text>
+                </View>
+              </View>
+              <HostHomeSections
+                onOpenMeetings={() => navigation.navigate('Meetings')}
+                onOpenNotifications={() => navigation.navigate('MyNotifications')}
+                onOpenRoom={(m) =>
+                  rootNav.navigate('LiveRoom', {
+                    meetingId: m.id,
+                    title: m.title,
+                    deityName: m.deity_name ?? undefined,
+                    hostId: m.host_id,
+                  })
                 }
-              >
-                <Image
-                  source={require('../../assets/IsthaDaivaPooja.png')}
-                  style={styles.idpIcon}
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-              <Text style={styles.idpLabel} numberOfLines={2}>
-                {t('home.ishtaDaivaPooja')}
-              </Text>
-              <Text style={styles.idpSub} numberOfLines={1}>
-                {profile?.ishta_daiva || t('home.chooseIshta')}
-              </Text>
-            </View>
-
-            <View style={styles.idpItem}>
-              <TouchableOpacity
-                style={styles.idpBtn}
-                activeOpacity={0.8}
-                onPress={() => rootNav.navigate('GuidedPooja', { vaara: true })}
-              >
-                <Image
-                  source={require('../../assets/WeekdayPooja.png')}
-                  style={styles.idpIcon}
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-              <Text style={styles.idpLabel} numberOfLines={2}>
-                {t('home.weekdayPooja')}
-              </Text>
-              <Text style={styles.idpSub} numberOfLines={1}>
-                {t('home.today')}: {today().deity_name}
-              </Text>
-            </View>
-          </View>
-
-          {isHost ? (
-            <HostHomeSections
-              onOpenMeetings={() => navigation.navigate('Meetings')}
-              onOpenNotifications={() => navigation.navigate('MyNotifications')}
-              onOpenRoom={(m) =>
-                rootNav.navigate('LiveRoom', {
-                  meetingId: m.id,
-                  title: m.title,
-                  deityName: m.deity_name ?? undefined,
-                  hostId: m.host_id,
-                })
-              }
-            />
-          ) : isAdmin ? (
-            /* Admin sees management sections (up to 5 per category + View All / CRUD) */
-            <View style={styles.adminSections}>
-              <AdminHostSection
-                type="priest"
-                label="Priests"
-                icon="account-tie"
-                emptyPrompt="No priests registered yet."
               />
-              <AdminHostSection
-                type="guru"
-                label="Spiritual Gurus"
-                icon="meditation"
-                emptyPrompt="No spiritual gurus registered yet."
-              />
-              <AdminHostSection
-                type="temple_exec"
-                label="Temples"
-                icon="town-hall"
-                emptyPrompt="No temples registered yet."
-              />
-            </View>
+            </>
           ) : (
+            /* ── Devotee home: daily rituals + follow sections ── */
+            <>
+              <SectionHeader icon="candle" title={t('home.dailyRituals')} />
+              <View style={styles.idpWrap}>
+                <View style={styles.idpItem}>
+                  <TouchableOpacity
+                    style={styles.idpBtn}
+                    activeOpacity={0.8}
+                    onPress={() =>
+                      profile?.ishta_daiva
+                        ? rootNav.navigate('GuidedPooja')
+                        : rootNav.navigate('MyIshtaDaiva')
+                    }
+                  >
+                    <Image
+                      source={require('../../assets/IsthaDaivaPooja.png')}
+                      style={styles.idpIcon}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.idpLabel} numberOfLines={2}>{t('home.ishtaDaivaPooja')}</Text>
+                  <Text style={styles.idpSub} numberOfLines={1}>
+                    {profile?.ishta_daiva || t('home.chooseIshta')}
+                  </Text>
+                </View>
+                <View style={styles.idpItem}>
+                  <TouchableOpacity
+                    style={styles.idpBtn}
+                    activeOpacity={0.8}
+                    onPress={() => rootNav.navigate('GuidedPooja', { vaara: true })}
+                  >
+                    <Image
+                      source={require('../../assets/WeekdayPooja.png')}
+                      style={styles.idpIcon}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.idpLabel} numberOfLines={2}>{t('home.weekdayPooja')}</Text>
+                  <Text style={styles.idpSub} numberOfLines={1}>
+                    {t('home.today')}: {today().deity_name}
+                  </Text>
+                </View>
+              </View>
             <View style={[styles.hostGrid, isDesktop && styles.hostGridDesktop]}>
               <View style={isDesktop ? styles.hostGridCol : undefined}>
                 <HostFollowSection
@@ -310,6 +329,7 @@ export default function HomeScreen({ navigation }: Props) {
                 />
               </View>
             </View>
+            </>
           )}
         </ScrollView>
       </WebPageWrapper>
