@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, Platform, ScrollView }
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/types';
 import { colors, fonts } from '../theme';
 import { useAuth } from '../lib/auth';
@@ -37,7 +38,13 @@ const ADMIN_LINKS: { icon: keyof typeof MaterialCommunityIcons.glyphMap; label: 
 ];
 
 export default function WebSideNav({ state, descriptors, navigation, rootNav }: Props) {
-  const { isAdmin } = useAuth();
+  const { isAdmin, signOut } = useAuth();
+  const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const handleLogout = async () => {
+    await signOut();
+    nav.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+  };
   return (
     <View style={[styles.sidebar, webFixed]}>
       {/* Logo — pinned at top */}
@@ -99,7 +106,7 @@ export default function WebSideNav({ state, descriptors, navigation, rootNav }: 
         )}
       </ScrollView>
 
-      {/* Profile — pinned at bottom */}
+      {/* Profile + Logout — pinned at bottom */}
       <View style={styles.footer}>
         <View style={styles.footerDivider} />
         <TouchableOpacity
@@ -109,6 +116,15 @@ export default function WebSideNav({ state, descriptors, navigation, rootNav }: 
         >
           <MaterialCommunityIcons name="account-circle-outline" size={20} color="rgba(255,248,236,0.6)" />
           <Text style={styles.label}>Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.item}
+          onPress={handleLogout}
+          accessibilityRole="button"
+          accessibilityLabel="Sign out"
+        >
+          <MaterialCommunityIcons name="logout" size={20} color="rgba(255,248,236,0.45)" />
+          <Text style={[styles.label, styles.logoutLabel]}>Sign out</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -175,6 +191,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   adminLinkText: { color: 'rgba(255,248,236,0.85)', fontSize: 13 },
+  logoutLabel: { color: 'rgba(255,248,236,0.4)', fontSize: 13 },
   footer: { paddingHorizontal: 10, paddingBottom: 16 },
   footerDivider: {
     height: 1,

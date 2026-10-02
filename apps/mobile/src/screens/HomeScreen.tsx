@@ -23,6 +23,7 @@ import { useHostDirectory } from '../lib/hosts';
 import { useBreakpoint } from '../lib/useBreakpoint';
 import HostFollowSection from '../components/HostFollowSection';
 import HostHomeSections from '../components/HostHomeSections';
+import AdminHostSection from '../components/AdminHostSection';
 import SectionHeader from '../components/SectionHeader';
 import WebPageWrapper from '../components/WebPageWrapper';
 
@@ -30,7 +31,7 @@ type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
   const rootNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { profile, isAdmin, hostTypes, isHost } = useAuth();
+  const { profile, isAdmin, hostTypes, isHost, signOut } = useAuth();
   const { isDesktop } = useBreakpoint();
   const { today } = useWeekdayDeities();
   const { priests, gurus, temples, followed, follow, unfollow } = useHostDirectory();
@@ -50,6 +51,11 @@ export default function HomeScreen({ navigation }: Props) {
     : hostTypes.length
       ? hostTypes.map((h) => HOST_LABEL[h] ?? h).join(' · ')
       : t('roles.devotee');
+
+  const handleLogout = async () => {
+    await signOut();
+    rootNav.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -78,13 +84,22 @@ export default function HomeScreen({ navigation }: Props) {
             {!!profile?.city && <Text style={styles.loc}>📍 {profile.city}</Text>}
           </View>
         </View>
-        <TouchableOpacity
-          style={styles.avatar}
-          onPress={() => rootNav.navigate('Profile')}
-          accessibilityLabel={t('tabs.profile')}
-        >
-          <Text style={{ color: colors.white, fontWeight: '700' }}>{initial}</Text>
-        </TouchableOpacity>
+        <View style={styles.topRight}>
+          <TouchableOpacity
+            style={styles.avatar}
+            onPress={() => rootNav.navigate('Profile')}
+            accessibilityLabel={t('tabs.profile')}
+          >
+            <Text style={{ color: colors.white, fontWeight: '700' }}>{initial}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.logoutBtn}
+            onPress={handleLogout}
+            accessibilityLabel="Sign out"
+          >
+            <MaterialCommunityIcons name="logout" size={18} color="rgba(255,255,255,0.75)" />
+          </TouchableOpacity>
+        </View>
       </View>}
       {/* Desktop greeting bar */}
       {isDesktop && (
@@ -92,6 +107,15 @@ export default function HomeScreen({ navigation }: Props) {
           <MaterialCommunityIcons name="hands-pray" size={18} color={colors.turmeric} />
           <Text style={styles.desktopGreetText}>{t('namaste')}, {firstName}</Text>
           <View style={styles.rolePill}><Text style={styles.roleText}>{roleLabel}</Text></View>
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity
+            style={styles.desktopLogoutBtn}
+            onPress={handleLogout}
+            accessibilityLabel="Sign out"
+          >
+            <MaterialCommunityIcons name="logout" size={16} color={colors.muted} />
+            <Text style={styles.desktopLogoutText}>Sign out</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -222,6 +246,28 @@ export default function HomeScreen({ navigation }: Props) {
                 })
               }
             />
+          ) : isAdmin ? (
+            /* Admin sees management sections (up to 5 per category + View All / CRUD) */
+            <View style={styles.adminSections}>
+              <AdminHostSection
+                type="priest"
+                label="Priests"
+                icon="account-tie"
+                emptyPrompt="No priests registered yet."
+              />
+              <AdminHostSection
+                type="guru"
+                label="Spiritual Gurus"
+                icon="meditation"
+                emptyPrompt="No spiritual gurus registered yet."
+              />
+              <AdminHostSection
+                type="temple_exec"
+                label="Temples"
+                icon="town-hall"
+                emptyPrompt="No temples registered yet."
+              />
+            </View>
           ) : (
             <View style={[styles.hostGrid, isDesktop && styles.hostGridDesktop]}>
               <View style={isDesktop ? styles.hostGridCol : undefined}>
@@ -281,6 +327,26 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   topLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  topRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  logoutBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  desktopLogoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  desktopLogoutText: { fontSize: 13, color: colors.muted, fontWeight: '600' },
+  adminSections: { marginTop: 8, paddingBottom: 16 },
   hamburger: {
     width: 34,
     height: 34,

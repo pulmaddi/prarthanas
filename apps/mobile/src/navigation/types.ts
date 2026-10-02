@@ -12,7 +12,7 @@ export type RootStackParamList = {
   Admin: undefined;
   AdminVaara: undefined;
   AdminHosts: undefined;
-  AdminHostsManage: undefined;
+  AdminHostsManage: { filterType?: string } | undefined;
   AdminRitualItems: undefined;
   Pooja: { deityName?: string; vaara?: boolean; day?: number } | undefined;
   GuidedPooja: { deityName?: string; vaara?: boolean; day?: number } | undefined;

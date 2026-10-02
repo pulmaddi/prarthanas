@@ -7,11 +7,22 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { Button } from '../components/ui';
 import { t } from '../i18n';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
+
+const TYPE_LABELS: Record<string, string> = {
+  priest: 'Priests',
+  guru: 'Spiritual Gurus',
+  temple_exec: 'Temples',
+  numerologist: 'Numerologists',
+  astrologer: 'Astrologers',
+};
 
 const TYPES: { key: string; label: string }[] = [
   { key: 'priest', label: 'Priest' },
@@ -133,20 +144,22 @@ function HostEditRow({ row, onChanged }: { row: HostRow; onChanged: () => void }
 
 export default function AdminHostsManageScreen() {
   const { isAdmin } = useAuth();
+  const route = useRoute<RouteProp<RootStackParamList, 'AdminHostsManage'>>();
+  const filterType = (route.params as any)?.filterType as string | undefined;
   const [rows, setRows] = useState<HostRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const { data } = await supabase
+    let q = supabase
       .from('host_accounts')
       .select('user_id,host_types,name,phone,city')
       .order('created_at', { ascending: false });
+    if (filterType) q = (q as any).contains('host_types', [filterType]);
+    const { data } = await q;
     setRows((data as HostRow[]) ?? []);
     setLoading(false);
   };
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, [filterType]);
 
   if (!isAdmin) {
     return (
@@ -156,13 +169,15 @@ export default function AdminHostsManageScreen() {
     );
   }
 
+  const title = filterType ? TYPE_LABELS[filterType] ?? filterType : t('hosts.manageTitle');
+
   return (
     <ScrollView
       style={styles.screen}
       contentContainerStyle={styles.body}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={styles.hint}>{t('hosts.manageTitle')}</Text>
+      <Text style={styles.sectionTitle}>{title}</Text>
       {!loading && rows.length === 0 && <Text style={styles.hint}>{t('hosts.none')}</Text>}
       {rows.map((r) => (
         <HostEditRow key={r.user_id} row={r} onChanged={load} />
@@ -176,6 +191,7 @@ const styles = StyleSheet.create({
   body: { padding: spacing.lg, paddingBottom: 40 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cream },
   deny: { color: colors.muted, fontSize: 15 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.maroon, marginBottom: 12 },
   hint: { fontSize: 13, color: colors.muted, marginBottom: 10 },
   card: {
     backgroundColor: colors.white,
