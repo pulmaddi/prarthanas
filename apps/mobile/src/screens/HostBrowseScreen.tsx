@@ -1,12 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Alert,
+  Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -27,7 +29,7 @@ const TYPE_META: Record<string, { label: string; icon: keyof typeof MaterialComm
 export default function HostBrowseScreen({ route }: Props) {
   const { filterType } = route.params;
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { hosts, followed, follow, unfollow } = useHostDirectory();
+  const { hosts, followed, follow, unfollow, reload } = useHostDirectory();
 
   const meta = TYPE_META[filterType] ?? { label: filterType, icon: 'account' as any, accent: colors.maroon };
   const list = hosts.filter((h) => (h.host_types ?? []).includes(filterType));
@@ -36,9 +38,25 @@ export default function HostBrowseScreen({ route }: Props) {
     nav.setOptions({ title: `Choose ${meta.label}` });
   }, [filterType]);
 
+  useFocusEffect(useCallback(() => { reload(); }, []));
+
+  const showErr = (msg: string) => {
+    if (Platform.OS === 'web') window.alert(msg);
+    else Alert.alert('Error', msg);
+  };
+
   const HostRow = ({ h }: { h: PublicHost }) => {
     const isFollowed = followed.has(h.user_id);
+    const [busy, setBusy] = useState(false);
     const initial = ((h.name ?? '?')[0] ?? '?').toUpperCase();
+
+    const toggle = async () => {
+      setBusy(true);
+      const err = isFollowed ? await unfollow(h.user_id) : await follow(h.user_id);
+      if (err) showErr(`Could not update: ${err}`);
+      setBusy(false);
+    };
+
     return (
       <View style={styles.row}>
         <View style={[styles.avatar, { backgroundColor: meta.accent }]}>
@@ -49,8 +67,9 @@ export default function HostBrowseScreen({ route }: Props) {
           {!!h.city && <Text style={styles.city}>{h.city}</Text>}
         </View>
         <TouchableOpacity
-          style={[styles.followBtn, isFollowed && styles.followBtnOn]}
-          onPress={() => isFollowed ? unfollow(h.user_id) : follow(h.user_id)}
+          style={[styles.followBtn, isFollowed && styles.followBtnOn, busy && { opacity: 0.5 }]}
+          onPress={toggle}
+          disabled={busy}
           activeOpacity={0.8}
         >
           <MaterialCommunityIcons
@@ -59,7 +78,7 @@ export default function HostBrowseScreen({ route }: Props) {
             color={isFollowed ? colors.maroon : '#fff'}
           />
           <Text style={[styles.followLabel, isFollowed && styles.followLabelOn]}>
-            {isFollowed ? 'Following' : 'Follow'}
+            {busy ? '…' : isFollowed ? 'Following' : 'Follow'}
           </Text>
         </TouchableOpacity>
       </View>

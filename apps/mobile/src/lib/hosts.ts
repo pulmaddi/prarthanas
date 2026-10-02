@@ -39,19 +39,29 @@ export function useHostDirectory() {
     load();
   }, [load]);
 
-  const follow = async (hostId: string) => {
-    if (!uid) return;
-    await supabase.from('follows').upsert({ follower_id: uid, host_id: hostId });
+  const follow = async (hostId: string): Promise<string | null> => {
+    if (!uid) return 'Not logged in.';
+    const { error } = await supabase
+      .from('follows')
+      .upsert({ follower_id: uid, host_id: hostId });
+    if (error) return error.message;
     setFollowed((s) => new Set(s).add(hostId));
+    return null;
   };
-  const unfollow = async (hostId: string) => {
-    if (!uid) return;
-    await supabase.from('follows').delete().eq('follower_id', uid).eq('host_id', hostId);
+  const unfollow = async (hostId: string): Promise<string | null> => {
+    if (!uid) return 'Not logged in.';
+    const { error } = await supabase
+      .from('follows')
+      .delete()
+      .eq('follower_id', uid)
+      .eq('host_id', hostId);
+    if (error) return error.message;
     setFollowed((s) => {
       const n = new Set(s);
       n.delete(hostId);
       return n;
     });
+    return null;
   };
 
   const byType = (ty: string) =>
