@@ -283,39 +283,38 @@ export default function AdminVaaraScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.body}>
-      {/* Add New button — hidden while any form is open */}
-      {!formOpen && (
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => setShowAddForm(true)}
-          activeOpacity={0.82}
-        >
-          <MaterialCommunityIcons name="plus" size={18} color="#fff" />
-          <Text style={styles.addBtnText}>Add New Item</Text>
-        </TouchableOpacity>
-      )}
+      {formOpen ? (
+        /* ── FORM VIEW: only the active form, no list ── */
+        <>
+          {showAddForm && <AddForm allRows={allRows} onDone={handleDone} />}
+          {editingDay !== null && (() => {
+            const row = allRows.find((r) => r.day === editingDay);
+            return row ? <EditForm row={row} onDone={handleDone} /> : null;
+          })()}
+        </>
+      ) : (
+        /* ── LIST VIEW: button + all day rows ── */
+        <>
+          <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() => setShowAddForm(true)}
+            activeOpacity={0.82}
+          >
+            <MaterialCommunityIcons name="plus" size={18} color="#fff" />
+            <Text style={styles.addBtnText}>Add New Item</Text>
+          </TouchableOpacity>
 
-      {/* Add form with day picker */}
-      {showAddForm && <AddForm allRows={allRows} onDone={handleDone} />}
-
-      {/* Inline edit form — shows alone, no list */}
-      {editingDay !== null && (() => {
-        const row = allRows.find((r) => r.day === editingDay);
-        return row ? <EditForm row={row} onDone={handleDone} /> : null;
-      })()}
-
-      {/* List of all weekday rows — hidden while any form is open */}
-      {!formOpen && (
-        <View style={styles.listBox}>
-          {allRows.map((row) => (
-            <DayRow
-              key={row.day}
-              row={row as WeekdayDeity}
-              onEdit={() => setEditingDay(row.day)}
-              onDeleted={handleDone}
-            />
-          ))}
-        </View>
+          <View style={styles.listBox}>
+            {allRows.map((row) => (
+              <DayRow
+                key={row.day}
+                row={row as WeekdayDeity}
+                onEdit={() => setEditingDay(row.day)}
+                onDeleted={handleDone}
+              />
+            ))}
+          </View>
+        </>
       )}
     </ScrollView>
   );
