@@ -153,3 +153,34 @@ export async function signIn(email: string, password: string) {
 export async function signOut() {
   await supabase.auth.signOut();
 }
+
+/**
+ * Admin-only: update a host's auth credentials (email/password) and profile
+ * fields via the admin-update-host Edge Function, which uses the service-role
+ * key server-side. Passing an empty string for email/password leaves them unchanged.
+ */
+export async function adminUpdateHostUser(params: {
+  user_id: string;
+  email?: string;
+  password?: string;
+  name: string;
+  phone?: string;
+  city?: string;
+  location?: string;
+  org_name?: string;
+  host_types: string[];
+}): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated.');
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-update-host`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify(params),
+  });
+  const json = await res.json();
+  if (!res.ok || json.error) throw new Error(json.error ?? 'Update failed.');
+}

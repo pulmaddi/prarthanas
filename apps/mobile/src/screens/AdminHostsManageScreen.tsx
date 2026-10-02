@@ -18,7 +18,7 @@ import { colors, radius, spacing } from '../theme';
 import { Button } from '../components/ui';
 import { t } from '../i18n';
 import { useAuth } from '../lib/auth';
-import { supabase } from '../lib/supabase';
+import { supabase, adminUpdateHostUser } from '../lib/supabase';
 
 const TYPE_LABELS: Record<string, string> = {
   priest: 'Priests',
@@ -52,6 +52,7 @@ type HostRow = {
   city: string | null;
   location: string | null;
   org_name: string | null;
+  email: string | null;
 };
 
 function HostEditForm({
@@ -76,6 +77,8 @@ function HostEditForm({
     setTypes((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]));
   const [phone, setPhone] = useState(row.phone ?? '');
   const [city, setCity] = useState(row.city ?? '');
+  const [email, setEmail] = useState(row.email ?? '');
+  const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
@@ -86,20 +89,20 @@ function HostEditForm({
     if (isTemple && orgName.trim().length < 2) return setErr('Enter the temple name.');
     if (name.trim().length < 2) return setErr('Enter a name.');
     if (types.length === 0) return setErr('Select at least one role.');
+    if (password && password.length < 6) return setErr('Password must be at least 6 characters.');
     try {
       setBusy(true);
-      const { error } = await supabase
-        .from('host_accounts')
-        .update({
-          name: name.trim(),
-          host_types: types,
-          phone: phone.trim() || null,
-          city: city.trim() || null,
-          location: location.trim() || null,
-          org_name: orgName.trim() || null,
-        })
-        .eq('user_id', row.user_id);
-      if (error) throw error;
+      await adminUpdateHostUser({
+        user_id: row.user_id,
+        name: name.trim(),
+        host_types: types,
+        phone: phone.trim(),
+        city: city.trim(),
+        location: location.trim(),
+        org_name: orgName.trim(),
+        email: email.trim() || undefined,
+        password: password || undefined,
+      });
       setMsg(t('hosts.updated'));
       onChanged();
       onDone();
@@ -198,6 +201,27 @@ function HostEditForm({
         keyboardType="phone-pad"
       />
 
+      <Text style={styles.fieldLabel}>{t('hosts.email')}</Text>
+      <TextInput
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="login@example.com"
+        placeholderTextColor={colors.muted}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+
+      <Text style={styles.fieldLabel}>New Password <Text style={styles.optionalHint}>(leave blank to keep current)</Text></Text>
+      <TextInput
+        style={styles.input}
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Min 6 characters"
+        placeholderTextColor={colors.muted}
+        secureTextEntry
+      />
+
       {!!err && <Text style={styles.errText}>{err}</Text>}
       {!!msg && <Text style={styles.okText}>{msg}</Text>}
 
@@ -279,11 +303,21 @@ export default function AdminHostsManageScreen() {
   const load = async () => {
     let q = supabase
       .from('host_accounts')
-      .select('user_id,host_types,name,phone,city,location,org_name')
+      .select('user_id,host_types,name,phone,city,location,org_name,profiles(email)')
       .order('created_at', { ascending: false });
     if (filterType) q = (q as any).contains('host_types', [filterType]);
     const { data } = await q;
-    setRows((data as HostRow[]) ?? []);
+    const rows: HostRow[] = ((data as any[]) ?? []).map((r) => ({
+      user_id: r.user_id,
+      host_types: r.host_types,
+      name: r.name,
+      phone: r.phone,
+      city: r.city,
+      location: r.location,
+      org_name: r.org_name,
+      email: (r.profiles as any)?.email ?? null,
+    }));
+    setRows(rows);
     setLoading(false);
   };
 
@@ -435,6 +469,7 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: colors.maroon, borderColor: colors.maroon },
   chipText: { color: colors.ink, fontSize: 12 },
   chipTextOn: { color: colors.white },
+  optionalHint: { color: colors.muted, fontSize: 11, fontWeight: '400' },
   errText: { color: colors.live, fontSize: 13, marginTop: 8 },
   okText: { color: colors.green, fontSize: 13, marginTop: 8, fontWeight: '600' },
   formActions: { flexDirection: 'row', gap: 10, marginTop: 14 },
