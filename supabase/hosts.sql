@@ -14,6 +14,7 @@ create table if not exists public.host_accounts (
   name       text,
   phone      text,
   city       text,
+  location   text,            -- area / locality within the city
   org_name   text,            -- temple / ashram / organisation
   created_at timestamptz default now(),
   constraint host_types_allowed check (

@@ -48,6 +48,7 @@ export default function AdminHostsScreen() {
   const isTemple = filterType === 'temple_exec';
   const [name, setName] = useState('');
   const [orgName, setOrgName] = useState('');
+  const [location, setLocation] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
@@ -59,6 +60,7 @@ export default function AdminHostsScreen() {
   const reset = () => {
     setName('');
     setOrgName('');
+    setLocation('');
     setEmail('');
     setPassword('');
     setPhone('');
@@ -97,6 +99,7 @@ export default function AdminHostsScreen() {
         name: name.trim(),
         phone: phone.trim() || null,
         city: city.trim() || null,
+        location: location.trim() || null,
         org_name: orgName.trim() || null,
       });
       if (error) throw error;
@@ -138,6 +141,8 @@ export default function AdminHostsScreen() {
       {[
         ...(isTemple ? [
           { label: 'Temple Name', v: orgName, set: setOrgName, ph: 'e.g. Sri Venkateswara Temple', cap: 'words' as const },
+          { label: 'Location', v: location, set: setLocation, ph: 'Area / Locality (e.g. Banjara Hills)', cap: 'words' as const },
+          { label: 'City', v: city, set: setCity, ph: 'City (e.g. Hyderabad)' },
           { label: 'Contact Person Name', v: name, set: setName, ph: 'Full name', cap: 'words' as const },
         ] : [
           { label: t('hosts.name'), v: name, set: setName, ph: 'Full name', cap: 'words' as const },
@@ -145,7 +150,7 @@ export default function AdminHostsScreen() {
         { label: t('hosts.email'), v: email, set: setEmail, ph: 'login@example.com', cap: 'none' as const, kb: 'email-address' as const },
         { label: t('hosts.password'), v: password, set: setPassword, ph: 'Set a password', secure: true },
         { label: t('hosts.phone'), v: phone, set: setPhone, ph: '+91 …', kb: 'phone-pad' as const },
-        { label: isTemple ? 'Location' : t('hosts.city'), v: city, set: setCity, ph: isTemple ? 'City / Town' : 'City' },
+        ...(!isTemple ? [{ label: t('hosts.city'), v: city, set: setCity, ph: 'City' }] : []),
       ].map((f) => (
         <View key={f.label} style={styles.field}>
           <Text style={styles.label}>{f.label}</Text>
