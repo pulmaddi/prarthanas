@@ -81,25 +81,51 @@ const CARDS: CardConfig[] = [
     manageScreen: 'AdminHostsManage',
     manageParams: { filterType: 'temple_exec' },
   },
+  {
+    id: 'astrologers',
+    accent: '#1A5276',
+    icon: 'star-crescent',
+    title: 'Astrologers',
+    description: 'Astrologers providing Jyotisha guidance',
+    countKey: 'astrologers',
+    manageLabel: 'Manage',
+    manageScreen: 'AdminHostsManage',
+    manageParams: { filterType: 'astrologer' },
+  },
+  {
+    id: 'numerologists',
+    accent: '#6C3483',
+    icon: 'numeric',
+    title: 'Numerologists',
+    description: 'Numerologists offering Anka Shastra services',
+    countKey: 'numerologists',
+    manageLabel: 'Manage',
+    manageScreen: 'AdminHostsManage',
+    manageParams: { filterType: 'numerologist' },
+  },
 ];
 
 type Counts = Record<string, number | null>;
 
 async function fetchCounts(): Promise<Counts> {
   if (!isSupabaseConfigured) return {};
-  const [vaara, ritualItems, priests, gurus, temples] = await Promise.all([
+  const [vaara, ritualItems, priests, gurus, temples, astrologers, numerologists] = await Promise.all([
     supabase.from('weekday_deities').select('*', { count: 'exact', head: true }),
     supabase.from('ritual_items').select('*', { count: 'exact', head: true }),
     supabase.from('host_accounts').select('*', { count: 'exact', head: true }).contains('host_types', ['priest']),
     supabase.from('host_accounts').select('*', { count: 'exact', head: true }).contains('host_types', ['guru']),
     supabase.from('host_accounts').select('*', { count: 'exact', head: true }).contains('host_types', ['temple_exec']),
+    supabase.from('host_accounts').select('*', { count: 'exact', head: true }).contains('host_types', ['astrologer']),
+    supabase.from('host_accounts').select('*', { count: 'exact', head: true }).contains('host_types', ['numerologist']),
   ]);
   return {
-    vaara:       vaara.count ?? 0,
-    ritualItems: ritualItems.count ?? 0,
-    priests:     priests.count ?? 0,
-    gurus:       gurus.count ?? 0,
-    temples:     temples.count ?? 0,
+    vaara:        vaara.count ?? 0,
+    ritualItems:  ritualItems.count ?? 0,
+    priests:      priests.count ?? 0,
+    gurus:        gurus.count ?? 0,
+    temples:      temples.count ?? 0,
+    astrologers:  astrologers.count ?? 0,
+    numerologists: numerologists.count ?? 0,
   };
 }
 
@@ -127,7 +153,9 @@ function DashCard({
     card.id === 'vaara' ? 'day' :
     card.id === 'ishta' ? 'item' :
     card.id === 'priests' ? 'priest' :
-    card.id === 'gurus' ? 'guru' : 'temple';
+    card.id === 'gurus' ? 'guru' :
+    card.id === 'astrologers' ? 'astrologer' :
+    card.id === 'numerologists' ? 'numerologist' : 'temple';
 
   return (
     <View style={[styles.card, wide && styles.cardWide]}>

@@ -29,6 +29,8 @@ const ONBOARD_TITLE: Record<string, string> = {
   priest: 'Onboard Priest',
   guru: 'Onboard Spiritual Guru',
   temple_exec: 'Onboard Temple',
+  astrologer: 'Onboard Astrologer',
+  numerologist: 'Onboard Numerologist',
 };
 
 export default function AdminHostsScreen() {

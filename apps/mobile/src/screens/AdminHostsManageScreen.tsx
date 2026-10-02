@@ -32,6 +32,8 @@ const ONBOARD_LABEL: Record<string, string> = {
   priest: 'Onboard New Priest',
   guru: 'Onboard New Guru',
   temple_exec: 'Onboard New Temple',
+  astrologer: 'Onboard New Astrologer',
+  numerologist: 'Onboard New Numerologist',
 };
 
 const TYPES: { key: string; label: string }[] = [
