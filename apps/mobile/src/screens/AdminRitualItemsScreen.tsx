@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -245,7 +246,7 @@ export default function AdminRitualItemsScreen() {
     if (!error && data) setRows(data as RitualItem[]);
   };
 
-  useEffect(() => { loadRows(); }, []);
+  useFocusEffect(useCallback(() => { loadRows(); }, []));
 
   const del = async (item: RitualItem) => {
     const doDelete = async () => {

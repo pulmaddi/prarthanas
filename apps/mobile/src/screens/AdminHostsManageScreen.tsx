@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -325,6 +326,7 @@ export default function AdminHostsManageScreen() {
   };
 
   useEffect(() => { load(); }, [filterType]);
+  useFocusEffect(useCallback(() => { load(); }, [filterType]));
 
   // Sync navigator header title to match the filtered role (e.g. "Priests")
   useEffect(() => {

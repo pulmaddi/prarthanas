@@ -1,6 +1,7 @@
 // Admin home dashboard — 5 management cards in a responsive grid.
 // Mobile: 1 column. Desktop (≥ 640 px): 2 columns.
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -207,9 +208,9 @@ export default function AdminDashboard() {
   const wide = width >= 640;
   const [counts, setCounts] = useState<Counts>({});
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     fetchCounts().then(setCounts);
-  }, []);
+  }, []));
 
   return (
     <View style={styles.root}>

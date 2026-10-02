@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -278,6 +279,7 @@ export default function AdminVaaraScreen() {
   const { isAdmin } = useAuth();
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { rows, reload } = useWeekdayDeities();
+  useFocusEffect(useCallback(() => { reload(); }, []));
   const [editingDay, setEditingDay] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
 

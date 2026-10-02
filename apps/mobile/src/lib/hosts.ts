@@ -67,5 +67,6 @@ export function useHostDirectory() {
     followed,
     follow,
     unfollow,
+    reload: load,
   };
 }

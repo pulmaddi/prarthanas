@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -183,7 +184,8 @@ export default function HomeScreen({ navigation }: Props) {
   const { profile, isAdmin, hostTypes, isHost, signOut } = useAuth();
   const { isDesktop } = useBreakpoint();
   const { today } = useWeekdayDeities();
-  const { hosts, followed } = useHostDirectory();
+  const { hosts, followed, reload: reloadHosts } = useHostDirectory();
+  useFocusEffect(useCallback(() => { reloadHosts(); }, [reloadHosts]));
   const byType = (ty: string) => hosts.filter((h) => (h.host_types ?? []).includes(ty));
   const followedOf = (ty: string) => byType(ty).filter((h) => followed.has(h.user_id));
   const [menuOpen, setMenuOpen] = useState(false);
