@@ -52,10 +52,12 @@ type HostRow = {
 
 function HostEditForm({
   row,
+  filterType,
   onDone,
   onChanged,
 }: {
   row: HostRow;
+  filterType?: string;
   onDone: () => void;
   onChanged: () => void;
 }) {
@@ -109,23 +111,31 @@ function HostEditForm({
         placeholderTextColor={colors.muted}
       />
 
-      <Text style={styles.fieldLabel}>Roles</Text>
-      <View style={styles.chips}>
-        {TYPES.map((ty) => {
-          const on = types.includes(ty.key);
-          return (
-            <TouchableOpacity
-              key={ty.key}
-              style={[styles.chip, on && styles.chipOn]}
-              onPress={() => toggleType(ty.key)}
-            >
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                {on ? '✓ ' : ''}{ty.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      <Text style={styles.fieldLabel}>Role</Text>
+      {filterType ? (
+        <View style={styles.roleReadOnly}>
+          <Text style={styles.roleReadOnlyText}>
+            ✓ {TYPE_LABELS[filterType] ?? filterType}
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.chips}>
+          {TYPES.map((ty) => {
+            const on = types.includes(ty.key);
+            return (
+              <TouchableOpacity
+                key={ty.key}
+                style={[styles.chip, on && styles.chipOn]}
+                onPress={() => toggleType(ty.key)}
+              >
+                <Text style={[styles.chipText, on && styles.chipTextOn]}>
+                  {on ? '✓ ' : ''}{ty.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
 
       <Text style={styles.fieldLabel}>Phone & City</Text>
       <View style={styles.two}>
@@ -257,7 +267,7 @@ export default function AdminHostsManageScreen() {
       {!editingId && (
         <TouchableOpacity
           style={styles.addBtn}
-          onPress={() => nav.navigate('AdminHosts')}
+          onPress={() => nav.navigate('AdminHosts', filterType ? { filterType } : undefined)}
           activeOpacity={0.82}
         >
           <MaterialCommunityIcons name="plus" size={18} color="#fff" />
@@ -272,6 +282,7 @@ export default function AdminHostsManageScreen() {
         return (
           <HostEditForm
             row={row}
+            filterType={filterType}
             onDone={() => setEditingId(null)}
             onChanged={load}
           />
@@ -341,6 +352,15 @@ const styles = StyleSheet.create({
   },
   two: { flexDirection: 'row', gap: 8 },
   half: { flex: 1 },
+  roleReadOnly: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.maroon,
+    borderRadius: radius.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    marginBottom: 4,
+  },
+  roleReadOnlyText: { color: '#fff', fontSize: 13, fontWeight: '700' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
   chip: {
     borderColor: colors.line,

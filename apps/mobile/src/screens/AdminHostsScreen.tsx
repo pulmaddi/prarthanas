@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { Button } from '../components/ui';
@@ -16,13 +15,6 @@ import { t } from '../i18n';
 import { useAuth } from '../lib/auth';
 import { supabase, adminCreateHostUser } from '../lib/supabase';
 
-const TYPES: { key: string; label: string }[] = [
-  { key: 'priest', label: 'Priest' },
-  { key: 'guru', label: 'Spiritual Guru' },
-  { key: 'temple_exec', label: 'Temple Executive' },
-  { key: 'numerologist', label: 'Numerologist' },
-  { key: 'astrologer', label: 'Astrologer' },
-];
 const TYPE_LABEL: Record<string, string> = {
   priest: 'Priest',
   guru: 'Spiritual Guru',
@@ -32,41 +24,19 @@ const TYPE_LABEL: Record<string, string> = {
 };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type HostRow = {
-  user_id: string;
-  host_types: string[];
-  name: string | null;
-  org_name: string | null;
-  city: string | null;
-};
-
 export default function AdminHostsScreen() {
-  const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'AdminHosts'>>();
+  const filterType = (route.params as any)?.filterType as string | undefined;
   const { isAdmin } = useAuth();
-  const [types, setTypes] = useState<string[]>(['priest']);
+  const [types] = useState<string[]>(filterType ? [filterType] : ['priest']);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
   const [busy, setBusy] = useState(false);
-
-  const toggleType = (k: string) =>
-    setTypes((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]));
   const [err, setErr] = useState('');
   const [created, setCreated] = useState<{ email: string; password: string | null } | null>(null);
-  const [rows, setRows] = useState<HostRow[]>([]);
-
-  const loadRows = async () => {
-    const { data } = await supabase
-      .from('host_accounts')
-      .select('user_id,host_types,name,org_name,city')
-      .order('created_at', { ascending: false });
-    if (data) setRows(data as HostRow[]);
-  };
-  useEffect(() => {
-    loadRows();
-  }, []);
 
   const reset = () => {
     setName('');
@@ -80,13 +50,10 @@ export default function AdminHostsScreen() {
     setErr('');
     setCreated(null);
     if (name.trim().length < 2) return setErr('Please enter the full name.');
-    if (types.length === 0) return setErr('Select at least one role.');
     if (!EMAIL_RE.test(email)) return setErr('Please enter a valid email (username).');
     const emailLc = email.trim().toLowerCase();
     try {
       setBusy(true);
-      // Everyone is a Devotee by default. Add the host role to the existing
-      // account if the email is already registered; otherwise create one.
       const { data: existing } = await supabase
         .from('profiles')
         .select('id')
@@ -104,7 +71,6 @@ export default function AdminHostsScreen() {
         isNew = true;
       }
 
-      // Grant/refresh the host role (admin-gated by RLS). Upsert so re-assigning is safe.
       const { error } = await supabase.from('host_accounts').upsert({
         user_id: userId,
         host_types: types,
@@ -116,7 +82,6 @@ export default function AdminHostsScreen() {
       if (error) throw error;
       setCreated({ email: emailLc, password: isNew ? password : null });
       reset();
-      loadRows();
     } catch (e: any) {
       setErr(e?.message ?? 'Could not onboard this account.');
     } finally {
@@ -142,23 +107,10 @@ export default function AdminHostsScreen() {
       <Text style={styles.hint}>{t('hosts.hint')}</Text>
 
       <Text style={styles.label}>{t('hosts.type')}</Text>
-      <View style={styles.typeChips}>
-        {TYPES.map((ty) => {
-          const on = types.includes(ty.key);
-          return (
-            <TouchableOpacity
-              key={ty.key}
-              style={[styles.typeChip, on && styles.typeChipOn]}
-              onPress={() => toggleType(ty.key)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.typeChipText, on && styles.typeChipTextOn]}>
-                {on ? '✓ ' : ''}
-                {ty.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+      <View style={styles.roleReadOnly}>
+        <Text style={styles.roleReadOnlyText}>
+          ✓ {TYPE_LABEL[types[0]] ?? types[0]}
+        </Text>
       </View>
 
       {[
@@ -197,28 +149,6 @@ export default function AdminHostsScreen() {
       )}
 
       <Button label={busy ? '…' : t('hosts.create')} onPress={onCreate} />
-
-      <Text style={[styles.h2, { marginTop: 26 }]}>{t('hosts.existing')}</Text>
-      {rows.length === 0 && <Text style={styles.hint}>{t('hosts.none')}</Text>}
-      {rows.map((r) => (
-        <View key={r.user_id} style={styles.rowCard}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.rowName}>{r.name || '—'}</Text>
-            <Text style={styles.rowMeta}>
-              {(r.host_types ?? []).map((x) => TYPE_LABEL[x] ?? x).join(' · ')}
-              {r.org_name ? ` · ${r.org_name}` : ''}
-              {r.city ? ` · ${r.city}` : ''}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.editBtn}
-            onPress={() => nav.navigate('AdminHostsManage')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.editText}>{t('admin.edit')}</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
     </ScrollView>
   );
 }
@@ -242,18 +172,16 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   field: {},
-  typeChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 2 },
-  typeChip: {
-    borderColor: colors.line,
-    borderWidth: 1,
+  roleReadOnly: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.maroon,
     borderRadius: radius.pill,
     paddingHorizontal: 14,
     paddingVertical: 9,
-    backgroundColor: colors.white,
+    marginTop: 2,
+    marginBottom: 4,
   },
-  typeChipOn: { backgroundColor: colors.maroon, borderColor: colors.maroon },
-  typeChipText: { color: colors.ink, fontSize: 13 },
-  typeChipTextOn: { color: colors.white, fontWeight: '700' },
+  roleReadOnlyText: { color: '#fff', fontSize: 13, fontWeight: '700' },
   select: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -302,25 +230,4 @@ const styles = StyleSheet.create({
   createdTitle: { color: colors.green, fontWeight: '800', marginBottom: 4 },
   createdText: { color: colors.ink, fontSize: 13, marginBottom: 6 },
   cred: { fontSize: 14, color: colors.ink, fontWeight: '600' },
-  rowCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: colors.white,
-    borderColor: colors.line,
-    borderWidth: 1,
-    borderRadius: radius.md,
-    padding: 12,
-    marginTop: 10,
-  },
-  rowName: { fontSize: 14, fontWeight: '600', color: colors.ink },
-  rowMeta: { fontSize: 12, color: colors.muted, marginTop: 2 },
-  editBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.maroon,
-  },
-  editText: { color: colors.maroon, fontWeight: '700', fontSize: 13 },
 });

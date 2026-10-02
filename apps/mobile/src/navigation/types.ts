@@ -11,7 +11,7 @@ export type RootStackParamList = {
   ChangePassword: undefined;
   Admin: undefined;
   AdminVaara: undefined;
-  AdminHosts: undefined;
+  AdminHosts: { filterType?: string } | undefined;
   AdminHostsManage: { filterType?: string } | undefined;
   AdminRitualItems: undefined;
   Pooja: { deityName?: string; vaara?: boolean; day?: number } | undefined;
