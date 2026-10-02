@@ -216,7 +216,7 @@ function DayRow({
   );
 }
 
-/** Add form shown at top — includes a day picker so any day can be targeted */
+/** Add form shown at top — includes a day picker limited to days with no deity set */
 function AddForm({
   allRows,
   onDone,
@@ -224,17 +224,38 @@ function AddForm({
   allRows: Array<Partial<WeekdayDeity> & { day: number; day_name: string }>;
   onDone: () => void;
 }) {
-  const firstEmpty = allRows.find((r) => !r.deity_name);
+  const emptyRows = allRows.filter((r) => !r.deity_name);
   const [selectedDay, setSelectedDay] = useState<number>(
-    firstEmpty ? firstEmpty.day : 0,
+    emptyRows.length > 0 ? emptyRows[0].day : -1,
   );
+
+  // All 7 days already have a deity — nothing to add
+  if (emptyRows.length === 0) {
+    return (
+      <View style={styles.allFilledBox}>
+        <MaterialCommunityIcons name="check-circle-outline" size={36} color={colors.green} />
+        <Text style={styles.allFilledTitle}>All days are configured</Text>
+        <Text style={styles.allFilledSub}>
+          Every weekday already has a deity assigned.{'\n'}
+          Use the Edit or Delete buttons on a day to make changes.
+        </Text>
+        <TouchableOpacity style={styles.goBackBtn} onPress={onDone}>
+          <MaterialCommunityIcons name="arrow-left" size={16} color={colors.maroon} />
+          <Text style={styles.goBackText}>Back to list</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const selectedRow = allRows.find((r) => r.day === selectedDay) ?? emptyRows[0];
+
   return (
     <View>
-      {/* Day picker chips */}
+      {/* Day picker chips — only empty days are shown */}
       <View style={styles.dayPickerWrap}>
-        <Text style={styles.dayPickerLabel}>Select day</Text>
+        <Text style={styles.dayPickerLabel}>Select a day to configure</Text>
         <View style={styles.dayChips}>
-          {allRows.map((r) => (
+          {emptyRows.map((r) => (
             <TouchableOpacity
               key={r.day}
               style={[styles.dayChip, selectedDay === r.day && styles.dayChipOn]}
@@ -247,7 +268,8 @@ function AddForm({
           ))}
         </View>
       </View>
-      <EditForm row={allRows[selectedDay]} onDone={onDone} />
+      {/* key forces remount when day changes so useState in EditForm resets */}
+      <EditForm key={selectedDay} row={selectedRow} onDone={onDone} />
     </View>
   );
 }
@@ -379,6 +401,31 @@ const styles = StyleSheet.create({
   },
   editLabel: { fontSize: 13, fontWeight: '700', color: colors.maroon },
   deleteLabel: { fontSize: 13, fontWeight: '700', color: colors.live },
+
+  allFilledBox: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: 24,
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
+  },
+  allFilledTitle: { fontSize: 15, fontWeight: '700', color: colors.ink, marginTop: 4 },
+  allFilledSub: { fontSize: 13, color: colors.muted, textAlign: 'center', lineHeight: 20 },
+  goBackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.maroon,
+  },
+  goBackText: { fontSize: 13, fontWeight: '700', color: colors.maroon },
 
   dayPickerWrap: { marginBottom: 10 },
   dayPickerLabel: { fontSize: 12, fontWeight: '600', color: colors.muted, marginBottom: 6 },
