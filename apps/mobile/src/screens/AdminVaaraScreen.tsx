@@ -296,26 +296,27 @@ export default function AdminVaaraScreen() {
       )}
 
       {/* Add form with day picker */}
-      {showAddForm && (
-        <AddForm allRows={allRows} onDone={handleDone} />
-      )}
+      {showAddForm && <AddForm allRows={allRows} onDone={handleDone} />}
 
-      {/* List of all weekday rows */}
-      <View style={styles.listBox}>
-        {allRows.map((row) => {
-          if (editingDay === row.day) {
-            return <EditForm key={row.day} row={row} onDone={handleDone} />;
-          }
-          return (
+      {/* Inline edit form — shows alone, no list */}
+      {editingDay !== null && (() => {
+        const row = allRows.find((r) => r.day === editingDay);
+        return row ? <EditForm row={row} onDone={handleDone} /> : null;
+      })()}
+
+      {/* List of all weekday rows — hidden while any form is open */}
+      {!formOpen && (
+        <View style={styles.listBox}>
+          {allRows.map((row) => (
             <DayRow
               key={row.day}
               row={row as WeekdayDeity}
-              onEdit={() => { setShowAddForm(false); setEditingDay(row.day); }}
+              onEdit={() => setEditingDay(row.day)}
               onDeleted={handleDone}
             />
-          );
-        })}
-      </View>
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 }
