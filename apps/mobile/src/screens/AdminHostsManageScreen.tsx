@@ -229,6 +229,11 @@ export default function AdminHostsManageScreen() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const title = filterType ? TYPE_LABELS[filterType] ?? filterType : t('hosts.manageTitle');
+  const onboardLabel = filterType
+    ? (ONBOARD_LABEL[filterType] ?? 'Onboard New Host')
+    : 'Onboard New Host';
+
   const load = async () => {
     let q = supabase
       .from('host_accounts')
@@ -242,6 +247,28 @@ export default function AdminHostsManageScreen() {
 
   useEffect(() => { load(); }, [filterType]);
 
+  // Sync navigator header title to match the filtered role (e.g. "Priests")
+  useEffect(() => {
+    nav.setOptions({ title });
+  }, [title]);
+
+  // When editing, override the back button so it returns to the list, not the previous screen
+  useEffect(() => {
+    nav.setOptions({
+      headerLeft: editingId
+        ? () => (
+            <TouchableOpacity
+              onPress={() => setEditingId(null)}
+              style={{ paddingHorizontal: 8, paddingVertical: 4 }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialCommunityIcons name="arrow-left" size={24} color={colors.maroon} />
+            </TouchableOpacity>
+          )
+        : undefined,
+    });
+  }, [editingId]);
+
   if (!isAdmin) {
     return (
       <View style={styles.center}>
@@ -249,11 +276,6 @@ export default function AdminHostsManageScreen() {
       </View>
     );
   }
-
-  const title = filterType ? TYPE_LABELS[filterType] ?? filterType : t('hosts.manageTitle');
-  const onboardLabel = filterType
-    ? (ONBOARD_LABEL[filterType] ?? 'Onboard New Host')
-    : 'Onboard New Host';
 
   return (
     <ScrollView
