@@ -6,10 +6,14 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Alert,
+  Platform,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors, radius, spacing } from '../theme';
 import { Button } from '../components/ui';
 import { t } from '../i18n';
@@ -22,6 +26,12 @@ const TYPE_LABELS: Record<string, string> = {
   temple_exec: 'Temples',
   numerologist: 'Numerologists',
   astrologer: 'Astrologers',
+};
+
+const ONBOARD_LABEL: Record<string, string> = {
+  priest: 'Onboard New Priest',
+  guru: 'Onboard New Guru',
+  temple_exec: 'Onboard New Temple',
 };
 
 const TYPES: { key: string; label: string }[] = [
@@ -40,7 +50,15 @@ type HostRow = {
   city: string | null;
 };
 
-function HostEditRow({ row, onChanged }: { row: HostRow; onChanged: () => void }) {
+function HostEditForm({
+  row,
+  onDone,
+  onChanged,
+}: {
+  row: HostRow;
+  onDone: () => void;
+  onChanged: () => void;
+}) {
   const [name, setName] = useState(row.name ?? '');
   const [types, setTypes] = useState<string[]>(row.host_types ?? []);
   const toggleType = (k: string) =>
@@ -69,6 +87,8 @@ function HostEditRow({ row, onChanged }: { row: HostRow; onChanged: () => void }
         .eq('user_id', row.user_id);
       if (error) throw error;
       setMsg(t('hosts.updated'));
+      onChanged();
+      onDone();
     } catch (e: any) {
       setErr(e?.message ?? 'Could not save.');
     } finally {
@@ -76,17 +96,11 @@ function HostEditRow({ row, onChanged }: { row: HostRow; onChanged: () => void }
     }
   };
 
-  const remove = async () => {
-    // eslint-disable-next-line no-alert
-    if (typeof confirm === 'function' && !confirm(t('hosts.removeConfirm'))) return;
-    setErr('');
-    const { error } = await supabase.from('host_accounts').delete().eq('user_id', row.user_id);
-    if (error) return setErr(error.message);
-    onChanged();
-  };
-
   return (
-    <View style={styles.card}>
+    <View style={styles.editForm}>
+      <Text style={styles.editFormTitle}>Edit — {row.name || row.user_id}</Text>
+
+      <Text style={styles.fieldLabel}>Name</Text>
       <TextInput
         style={styles.input}
         value={name}
@@ -94,6 +108,8 @@ function HostEditRow({ row, onChanged }: { row: HostRow; onChanged: () => void }
         placeholder={t('hosts.name')}
         placeholderTextColor={colors.muted}
       />
+
+      <Text style={styles.fieldLabel}>Roles</Text>
       <View style={styles.chips}>
         {TYPES.map((ty) => {
           const on = types.includes(ty.key);
@@ -104,13 +120,14 @@ function HostEditRow({ row, onChanged }: { row: HostRow; onChanged: () => void }
               onPress={() => toggleType(ty.key)}
             >
               <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                {on ? '✓ ' : ''}
-                {ty.label}
+                {on ? '✓ ' : ''}{ty.label}
               </Text>
             </TouchableOpacity>
           );
         })}
       </View>
+
+      <Text style={styles.fieldLabel}>Phone & City</Text>
       <View style={styles.two}>
         <TextInput
           style={[styles.input, styles.half]}
@@ -128,26 +145,79 @@ function HostEditRow({ row, onChanged }: { row: HostRow; onChanged: () => void }
           placeholderTextColor={colors.muted}
         />
       </View>
-      {!!err && <Text style={styles.err}>{err}</Text>}
-      {!!msg && <Text style={styles.ok}>{msg}</Text>}
-      <View style={styles.actions}>
+
+      {!!err && <Text style={styles.errText}>{err}</Text>}
+      {!!msg && <Text style={styles.okText}>{msg}</Text>}
+
+      <View style={styles.formActions}>
         <View style={{ flex: 1 }}>
           <Button label={busy ? '…' : t('hosts.save')} onPress={save} />
         </View>
         <View style={{ flex: 1 }}>
-          <Button label={t('hosts.remove')} variant="outline" onPress={remove} />
+          <Button label={t('admin.cancel')} variant="outline" onPress={onDone} />
         </View>
       </View>
     </View>
   );
 }
 
+function HostListRow({
+  row,
+  onEdit,
+  onDeleted,
+}: {
+  row: HostRow;
+  onEdit: () => void;
+  onDeleted: () => void;
+}) {
+  const initial = ((row.name ?? '?')[0] ?? '?').toUpperCase();
+
+  const confirmDelete = () => {
+    const doDelete = async () => {
+      await supabase.from('host_accounts').delete().eq('user_id', row.user_id);
+      onDeleted();
+    };
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Remove host "${row.name}"?`)) doDelete();
+    } else {
+      Alert.alert('Remove', `Remove "${row.name}"?`, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Remove', style: 'destructive', onPress: doDelete },
+      ]);
+    }
+  };
+
+  return (
+    <View style={styles.row}>
+      <View style={styles.avatar}>
+        <Text style={styles.avatarText}>{initial}</Text>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.rowName}>{row.name || '—'}</Text>
+        <Text style={styles.rowMeta}>
+          {row.host_types.join(', ')}{row.city ? ` · ${row.city}` : ''}
+        </Text>
+      </View>
+      <TouchableOpacity style={styles.actionBtn} onPress={onEdit}>
+        <MaterialCommunityIcons name="pencil" size={16} color={colors.maroon} />
+        <Text style={styles.editLabel}>{t('admin.edit')}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.actionBtn} onPress={confirmDelete}>
+        <MaterialCommunityIcons name="delete-outline" size={16} color={colors.live} />
+        <Text style={styles.deleteLabel}>{t('admin.delete')}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function AdminHostsManageScreen() {
   const { isAdmin } = useAuth();
+  const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'AdminHostsManage'>>();
   const filterType = (route.params as any)?.filterType as string | undefined;
   const [rows, setRows] = useState<HostRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const load = async () => {
     let q = supabase
@@ -159,6 +229,7 @@ export default function AdminHostsManageScreen() {
     setRows((data as HostRow[]) ?? []);
     setLoading(false);
   };
+
   useEffect(() => { load(); }, [filterType]);
 
   if (!isAdmin) {
@@ -170,6 +241,9 @@ export default function AdminHostsManageScreen() {
   }
 
   const title = filterType ? TYPE_LABELS[filterType] ?? filterType : t('hosts.manageTitle');
+  const onboardLabel = filterType
+    ? (ONBOARD_LABEL[filterType] ?? 'Onboard New Host')
+    : 'Onboard New Host';
 
   return (
     <ScrollView
@@ -178,10 +252,48 @@ export default function AdminHostsManageScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <Text style={styles.sectionTitle}>{title}</Text>
-      {!loading && rows.length === 0 && <Text style={styles.hint}>{t('hosts.none')}</Text>}
-      {rows.map((r) => (
-        <HostEditRow key={r.user_id} row={r} onChanged={load} />
-      ))}
+
+      {/* Onboard New button at top */}
+      {!editingId && (
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => nav.navigate('AdminHosts')}
+          activeOpacity={0.82}
+        >
+          <MaterialCommunityIcons name="plus" size={18} color="#fff" />
+          <Text style={styles.addBtnText}>{onboardLabel}</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Edit form (inline) */}
+      {editingId && (() => {
+        const row = rows.find((r) => r.user_id === editingId);
+        if (!row) return null;
+        return (
+          <HostEditForm
+            row={row}
+            onDone={() => setEditingId(null)}
+            onChanged={load}
+          />
+        );
+      })()}
+
+      {/* Host list */}
+      <View style={styles.listBox}>
+        {!loading && rows.length === 0 && (
+          <Text style={styles.emptyNote}>{t('hosts.none')}</Text>
+        )}
+        {rows.map((r) => (
+          editingId === r.user_id ? null : (
+            <HostListRow
+              key={r.user_id}
+              row={r}
+              onEdit={() => setEditingId(r.user_id)}
+              onDeleted={load}
+            />
+          )
+        ))}
+      </View>
     </ScrollView>
   );
 }
@@ -192,15 +304,31 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cream },
   deny: { color: colors.muted, fontSize: 15 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.maroon, marginBottom: 12 },
-  hint: { fontSize: 13, color: colors.muted, marginBottom: 10 },
-  card: {
-    backgroundColor: colors.white,
-    borderColor: colors.line,
-    borderWidth: 1,
+
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.maroon,
     borderRadius: radius.md,
-    padding: 14,
-    marginBottom: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
   },
+  addBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+
+  editForm: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: 16,
+    marginBottom: 16,
+  },
+  editFormTitle: { fontSize: 14, fontWeight: '700', color: colors.maroon, marginBottom: 10 },
+  fieldLabel: { fontSize: 12, fontWeight: '600', color: colors.muted, marginTop: 10, marginBottom: 5 },
+
   input: {
     backgroundColor: colors.cream,
     borderColor: colors.line,
@@ -210,11 +338,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     color: colors.ink,
-    marginBottom: 8,
   },
   two: { flexDirection: 'row', gap: 8 },
   half: { flex: 1 },
-  chips: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
   chip: {
     borderColor: colors.line,
     borderWidth: 1,
@@ -226,7 +353,47 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: colors.maroon, borderColor: colors.maroon },
   chipText: { color: colors.ink, fontSize: 12 },
   chipTextOn: { color: colors.white },
-  err: { color: colors.live, fontSize: 13, marginBottom: 4 },
-  ok: { color: colors.green, fontSize: 13, marginBottom: 4, fontWeight: '600' },
-  actions: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  errText: { color: colors.live, fontSize: 13, marginTop: 8 },
+  okText: { color: colors.green, fontSize: 13, marginTop: 8, fontWeight: '600' },
+  formActions: { flexDirection: 'row', gap: 10, marginTop: 14 },
+
+  listBox: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+    overflow: 'hidden',
+  },
+  emptyNote: { fontSize: 13, color: colors.muted, fontStyle: 'italic', padding: 16 },
+
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  avatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.maroon,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  rowName: { fontSize: 14, fontWeight: '600', color: colors.ink },
+  rowMeta: { fontSize: 11, color: colors.muted, marginTop: 1 },
+
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  editLabel: { fontSize: 13, fontWeight: '700', color: colors.maroon },
+  deleteLabel: { fontSize: 13, fontWeight: '700', color: colors.live },
 });

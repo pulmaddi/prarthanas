@@ -51,6 +51,11 @@ async function load(): Promise<WeekdayDeity[]> {
 export function useWeekdayDeities() {
   const [rows, setRows] = useState<WeekdayDeity[]>(cache ?? WEEKDAY_DEITIES);
 
+  const reload = () => {
+    clearWeekdayCache();
+    load().then(setRows);
+  };
+
   useEffect(() => {
     let active = true;
     load().then((r) => active && setRows(r));
@@ -62,5 +67,5 @@ export function useWeekdayDeities() {
   const today = (): WeekdayDeity =>
     rows.find((r) => r.day === new Date().getDay()) ?? todaysDeity();
 
-  return { rows, today, fileUrl: deityFileUrl };
+  return { rows, today, fileUrl: deityFileUrl, reload };
 }

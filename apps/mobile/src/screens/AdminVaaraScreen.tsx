@@ -6,7 +6,11 @@ import {
   Image,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
+  Alert,
+  Platform,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -23,7 +27,15 @@ import {
 } from '../lib/weekdayDeities';
 import { deityFileUrl } from '../lib/deities';
 
-function WeekdayRow({ row }: { row: WeekdayDeity }) {
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+function EditForm({
+  row,
+  onDone,
+}: {
+  row: Partial<WeekdayDeity> & { day: number; day_name: string };
+  onDone: () => void;
+}) {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [name, setName] = useState(row.deity_name ?? '');
   const [imagePath, setImagePath] = useState(row.image_path ?? null);
@@ -31,14 +43,12 @@ function WeekdayRow({ row }: { row: WeekdayDeity }) {
   const [imageAsset, setImageAsset] = useState<any>(null);
   const [audioAsset, setAudioAsset] = useState<any>(null);
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
 
   const slug = row.day_name.toLowerCase();
 
   const save = async () => {
     setErr('');
-    setMsg('');
     if (name.trim().length < 2) return setErr('Enter the deity name.');
     try {
       setBusy(true);
@@ -60,12 +70,8 @@ function WeekdayRow({ row }: { row: WeekdayDeity }) {
         audio_path,
       });
       if (error) throw error;
-      setImagePath(image_path);
-      setAudioPath(audio_path);
-      setImageAsset(null);
-      setAudioAsset(null);
       clearWeekdayCache();
-      setMsg('Saved ✓');
+      onDone();
     } catch (e: any) {
       setErr(e?.message ?? 'Could not save.');
     } finally {
@@ -76,9 +82,12 @@ function WeekdayRow({ row }: { row: WeekdayDeity }) {
   const previewUri = imageAsset?.uri || deityFileUrl(imagePath) || '';
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.day}>{row.day_name}</Text>
+    <View style={styles.editForm}>
+      <Text style={styles.editFormTitle}>
+        {row.deity_name ? `Edit — ${row.day_name}` : `Add — ${row.day_name}`}
+      </Text>
 
+      <Text style={styles.fieldLabel}>Deity Name</Text>
       <TextInput
         style={styles.input}
         value={name}
@@ -88,6 +97,7 @@ function WeekdayRow({ row }: { row: WeekdayDeity }) {
         autoCapitalize="words"
       />
 
+      <Text style={styles.fieldLabel}>Deity Image</Text>
       <View style={styles.pickRow}>
         <View style={styles.preview}>
           {previewUri ? (
@@ -108,6 +118,7 @@ function WeekdayRow({ row }: { row: WeekdayDeity }) {
         </View>
       </View>
 
+      <Text style={styles.fieldLabel}>Stotra / Audio</Text>
       <View style={styles.pickRow}>
         <View style={styles.preview}>
           <Text style={{ fontSize: 20 }}>{audioAsset || audioPath ? '🔊' : '🎵'}</Text>
@@ -124,27 +135,92 @@ function WeekdayRow({ row }: { row: WeekdayDeity }) {
         </View>
       </View>
 
-      {!!err && <Text style={styles.err}>{err}</Text>}
-      {!!msg && <Text style={styles.ok}>{msg}</Text>}
-      <View style={styles.actions}>
+      {!!err && <Text style={styles.errText}>{err}</Text>}
+
+      <View style={styles.formActions}>
         <View style={{ flex: 1 }}>
           <Button label={busy ? '…' : t('admin.save')} onPress={save} />
         </View>
         <View style={{ flex: 1 }}>
-          <Button
-            label={t('admin.preview')}
-            variant="outline"
-            onPress={() => nav.navigate('Pooja', { day: row.day })}
-          />
+          <Button label={t('admin.cancel')} variant="outline" onPress={onDone} />
         </View>
+        {!!row.deity_name && (
+          <View style={{ flex: 1 }}>
+            <Button
+              label={t('admin.preview')}
+              variant="outline"
+              onPress={() => nav.navigate('Pooja', { day: row.day })}
+            />
+          </View>
+        )}
       </View>
+    </View>
+  );
+}
+
+function DayRow({
+  row,
+  onEdit,
+  onDeleted,
+}: {
+  row: WeekdayDeity;
+  onEdit: () => void;
+  onDeleted: () => void;
+}) {
+  const imgUri = deityFileUrl(row.image_path) || '';
+
+  const confirmDelete = () => {
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Remove deity for ${row.day_name}?`)) doDelete();
+    } else {
+      Alert.alert('Remove', `Remove deity for ${row.day_name}?`, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Remove', style: 'destructive', onPress: doDelete },
+      ]);
+    }
+  };
+
+  const doDelete = async () => {
+    await supabase
+      .from('weekday_deities')
+      .update({ deity_name: null, image_path: null, audio_path: null })
+      .eq('day', row.day);
+    clearWeekdayCache();
+    onDeleted();
+  };
+
+  return (
+    <View style={styles.row}>
+      <View style={styles.rowThumb}>
+        {imgUri ? (
+          <Image source={{ uri: imgUri }} style={styles.rowImg} />
+        ) : (
+          <Text style={{ fontSize: 18 }}>🕉️</Text>
+        )}
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.rowDay}>{row.day_name}</Text>
+        <Text style={styles.rowDeity} numberOfLines={1}>
+          {row.deity_name || <Text style={styles.rowEmpty}>Not set</Text>}
+        </Text>
+      </View>
+      <TouchableOpacity style={styles.actionBtn} onPress={onEdit}>
+        <MaterialCommunityIcons name="pencil" size={16} color={colors.maroon} />
+        <Text style={styles.editLabel}>Edit</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.actionBtn} onPress={confirmDelete}>
+        <MaterialCommunityIcons name="delete-outline" size={16} color={colors.live} />
+        <Text style={styles.deleteLabel}>Delete</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 export default function AdminVaaraScreen() {
   const { isAdmin } = useAuth();
-  const { rows } = useWeekdayDeities();
+  const { rows, reload } = useWeekdayDeities();
+  const [editingDay, setEditingDay] = useState<number | null>(null);
+  const [addingDay, setAddingDay] = useState<number | null>(null);
 
   if (!isAdmin) {
     return (
@@ -154,12 +230,55 @@ export default function AdminVaaraScreen() {
     );
   }
 
+  const allRows: Array<Partial<WeekdayDeity> & { day: number; day_name: string }> =
+    DAYS.map((dayName, i) => {
+      const found = rows?.find((r: WeekdayDeity) => r.day === i);
+      return found ?? { day: i, day_name: dayName };
+    });
+
+  const handleDone = () => {
+    setEditingDay(null);
+    setAddingDay(null);
+    clearWeekdayCache();
+    reload?.();
+  };
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.body}>
-      <Text style={styles.hint}>{t('admin.vaaraHint')}</Text>
-      {rows.map((r) => (
-        <WeekdayRow key={r.day} row={r} />
-      ))}
+      {/* Add New button at top */}
+      <TouchableOpacity
+        style={styles.addBtn}
+        onPress={() => {
+          const firstEmpty = allRows.find((r) => !r.deity_name);
+          if (firstEmpty) setAddingDay(firstEmpty.day);
+        }}
+        activeOpacity={0.82}
+      >
+        <MaterialCommunityIcons name="plus" size={18} color="#fff" />
+        <Text style={styles.addBtnText}>Add New Item</Text>
+      </TouchableOpacity>
+
+      {/* Inline add form */}
+      {addingDay !== null && (
+        <EditForm row={allRows[addingDay]} onDone={handleDone} />
+      )}
+
+      {/* List of all weekday rows */}
+      <View style={styles.listBox}>
+        {allRows.map((row, i) => {
+          if (editingDay === row.day) {
+            return <EditForm key={row.day} row={row} onDone={handleDone} />;
+          }
+          return (
+            <DayRow
+              key={row.day}
+              row={row as WeekdayDeity}
+              onEdit={() => { setAddingDay(null); setEditingDay(row.day); }}
+              onDeleted={handleDone}
+            />
+          );
+        })}
+      </View>
     </ScrollView>
   );
 }
@@ -169,16 +288,72 @@ const styles = StyleSheet.create({
   body: { padding: spacing.lg, paddingBottom: 40 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cream },
   deny: { color: colors.muted, fontSize: 15 },
-  hint: { fontSize: 13, color: colors.muted, marginBottom: 12 },
-  card: {
-    backgroundColor: colors.white,
-    borderColor: colors.line,
-    borderWidth: 1,
+
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.maroon,
     borderRadius: radius.md,
-    padding: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  },
+  addBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+
+  listBox: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+    overflow: 'hidden',
+  },
+
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  rowThumb: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: '#f0e6d6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  rowImg: { width: 44, height: 44 },
+  rowDay: { fontSize: 13, fontWeight: '700', color: colors.maroon },
+  rowDeity: { fontSize: 13, color: colors.ink, marginTop: 1 },
+  rowEmpty: { color: colors.muted, fontStyle: 'italic' },
+
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  editLabel: { fontSize: 13, fontWeight: '700', color: colors.maroon },
+  deleteLabel: { fontSize: 13, fontWeight: '700', color: colors.live },
+
+  editForm: {
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: 16,
     marginBottom: 14,
   },
-  day: { fontSize: 15, fontWeight: '700', color: colors.maroon, marginBottom: 8 },
+  editFormTitle: { fontSize: 14, fontWeight: '700', color: colors.maroon, marginBottom: 12 },
+  fieldLabel: { fontSize: 12, fontWeight: '600', color: colors.muted, marginBottom: 5, marginTop: 10 },
+
   input: {
     backgroundColor: colors.cream,
     borderColor: colors.line,
@@ -188,9 +363,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     color: colors.ink,
-    marginBottom: 10,
+    marginBottom: 4,
   },
-  pickRow: { flexDirection: 'row', gap: 12, alignItems: 'center', marginBottom: 10 },
+  pickRow: { flexDirection: 'row', gap: 12, alignItems: 'center', marginBottom: 4 },
   preview: {
     width: 52,
     height: 52,
@@ -205,7 +380,6 @@ const styles = StyleSheet.create({
   previewImg: { width: 52, height: 52 },
   pickCol: { flex: 1 },
   fileNote: { fontSize: 11, color: colors.muted, marginTop: 4 },
-  err: { color: colors.live, fontSize: 13, marginTop: 4, marginBottom: 4 },
-  ok: { color: colors.green, fontSize: 13, marginTop: 4, marginBottom: 4, fontWeight: '600' },
-  actions: { flexDirection: 'row', gap: 10 },
+  errText: { color: colors.live, fontSize: 13, marginTop: 6, marginBottom: 4 },
+  formActions: { flexDirection: 'row', gap: 10, marginTop: 14 },
 });

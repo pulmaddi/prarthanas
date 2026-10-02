@@ -25,8 +25,6 @@ type CardConfig = {
   manageLabel: string;
   manageScreen: keyof RootStackParamList;
   manageParams?: Record<string, unknown>;
-  newLabel: string;
-  newScreen: keyof RootStackParamList;
 };
 
 const CARDS: CardConfig[] = [
@@ -39,8 +37,6 @@ const CARDS: CardConfig[] = [
     countKey: 'vaara',
     manageLabel: 'Manage Days',
     manageScreen: 'AdminVaara',
-    newLabel: 'Edit',
-    newScreen: 'AdminVaara',
   },
   {
     id: 'ishta',
@@ -51,8 +47,6 @@ const CARDS: CardConfig[] = [
     countKey: 'ritualItems',
     manageLabel: 'Manage Items',
     manageScreen: 'AdminRitualItems',
-    newLabel: 'New Item',
-    newScreen: 'AdminRitualItems',
   },
   {
     id: 'priests',
@@ -64,8 +58,6 @@ const CARDS: CardConfig[] = [
     manageLabel: 'Manage',
     manageScreen: 'AdminHostsManage',
     manageParams: { filterType: 'priest' },
-    newLabel: 'Onboard',
-    newScreen: 'AdminHosts',
   },
   {
     id: 'gurus',
@@ -77,8 +69,6 @@ const CARDS: CardConfig[] = [
     manageLabel: 'Manage',
     manageScreen: 'AdminHostsManage',
     manageParams: { filterType: 'guru' },
-    newLabel: 'Onboard',
-    newScreen: 'AdminHosts',
   },
   {
     id: 'temples',
@@ -90,8 +80,6 @@ const CARDS: CardConfig[] = [
     manageLabel: 'Manage',
     manageScreen: 'AdminHostsManage',
     manageParams: { filterType: 'temple_exec' },
-    newLabel: 'Onboard',
-    newScreen: 'AdminHosts',
   },
 ];
 
@@ -134,7 +122,6 @@ function DashCard({
 
   const goManage = () =>
     nav.navigate(card.manageScreen as any, (card.manageParams ?? {}) as any);
-  const goNew = () => nav.navigate(card.newScreen as any);
 
   const singular =
     card.id === 'vaara' ? 'day' :
@@ -173,25 +160,15 @@ function DashCard({
         {/* Divider */}
         <View style={styles.divider} />
 
-        {/* Action buttons */}
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={[styles.btn, styles.btnPrimary, { backgroundColor: card.accent }]}
-            onPress={goManage}
-            activeOpacity={0.82}
-          >
-            <MaterialCommunityIcons name="table-edit" size={14} color="#fff" />
-            <Text style={styles.btnPrimaryText}>{card.manageLabel}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.btn, styles.btnOutline, { borderColor: card.accent }]}
-            onPress={goNew}
-            activeOpacity={0.82}
-          >
-            <MaterialCommunityIcons name="plus" size={14} color={card.accent} />
-            <Text style={[styles.btnOutlineText, { color: card.accent }]}>{card.newLabel}</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Single primary action button */}
+        <TouchableOpacity
+          style={[styles.btn, styles.btnPrimary, { backgroundColor: card.accent }]}
+          onPress={goManage}
+          activeOpacity={0.82}
+        >
+          <MaterialCommunityIcons name="table-edit" size={14} color="#fff" />
+          <Text style={styles.btnPrimaryText}>{card.manageLabel}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -313,7 +290,6 @@ const styles = StyleSheet.create({
 
   divider: { height: 1, backgroundColor: colors.line, marginBottom: 12 },
 
-  actions: { flexDirection: 'row', gap: 8 },
   btn: {
     flex: 1,
     flexDirection: 'row',
@@ -325,6 +301,4 @@ const styles = StyleSheet.create({
   },
   btnPrimary: {},
   btnPrimaryText: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  btnOutline: { borderWidth: 1.5, backgroundColor: 'transparent' },
-  btnOutlineText: { fontSize: 13, fontWeight: '700' },
 });
