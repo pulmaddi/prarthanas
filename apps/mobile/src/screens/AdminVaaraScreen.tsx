@@ -216,11 +216,47 @@ function DayRow({
   );
 }
 
+/** Add form shown at top — includes a day picker so any day can be targeted */
+function AddForm({
+  allRows,
+  onDone,
+}: {
+  allRows: Array<Partial<WeekdayDeity> & { day: number; day_name: string }>;
+  onDone: () => void;
+}) {
+  const firstEmpty = allRows.find((r) => !r.deity_name);
+  const [selectedDay, setSelectedDay] = useState<number>(
+    firstEmpty ? firstEmpty.day : 0,
+  );
+  return (
+    <View>
+      {/* Day picker chips */}
+      <View style={styles.dayPickerWrap}>
+        <Text style={styles.dayPickerLabel}>Select day</Text>
+        <View style={styles.dayChips}>
+          {allRows.map((r) => (
+            <TouchableOpacity
+              key={r.day}
+              style={[styles.dayChip, selectedDay === r.day && styles.dayChipOn]}
+              onPress={() => setSelectedDay(r.day)}
+            >
+              <Text style={[styles.dayChipText, selectedDay === r.day && styles.dayChipTextOn]}>
+                {r.day_name.slice(0, 3)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+      <EditForm row={allRows[selectedDay]} onDone={onDone} />
+    </View>
+  );
+}
+
 export default function AdminVaaraScreen() {
   const { isAdmin } = useAuth();
   const { rows, reload } = useWeekdayDeities();
   const [editingDay, setEditingDay] = useState<number | null>(null);
-  const [addingDay, setAddingDay] = useState<number | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   if (!isAdmin) {
     return (
@@ -238,34 +274,35 @@ export default function AdminVaaraScreen() {
 
   const handleDone = () => {
     setEditingDay(null);
-    setAddingDay(null);
+    setShowAddForm(false);
     clearWeekdayCache();
-    reload?.();
+    reload();
   };
+
+  const formOpen = showAddForm || editingDay !== null;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.body}>
-      {/* Add New button at top */}
-      <TouchableOpacity
-        style={styles.addBtn}
-        onPress={() => {
-          const firstEmpty = allRows.find((r) => !r.deity_name);
-          if (firstEmpty) setAddingDay(firstEmpty.day);
-        }}
-        activeOpacity={0.82}
-      >
-        <MaterialCommunityIcons name="plus" size={18} color="#fff" />
-        <Text style={styles.addBtnText}>Add New Item</Text>
-      </TouchableOpacity>
+      {/* Add New button — hidden while any form is open */}
+      {!formOpen && (
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => setShowAddForm(true)}
+          activeOpacity={0.82}
+        >
+          <MaterialCommunityIcons name="plus" size={18} color="#fff" />
+          <Text style={styles.addBtnText}>Add New Item</Text>
+        </TouchableOpacity>
+      )}
 
-      {/* Inline add form */}
-      {addingDay !== null && (
-        <EditForm row={allRows[addingDay]} onDone={handleDone} />
+      {/* Add form with day picker */}
+      {showAddForm && (
+        <AddForm allRows={allRows} onDone={handleDone} />
       )}
 
       {/* List of all weekday rows */}
       <View style={styles.listBox}>
-        {allRows.map((row, i) => {
+        {allRows.map((row) => {
           if (editingDay === row.day) {
             return <EditForm key={row.day} row={row} onDone={handleDone} />;
           }
@@ -273,7 +310,7 @@ export default function AdminVaaraScreen() {
             <DayRow
               key={row.day}
               row={row as WeekdayDeity}
-              onEdit={() => { setAddingDay(null); setEditingDay(row.day); }}
+              onEdit={() => { setShowAddForm(false); setEditingDay(row.day); }}
               onDeleted={handleDone}
             />
           );
@@ -342,6 +379,21 @@ const styles = StyleSheet.create({
   },
   editLabel: { fontSize: 13, fontWeight: '700', color: colors.maroon },
   deleteLabel: { fontSize: 13, fontWeight: '700', color: colors.live },
+
+  dayPickerWrap: { marginBottom: 10 },
+  dayPickerLabel: { fontSize: 12, fontWeight: '600', color: colors.muted, marginBottom: 6 },
+  dayChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  dayChip: {
+    borderColor: colors.line,
+    borderWidth: 1,
+    borderRadius: radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    backgroundColor: colors.white,
+  },
+  dayChipOn: { backgroundColor: colors.maroon, borderColor: colors.maroon },
+  dayChipText: { fontSize: 13, color: colors.ink },
+  dayChipTextOn: { color: '#fff', fontWeight: '700' },
 
   editForm: {
     backgroundColor: colors.white,
