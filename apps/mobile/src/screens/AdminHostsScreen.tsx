@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,9 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme';
 import { Button } from '../components/ui';
@@ -24,11 +25,24 @@ const TYPE_LABEL: Record<string, string> = {
 };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const ONBOARD_TITLE: Record<string, string> = {
+  priest: 'Onboard Priest',
+  guru: 'Onboard Spiritual Guru',
+  temple_exec: 'Onboard Temple',
+};
+
 export default function AdminHostsScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'AdminHosts'>>();
+  const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const filterType = (route.params as any)?.filterType as string | undefined;
   const { isAdmin } = useAuth();
   const [types] = useState<string[]>(filterType ? [filterType] : ['priest']);
+
+  // Set header title to match the role being onboarded
+  useEffect(() => {
+    const title = filterType ? (ONBOARD_TITLE[filterType] ?? `Onboard ${filterType}`) : 'Onboard Host';
+    nav.setOptions({ title });
+  }, [filterType]);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -103,7 +117,9 @@ export default function AdminHostsScreen() {
       contentContainerStyle={styles.body}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={styles.h2}>{t('hosts.onboardTitle')}</Text>
+      <Text style={styles.h2}>
+        {filterType ? (ONBOARD_TITLE[filterType] ?? `Onboard ${filterType}`) : t('hosts.onboardTitle')}
+      </Text>
       <Text style={styles.hint}>{t('hosts.hint')}</Text>
 
       <Text style={styles.label}>{t('hosts.type')}</Text>
@@ -148,7 +164,14 @@ export default function AdminHostsScreen() {
         </View>
       )}
 
-      <Button label={busy ? '…' : t('hosts.create')} onPress={onCreate} />
+      <View style={styles.btnRow}>
+        <View style={{ flex: 1 }}>
+          <Button label={busy ? '…' : t('hosts.create')} onPress={onCreate} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Button label={t('admin.cancel')} variant="outline" onPress={() => nav.goBack()} />
+        </View>
+      </View>
     </ScrollView>
   );
 }
@@ -172,6 +195,7 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   field: {},
+  btnRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
   roleReadOnly: {
     alignSelf: 'flex-start',
     backgroundColor: colors.maroon,
