@@ -76,7 +76,7 @@ function DevoteeCardGrid({
         }
       >
         <View style={[dcStyles.iconCircle, { backgroundColor: '#7A0A14' + '22' }]}>
-          <MaterialCommunityIcons name="hands-pray" size={26} color="#7A0A14" />
+          <MaterialCommunityIcons name="hands-pray" size={20} color="#7A0A14" />
         </View>
         <Text style={dcStyles.cardTitle}>Ishta Daiva Puja</Text>
         <Text style={dcStyles.cardSub} numberOfLines={1}>
@@ -95,7 +95,7 @@ function DevoteeCardGrid({
         onPress={() => rootNav.navigate('Pooja', { vaara: true })}
       >
         <View style={[dcStyles.iconCircle, { backgroundColor: '#C8860A' + '22' }]}>
-          <MaterialCommunityIcons name="calendar-star" size={26} color="#C8860A" />
+          <MaterialCommunityIcons name="calendar-star" size={20} color="#C8860A" />
         </View>
         <Text style={dcStyles.cardTitle}>Vara Puja</Text>
         <Text style={dcStyles.cardSub} numberOfLines={1}>
@@ -118,7 +118,7 @@ function DevoteeCardGrid({
             onPress={() => rootNav.navigate('HostBrowse', { filterType: cat.filterType })}
           >
             <View style={[dcStyles.iconCircle, { backgroundColor: cat.accent + '22' }]}>
-              <MaterialCommunityIcons name={cat.icon} size={26} color={cat.accent} />
+              <MaterialCommunityIcons name={cat.icon} size={20} color={cat.accent} />
             </View>
             <Text style={dcStyles.cardTitle}>{cat.title}</Text>
             <Text
@@ -140,33 +140,42 @@ function DevoteeCardGrid({
 }
 
 const dcStyles = StyleSheet.create({
-  grid: { gap: 12, marginTop: 4 },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 4,
+  },
   card: {
     backgroundColor: colors.white,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.line,
     borderTopWidth: 4,
-    padding: 16,
+    padding: 12,
     shadowColor: '#000',
     shadowOpacity: 0.04,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
+    // 3-per-row: (100% - 2 gaps of 10) / 3. Using flex basis trick.
+    flexBasis: '31%',
+    flexGrow: 1,
+    maxWidth: '32.5%' as any,
   },
   iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  cardTitle: { fontSize: 15, fontWeight: '800', color: colors.ink, marginBottom: 4 },
-  cardSub: { fontSize: 13, color: colors.ink, marginBottom: 10 },
+  cardTitle: { fontSize: 12, fontWeight: '800', color: colors.ink, marginBottom: 3 },
+  cardSub: { fontSize: 11, color: colors.ink, marginBottom: 8 },
   cardSubMuted: { color: colors.muted, fontStyle: 'italic' },
   actionRow: { flexDirection: 'row' },
-  actionText: { fontSize: 12, fontWeight: '700' },
+  actionText: { fontSize: 10, fontWeight: '700' },
 });
 
 export default function HomeScreen({ navigation }: Props) {
