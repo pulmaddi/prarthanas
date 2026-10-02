@@ -50,6 +50,8 @@ type HostRow = {
   name: string | null;
   phone: string | null;
   city: string | null;
+  location: string | null;
+  org_name: string | null;
 };
 
 function HostEditForm({
@@ -63,7 +65,12 @@ function HostEditForm({
   onDone: () => void;
   onChanged: () => void;
 }) {
+  const isTemple = filterType === 'temple_exec';
+  const hasLocation = isTemple || filterType === 'guru' || filterType === 'astrologer' || filterType === 'numerologist';
+
   const [name, setName] = useState(row.name ?? '');
+  const [orgName, setOrgName] = useState(row.org_name ?? '');
+  const [location, setLocation] = useState(row.location ?? '');
   const [types, setTypes] = useState<string[]>(row.host_types ?? []);
   const toggleType = (k: string) =>
     setTypes((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]));
@@ -76,6 +83,7 @@ function HostEditForm({
   const save = async () => {
     setErr('');
     setMsg('');
+    if (isTemple && orgName.trim().length < 2) return setErr('Enter the temple name.');
     if (name.trim().length < 2) return setErr('Enter a name.');
     if (types.length === 0) return setErr('Select at least one role.');
     try {
@@ -87,6 +95,8 @@ function HostEditForm({
           host_types: types,
           phone: phone.trim() || null,
           city: city.trim() || null,
+          location: location.trim() || null,
+          org_name: orgName.trim() || null,
         })
         .eq('user_id', row.user_id);
       if (error) throw error;
@@ -102,16 +112,7 @@ function HostEditForm({
 
   return (
     <View style={styles.editForm}>
-      <Text style={styles.editFormTitle}>Edit — {row.name || row.user_id}</Text>
-
-      <Text style={styles.fieldLabel}>Name</Text>
-      <TextInput
-        style={styles.input}
-        value={name}
-        onChangeText={setName}
-        placeholder={t('hosts.name')}
-        placeholderTextColor={colors.muted}
-      />
+      <Text style={styles.editFormTitle}>Edit — {isTemple ? (row.org_name || row.name) : row.name || row.user_id}</Text>
 
       <Text style={styles.fieldLabel}>Role</Text>
       {filterType ? (
@@ -139,24 +140,63 @@ function HostEditForm({
         </View>
       )}
 
-      <Text style={styles.fieldLabel}>Phone & City</Text>
-      <View style={styles.two}>
-        <TextInput
-          style={[styles.input, styles.half]}
-          value={phone}
-          onChangeText={setPhone}
-          placeholder={t('hosts.phone')}
-          placeholderTextColor={colors.muted}
-          keyboardType="phone-pad"
-        />
-        <TextInput
-          style={[styles.input, styles.half]}
-          value={city}
-          onChangeText={setCity}
-          placeholder={t('hosts.city')}
-          placeholderTextColor={colors.muted}
-        />
-      </View>
+      {isTemple && (
+        <>
+          <Text style={styles.fieldLabel}>Temple Name</Text>
+          <TextInput
+            style={styles.input}
+            value={orgName}
+            onChangeText={setOrgName}
+            placeholder="e.g. Sri Venkateswara Temple"
+            placeholderTextColor={colors.muted}
+            autoCapitalize="words"
+          />
+        </>
+      )}
+
+      <Text style={styles.fieldLabel}>{isTemple ? 'Contact Person Name' : t('hosts.name')}</Text>
+      <TextInput
+        style={styles.input}
+        value={name}
+        onChangeText={setName}
+        placeholder={t('hosts.name')}
+        placeholderTextColor={colors.muted}
+        autoCapitalize="words"
+      />
+
+      {hasLocation && (
+        <>
+          <Text style={styles.fieldLabel}>Location</Text>
+          <TextInput
+            style={styles.input}
+            value={location}
+            onChangeText={setLocation}
+            placeholder="Area / Locality (e.g. Banjara Hills)"
+            placeholderTextColor={colors.muted}
+            autoCapitalize="words"
+          />
+        </>
+      )}
+
+      <Text style={styles.fieldLabel}>{hasLocation ? 'City' : t('hosts.city')}</Text>
+      <TextInput
+        style={styles.input}
+        value={city}
+        onChangeText={setCity}
+        placeholder="City"
+        placeholderTextColor={colors.muted}
+        autoCapitalize="words"
+      />
+
+      <Text style={styles.fieldLabel}>{t('hosts.phone')}</Text>
+      <TextInput
+        style={styles.input}
+        value={phone}
+        onChangeText={setPhone}
+        placeholder="+91 …"
+        placeholderTextColor={colors.muted}
+        keyboardType="phone-pad"
+      />
 
       {!!err && <Text style={styles.errText}>{err}</Text>}
       {!!msg && <Text style={styles.okText}>{msg}</Text>}
@@ -239,7 +279,7 @@ export default function AdminHostsManageScreen() {
   const load = async () => {
     let q = supabase
       .from('host_accounts')
-      .select('user_id,host_types,name,phone,city')
+      .select('user_id,host_types,name,phone,city,location,org_name')
       .order('created_at', { ascending: false });
     if (filterType) q = (q as any).contains('host_types', [filterType]);
     const { data } = await q;
@@ -287,48 +327,46 @@ export default function AdminHostsManageScreen() {
     >
       <Text style={styles.sectionTitle}>{title}</Text>
 
-      {/* Onboard New button at top */}
-      {!editingId && (
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => nav.navigate('AdminHosts', filterType ? { filterType } : undefined)}
-          activeOpacity={0.82}
-        >
-          <MaterialCommunityIcons name="plus" size={18} color="#fff" />
-          <Text style={styles.addBtnText}>{onboardLabel}</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Edit form (inline) */}
-      {editingId && (() => {
-        const row = rows.find((r) => r.user_id === editingId);
-        if (!row) return null;
-        return (
-          <HostEditForm
-            row={row}
-            filterType={filterType}
-            onDone={() => setEditingId(null)}
-            onChanged={load}
-          />
-        );
-      })()}
-
-      {/* Host list */}
-      <View style={styles.listBox}>
-        {!loading && rows.length === 0 && (
-          <Text style={styles.emptyNote}>{t('hosts.none')}</Text>
-        )}
-        {rows.map((r) => (
-          editingId === r.user_id ? null : (
-            <HostListRow
-              key={r.user_id}
-              row={r}
-              onEdit={() => setEditingId(r.user_id)}
-              onDeleted={load}
+      {editingId ? (
+        /* ── EDIT VIEW: form only, no list ── */
+        (() => {
+          const row = rows.find((r) => r.user_id === editingId);
+          return row ? (
+            <HostEditForm
+              row={row}
+              filterType={filterType}
+              onDone={() => setEditingId(null)}
+              onChanged={load}
             />
-          )
-        ))}
-      </View>
+          ) : null;
+        })()
+      ) : (
+        /* ── LIST VIEW: onboard button + host list ── */
+        <>
+          <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() => nav.navigate('AdminHosts', filterType ? { filterType } : undefined)}
+            activeOpacity={0.82}
+          >
+            <MaterialCommunityIcons name="plus" size={18} color="#fff" />
+            <Text style={styles.addBtnText}>{onboardLabel}</Text>
+          </TouchableOpacity>
+
+          <View style={styles.listBox}>
+            {!loading && rows.length === 0 && (
+              <Text style={styles.emptyNote}>{t('hosts.none')}</Text>
+            )}
+            {rows.map((r) => (
+              <HostListRow
+                key={r.user_id}
+                row={r}
+                onEdit={() => setEditingId(r.user_id)}
+                onDeleted={load}
+              />
+            ))}
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 }
