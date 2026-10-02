@@ -23,11 +23,11 @@ export function useHostDirectory() {
 
   const load = useCallback(async () => {
     if (!isSupabaseConfigured) return;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('hosts_public')
       .select('user_id,host_types,name,org_name,location,city')
       .limit(60);
-    setHosts((data as PublicHost[]) ?? []);
+    if (!error) setHosts((data as PublicHost[]) ?? []);
     if (uid) {
       const { data: fs } = await supabase
         .from('follows')
