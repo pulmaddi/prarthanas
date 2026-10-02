@@ -19,6 +19,7 @@ export type RootStackParamList = {
   LiveRoom: { meetingId: string; title: string; deityName?: string; hostId: string };
   RitualBooking: { occasionId: string; title: string };
   LiveMeeting: { occasionInstanceId: string; title: string };
+  HostBrowse: { filterType: string };
   HostProfile: { hostId: string };
   Subscribe: { hostId: string; hostName: string };
 };

@@ -18,22 +18,165 @@ import { colors, radius, spacing } from '../theme';
 import { t } from '../i18n';
 import { useAuth } from '../lib/auth';
 import { useWeekdayDeities } from '../lib/weekdayDeities';
-import { useHostDirectory } from '../lib/hosts';
+import { useHostDirectory, type PublicHost } from '../lib/hosts';
 import { useBreakpoint } from '../lib/useBreakpoint';
-import HostFollowSection from '../components/HostFollowSection';
 import HostHomeSections from '../components/HostHomeSections';
-import AdminDashboard from '../components/AdminDashboard';
 import SectionHeader from '../components/SectionHeader';
+import AdminDashboard from '../components/AdminDashboard';
 import WebPageWrapper from '../components/WebPageWrapper';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
+
+// ── Devotee home: 7-card grid ────────────────────────────────────────────────
+
+type HostCategory = {
+  filterType: string;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  title: string;
+  accent: string;
+};
+
+const HOST_CATS: HostCategory[] = [
+  { filterType: 'priest',       icon: 'account-tie',   title: 'My Priests',          accent: '#1B6B4A' },
+  { filterType: 'guru',         icon: 'meditation',    title: 'My Spiritual Gurus',  accent: '#5E3D9A' },
+  { filterType: 'temple_exec',  icon: 'town-hall',     title: 'My Temples',          accent: '#B85C00' },
+  { filterType: 'astrologer',   icon: 'star-crescent', title: 'My Astrologers',      accent: '#1A5276' },
+  { filterType: 'numerologist', icon: 'numeric',       title: 'My Numerologists',    accent: '#6C3483' },
+];
+
+function followedSummary(list: PublicHost[]): string {
+  if (list.length === 0) return 'None selected';
+  if (list.length === 1) return list[0].name || 'Selected';
+  return `${list.length} selected`;
+}
+
+function DevoteeCardGrid({
+  profile,
+  today,
+  followedOf,
+  rootNav,
+  isDesktop,
+}: {
+  profile: any;
+  today: () => any;
+  followedOf: (ty: string) => PublicHost[];
+  rootNav: NativeStackNavigationProp<RootStackParamList>;
+  isDesktop: boolean;
+}) {
+  return (
+    <View style={dcStyles.grid}>
+      {/* ── Puja cards ── */}
+      <TouchableOpacity
+        style={[dcStyles.card, { borderTopColor: '#7A0A14' }]}
+        activeOpacity={0.82}
+        onPress={() =>
+          profile?.ishta_daiva
+            ? rootNav.navigate('Pooja', { deityName: profile.ishta_daiva })
+            : rootNav.navigate('MyIshtaDaiva')
+        }
+      >
+        <View style={[dcStyles.iconCircle, { backgroundColor: '#7A0A14' + '22' }]}>
+          <MaterialCommunityIcons name="hands-pray" size={26} color="#7A0A14" />
+        </View>
+        <Text style={dcStyles.cardTitle}>Ishta Daiva Puja</Text>
+        <Text style={dcStyles.cardSub} numberOfLines={1}>
+          {profile?.ishta_daiva || 'Tap to choose your deity'}
+        </Text>
+        <View style={[dcStyles.actionRow]}>
+          <Text style={[dcStyles.actionText, { color: '#7A0A14' }]}>
+            {profile?.ishta_daiva ? 'Begin Puja →' : 'Choose Deity →'}
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[dcStyles.card, { borderTopColor: '#C8860A' }]}
+        activeOpacity={0.82}
+        onPress={() => rootNav.navigate('Pooja', { vaara: true })}
+      >
+        <View style={[dcStyles.iconCircle, { backgroundColor: '#C8860A' + '22' }]}>
+          <MaterialCommunityIcons name="calendar-star" size={26} color="#C8860A" />
+        </View>
+        <Text style={dcStyles.cardTitle}>Vara Puja</Text>
+        <Text style={dcStyles.cardSub} numberOfLines={1}>
+          Today: {today().deity_name || '—'}
+        </Text>
+        <View style={dcStyles.actionRow}>
+          <Text style={[dcStyles.actionText, { color: '#C8860A' }]}>Begin Puja →</Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* ── Host category cards ── */}
+      {HOST_CATS.map((cat) => {
+        const mine = followedOf(cat.filterType);
+        const hasFollowed = mine.length > 0;
+        return (
+          <TouchableOpacity
+            key={cat.filterType}
+            style={[dcStyles.card, { borderTopColor: cat.accent }]}
+            activeOpacity={0.82}
+            onPress={() => rootNav.navigate('HostBrowse', { filterType: cat.filterType })}
+          >
+            <View style={[dcStyles.iconCircle, { backgroundColor: cat.accent + '22' }]}>
+              <MaterialCommunityIcons name={cat.icon} size={26} color={cat.accent} />
+            </View>
+            <Text style={dcStyles.cardTitle}>{cat.title}</Text>
+            <Text
+              style={[dcStyles.cardSub, !hasFollowed && dcStyles.cardSubMuted]}
+              numberOfLines={1}
+            >
+              {followedSummary(mine)}
+            </Text>
+            <View style={dcStyles.actionRow}>
+              <Text style={[dcStyles.actionText, { color: cat.accent }]}>
+                {hasFollowed ? 'Browse & Manage →' : 'Browse & Choose →'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+const dcStyles = StyleSheet.create({
+  grid: { gap: 12, marginTop: 4 },
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderTopWidth: 4,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  cardTitle: { fontSize: 15, fontWeight: '800', color: colors.ink, marginBottom: 4 },
+  cardSub: { fontSize: 13, color: colors.ink, marginBottom: 10 },
+  cardSubMuted: { color: colors.muted, fontStyle: 'italic' },
+  actionRow: { flexDirection: 'row' },
+  actionText: { fontSize: 12, fontWeight: '700' },
+});
 
 export default function HomeScreen({ navigation }: Props) {
   const rootNav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { profile, isAdmin, hostTypes, isHost, signOut } = useAuth();
   const { isDesktop } = useBreakpoint();
   const { today } = useWeekdayDeities();
-  const { priests, gurus, temples, followed, follow, unfollow } = useHostDirectory();
+  const { hosts, followed } = useHostDirectory();
+  const byType = (ty: string) => hosts.filter((h) => (h.host_types ?? []).includes(ty));
+  const followedOf = (ty: string) => byType(ty).filter((h) => followed.has(h.user_id));
   const [menuOpen, setMenuOpen] = useState(false);
   const fullName = profile?.name?.trim() || t('profile.devotee');
   const firstName = fullName.split(' ')[0];
@@ -245,91 +388,14 @@ export default function HomeScreen({ navigation }: Props) {
               />
             </>
           ) : (
-            /* ── Devotee home: daily rituals + follow sections ── */
-            <>
-              <SectionHeader icon="candle" title={t('home.dailyRituals')} />
-              <View style={styles.idpWrap}>
-                <View style={styles.idpItem}>
-                  <TouchableOpacity
-                    style={styles.idpBtn}
-                    activeOpacity={0.8}
-                    onPress={() =>
-                      profile?.ishta_daiva
-                        ? rootNav.navigate('GuidedPooja')
-                        : rootNav.navigate('MyIshtaDaiva')
-                    }
-                  >
-                    <Image
-                      source={require('../../assets/IsthaDaivaPooja.png')}
-                      style={styles.idpIcon}
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
-                  <Text style={styles.idpLabel} numberOfLines={2}>{t('home.ishtaDaivaPooja')}</Text>
-                  <Text style={styles.idpSub} numberOfLines={1}>
-                    {profile?.ishta_daiva || t('home.chooseIshta')}
-                  </Text>
-                </View>
-                <View style={styles.idpItem}>
-                  <TouchableOpacity
-                    style={styles.idpBtn}
-                    activeOpacity={0.8}
-                    onPress={() => rootNav.navigate('Pooja', { vaara: true })}
-                  >
-                    <Image
-                      source={require('../../assets/WeekdayPooja.png')}
-                      style={styles.idpIcon}
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
-                  <Text style={styles.idpLabel} numberOfLines={2}>{t('home.weekdayPooja')}</Text>
-                  <Text style={styles.idpSub} numberOfLines={1}>
-                    {t('home.today')}: {today().deity_name}
-                  </Text>
-                </View>
-              </View>
-            <View style={[styles.hostGrid, isDesktop && styles.hostGridDesktop]}>
-              <View style={isDesktop ? styles.hostGridCol : undefined}>
-                <HostFollowSection
-                  title={t('home.myPriests')}
-                  icon="account-tie"
-                  hosts={priests}
-                  followed={followed}
-                  onFollow={follow}
-                  onUnfollow={unfollow}
-                  prompt={t('home.followPriestPrompt')}
-                  emptyText={t('home.noPriests')}
-                  fallbackName="Priest"
-                />
-              </View>
-              <View style={isDesktop ? styles.hostGridCol : undefined}>
-                <HostFollowSection
-                  title={t('home.mySpiritualGuru')}
-                  icon="meditation"
-                  hosts={gurus}
-                  followed={followed}
-                  onFollow={follow}
-                  onUnfollow={unfollow}
-                  prompt={t('home.followGuruPrompt')}
-                  emptyText={t('home.noGurus')}
-                  fallbackName="Guru"
-                />
-              </View>
-              <View style={isDesktop ? styles.hostGridCol : undefined}>
-                <HostFollowSection
-                  title={t('home.myTemple')}
-                  icon="town-hall"
-                  hosts={temples}
-                  followed={followed}
-                  onFollow={follow}
-                  onUnfollow={unfollow}
-                  prompt={t('home.followTemplePrompt')}
-                  emptyText={t('home.noTemples')}
-                  fallbackName="Temple"
-                />
-              </View>
-            </View>
-            </>
+            /* ── Devotee home: card grid ── */
+            <DevoteeCardGrid
+              profile={profile}
+              today={today}
+              followedOf={followedOf}
+              rootNav={rootNav}
+              isDesktop={isDesktop}
+            />
           )}
         </ScrollView>
       </WebPageWrapper>

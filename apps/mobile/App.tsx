@@ -55,6 +55,7 @@ import AdminRitualItemsScreen from './src/screens/AdminRitualItemsScreen';
 import PoojaScreen from './src/screens/PoojaScreen';
 import GuidedPoojaScreen from './src/screens/GuidedPoojaScreen';
 import LiveRoomScreen from './src/screens/LiveRoomScreen';
+import HostBrowseScreen from './src/screens/HostBrowseScreen';
 
 // Crisp vector tab icons from @expo/vector-icons (bundled with Expo).
 // Footer tab icon: outline when inactive, solid when active — a cleaner, more
@@ -233,6 +234,7 @@ export default function App() {
           <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: t('tabs.profile') }} />
           <Stack.Screen name="RitualBooking" component={RitualBookingScreen} options={{ title: 'Book Ritual' }} />
           <Stack.Screen name="LiveMeeting" component={LiveMeetingScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="HostBrowse" component={HostBrowseScreen} options={{ title: 'Browse' }} />
           <Stack.Screen name="HostProfile" component={HostProfileScreen} options={{ title: '' }} />
           <Stack.Screen name="Subscribe" component={SubscribeScreen} options={{ title: 'Subscribe' }} />
           <Stack.Screen name="MyProfile" component={MyProfileScreen} options={{ title: t('profile.myProfile') }} />
