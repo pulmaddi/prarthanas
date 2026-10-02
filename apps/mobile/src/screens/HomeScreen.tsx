@@ -217,7 +217,7 @@ export default function HomeScreen({ navigation }: Props) {
                   <TouchableOpacity
                     style={styles.idpBtn}
                     activeOpacity={0.8}
-                    onPress={() => rootNav.navigate('GuidedPooja', { vaara: true })}
+                    onPress={() => rootNav.navigate('Pooja', { vaara: true })}
                   >
                     <Image
                       source={require('../../assets/WeekdayPooja.png')}
@@ -274,7 +274,7 @@ export default function HomeScreen({ navigation }: Props) {
                   <TouchableOpacity
                     style={styles.idpBtn}
                     activeOpacity={0.8}
-                    onPress={() => rootNav.navigate('GuidedPooja', { vaara: true })}
+                    onPress={() => rootNav.navigate('Pooja', { vaara: true })}
                   >
                     <Image
                       source={require('../../assets/WeekdayPooja.png')}
