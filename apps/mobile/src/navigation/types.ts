@@ -26,6 +26,10 @@ export type RootStackParamList = {
   DirectChat: { requestId: string; otherUserId: string; otherName: string };
   HostRequests: undefined;
   AdminPoojaTypes: undefined;
+  PoojaList: undefined;
+  PoojaDetail: { poojaId: string; poojaName: string };
+  PoojaBooking: { poojaId: string; poojaName: string; amountPaise: number; deityName?: string };
+  HostBookings: undefined;
 };
 
 export type MainTabParamList = {

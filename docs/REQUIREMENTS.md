@@ -158,6 +158,19 @@ The platform maintains a master catalog of pooja types that priests can offer. A
 - **FR-72** When a devotee submits a session request (FR-59), the service type is drawn from the active pooja catalog so the list stays consistent.
 - **FR-73** (Future) Devotees can browse the pooja catalog to discover what services are offered before following a priest.
 
+### 3.5e Book Pooja (devotee-initiated booking)
+A devotee can browse the pooja catalog and book a specific pooja, which is then accepted by an available priest or temple coordinator.
+
+- **FR-74** **Browse Pooja Catalog:** A devotee taps **"Book Pooja"** on their home screen to see the full list of active poojas from the catalog — name, deity, duration, base fee, and category. They can search and filter by category.
+- **FR-75** **Pooja Detail:** Tapping a pooja shows its full detail page — description, required items (what the devotee must arrange), duration, fee, occasion type, sankalpa requirement, and online availability.
+- **FR-76** **Booking Form:** Tapping **"Book Pooja"** opens a booking form with: sankalpa name, gotra, notes/special requirements, preferred date and time. A summary shows the pooja name and fee.
+- **FR-77** **Dummy Payment:** For MVP, payment is a dummy confirmation screen showing the amount. On "Confirm & Pay" the booking is created with `payment_status = paid`. Real Razorpay integration is deferred (FR-32).
+- **FR-78** **Booking Confirmation:** After payment, the devotee sees a confirmation screen with booking reference and status "Pending Priest Assignment".
+- **FR-79** **My Bookings:** The devotee can see all their past and current bookings (status: pending / accepted / completed / cancelled) from the home screen.
+- **FR-80** **Host sees new bookings:** Priests and Temple Coordinators see all unassigned pending bookings in a **"New Bookings"** section on their home screen with pooja name, devotee name, preferred date, and fee.
+- **FR-81** **Accept / Decline:** A priest or temple coordinator taps **"Accept"** to take the booking — the booking is assigned to them (`host_id` set) and status moves to `accepted`. They can also Decline with a note. A devotee cannot be double-booked for the same slot.
+- **FR-82** **Booking notification:** When a priest accepts, the devotee sees the booking status update to "Accepted by [Priest Name]". (Push notifications are a later phase.)
+
 ### 3.6 Communication & broadcasts
 - **FR-26** Hosts broadcast **group-level messages/announcements** (text + media) to all followers or a subscriber segment; delivered via push + in-app inbox.
 - **FR-27** Information sharing: hosts post updates, images, audio (bhajans), and documents to their profile feed.

@@ -140,6 +140,22 @@ function DevoteeCardGrid({
           </TouchableOpacity>
         );
       })}
+
+      {/* ── Book Pooja card ── */}
+      <TouchableOpacity
+        style={[dcStyles.card, { borderTopColor: '#C0392B' }]}
+        activeOpacity={0.82}
+        onPress={() => rootNav.navigate('PoojaList')}
+      >
+        <View style={[dcStyles.iconCircle, { backgroundColor: '#C0392B22' }]}>
+          <MaterialCommunityIcons name="fire" size={20} color="#C0392B" />
+        </View>
+        <Text style={dcStyles.cardTitle}>Book a Pooja</Text>
+        <Text style={dcStyles.cardSub} numberOfLines={1}>Priests & rituals</Text>
+        <View style={dcStyles.actionRow}>
+          <Text style={[dcStyles.actionText, { color: '#C0392B' }]}>Browse & Book →</Text>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 }

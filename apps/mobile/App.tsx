@@ -60,6 +60,10 @@ import SessionRequestScreen from './src/screens/SessionRequestScreen';
 import DirectChatScreen from './src/screens/DirectChatScreen';
 import HostRequestsScreen from './src/screens/HostRequestsScreen';
 import AdminPoojaTypesScreen from './src/screens/AdminPoojaTypesScreen';
+import PoojaListScreen from './src/screens/PoojaListScreen';
+import PoojaDetailScreen from './src/screens/PoojaDetailScreen';
+import PoojaBookingScreen from './src/screens/PoojaBookingScreen';
+import HostBookingsScreen from './src/screens/HostBookingsScreen';
 
 // Crisp vector tab icons from @expo/vector-icons (bundled with Expo).
 // Footer tab icon: outline when inactive, solid when active — a cleaner, more
@@ -256,6 +260,10 @@ export default function App() {
           <Stack.Screen name="SessionRequest" component={SessionRequestScreen} options={{ title: 'Request a Session' }} />
           <Stack.Screen name="DirectChat" component={DirectChatScreen} options={({ route }) => ({ title: (route.params as any).otherName ?? 'Chat' })} />
           <Stack.Screen name="HostRequests" component={HostRequestsScreen} options={{ title: 'Session Requests' }} />
+          <Stack.Screen name="PoojaList" component={PoojaListScreen} options={{ title: 'Book a Pooja' }} />
+          <Stack.Screen name="PoojaDetail" component={PoojaDetailScreen} options={({ route }) => ({ title: (route.params as any).poojaName ?? 'Pooja Details' })} />
+          <Stack.Screen name="PoojaBooking" component={PoojaBookingScreen} options={{ title: 'Booking Details' }} />
+          <Stack.Screen name="HostBookings" component={HostBookingsScreen} options={{ title: 'Pooja Bookings' }} />
         </Stack.Navigator>
       </NavigationContainer>
       </AuthProvider>

@@ -14,6 +14,8 @@ import { useAuth } from '../lib/auth';
 
 // Host types that support on-demand sessions
 const SESSION_HOST_TYPES = new Set(['priest', 'astrologer', 'numerologist']);
+// Host types that receive pooja booking requests
+const BOOKING_HOST_TYPES = new Set(['priest', 'temple_exec']);
 
 type AvailStatus = 'available' | 'live' | 'offline';
 
@@ -38,9 +40,11 @@ export default function HostHomeSections({
   const uid = session?.user.id;
 
   const supportsSession = (hostTypes ?? []).some((t) => SESSION_HOST_TYPES.has(t));
+  const supportsBookings = (hostTypes ?? []).some((t) => BOOKING_HOST_TYPES.has(t));
 
   const [availStatus, setAvailStatus] = useState<AvailStatus>('offline');
   const [pendingCount, setPendingCount] = useState(0);
+  const [bookingCount, setBookingCount] = useState(0);
   const [togglingStatus, setTogglingStatus] = useState(false);
 
   const loadAvailability = useCallback(async () => {
@@ -63,11 +67,22 @@ export default function HostHomeSections({
     setPendingCount(count ?? 0);
   }, [uid, supportsSession]);
 
+  const loadBookingCount = useCallback(async () => {
+    if (!uid || !supportsBookings) return;
+    const { count } = await supabase
+      .from('pooja_bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'pending')
+      .is('host_id', null);
+    setBookingCount(count ?? 0);
+  }, [uid, supportsBookings]);
+
   useFocusEffect(useCallback(() => {
     reload();
     loadAvailability();
     loadPendingCount();
-  }, [reload, loadAvailability, loadPendingCount]));
+    loadBookingCount();
+  }, [reload, loadAvailability, loadPendingCount, loadBookingCount]));
 
   const toggleStatus = async () => {
     if (!uid) return;
@@ -119,6 +134,24 @@ export default function HostHomeSections({
           {pendingCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{pendingCount}</Text>
+            </View>
+          )}
+          <MaterialCommunityIcons name="chevron-right" size={18} color={colors.muted} style={{ marginLeft: 'auto' }} />
+        </TouchableOpacity>
+      )}
+
+      {/* Pooja bookings — priest + temple coordinator */}
+      {supportsBookings && (
+        <TouchableOpacity
+          style={styles.requestsRow}
+          onPress={() => nav.navigate('HostBookings')}
+          activeOpacity={0.85}
+        >
+          <MaterialCommunityIcons name="fire" size={20} color="#C0392B" />
+          <Text style={styles.requestsLabel}>Pooja Bookings</Text>
+          {bookingCount > 0 && (
+            <View style={[styles.badge, { backgroundColor: '#C0392B' }]}>
+              <Text style={styles.badgeText}>{bookingCount}</Text>
             </View>
           )}
           <MaterialCommunityIcons name="chevron-right" size={18} color={colors.muted} style={{ marginLeft: 'auto' }} />
