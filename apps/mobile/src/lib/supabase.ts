@@ -51,7 +51,11 @@ export async function signInWithGoogle() {
       : NATIVE_AUTH_REDIRECT;
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo, skipBrowserRedirect: !isWeb },
+    options: {
+      redirectTo,
+      skipBrowserRedirect: !isWeb,
+      queryParams: { prompt: 'select_account' }, // always show Google account picker
+    },
   });
   if (error) throw error;
   if (!isWeb) {

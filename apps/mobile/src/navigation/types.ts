@@ -22,6 +22,10 @@ export type RootStackParamList = {
   HostBrowse: { filterType: string };
   HostProfile: { hostId: string };
   Subscribe: { hostId: string; hostName: string };
+  SessionRequest: { hostId: string; hostName: string; hostType: string };
+  DirectChat: { requestId: string; otherUserId: string; otherName: string };
+  HostRequests: undefined;
+  AdminPoojaTypes: undefined;
 };
 
 export type MainTabParamList = {

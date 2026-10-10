@@ -30,6 +30,16 @@ type CardConfig = {
 
 const CARDS: CardConfig[] = [
   {
+    id: 'poojas',
+    accent: '#C0392B',
+    icon: 'fire',
+    title: 'Pooja Catalog',
+    description: 'Add / edit / delete poojas, rituals, and havans offered by priests',
+    countKey: 'poojas',
+    manageLabel: 'Add / View / Edit / Delete Poojas',
+    manageScreen: 'AdminPoojaTypes',
+  },
+  {
     id: 'vaara',
     accent: '#C8860A',
     icon: 'calendar-star',
@@ -110,7 +120,7 @@ type Counts = Record<string, number | null>;
 
 async function fetchCounts(): Promise<Counts> {
   if (!isSupabaseConfigured) return {};
-  const [vaara, ritualItems, priests, gurus, temples, astrologers, numerologists] = await Promise.all([
+  const [vaara, ritualItems, priests, gurus, temples, astrologers, numerologists, poojas] = await Promise.all([
     supabase.from('weekday_deities').select('*', { count: 'exact', head: true }),
     supabase.from('ritual_items').select('*', { count: 'exact', head: true }),
     supabase.from('host_accounts').select('*', { count: 'exact', head: true }).contains('host_types', ['priest']),
@@ -118,6 +128,7 @@ async function fetchCounts(): Promise<Counts> {
     supabase.from('host_accounts').select('*', { count: 'exact', head: true }).contains('host_types', ['temple_exec']),
     supabase.from('host_accounts').select('*', { count: 'exact', head: true }).contains('host_types', ['astrologer']),
     supabase.from('host_accounts').select('*', { count: 'exact', head: true }).contains('host_types', ['numerologist']),
+    supabase.from('pooja_catalog').select('*', { count: 'exact', head: true }),
   ]);
   return {
     vaara:        vaara.count ?? 0,
@@ -127,6 +138,7 @@ async function fetchCounts(): Promise<Counts> {
     temples:      temples.count ?? 0,
     astrologers:  astrologers.count ?? 0,
     numerologists: numerologists.count ?? 0,
+    poojas:       poojas.count ?? 0,
   };
 }
 
@@ -156,7 +168,8 @@ function DashCard({
     card.id === 'priests' ? 'priest' :
     card.id === 'gurus' ? 'guru' :
     card.id === 'astrologers' ? 'astrologer' :
-    card.id === 'numerologists' ? 'numerologist' : 'temple';
+    card.id === 'numerologists' ? 'numerologist' :
+    card.id === 'poojas' ? 'pooja' : 'temple';
 
   return (
     <View style={[styles.card, wide && styles.cardWide]}>

@@ -103,6 +103,61 @@ A single devotee performs a **self-guided** pooja (Ishta Daiva or Vaara) on thei
 - **FR-55** An in-app admin **master form** manages ritual items (Admin → Ritual Items: name/image/order/source/active). Pooja steps are managed via the datastore for now (an in-app steps form is a later nicety).
 - **FR-56** After the final step the altar is complete; the devotee can **continue to worship** (the ambient worship screen — deity + aarti/offerings/audio) or return home.
 
+### 3.5c On-demand personal sessions (Priest / Astrologer / Numerologist)
+A devotee can initiate a **private, on-demand session** with a Priest, Astrologer, or Numerologist — not a pre-scheduled group event. This flow does **not** apply to Temple Coordinators or Spiritual Gurus (they run group occasions only).
+
+#### Availability & discovery
+- **FR-57** **Live / Available status:** Priests, Astrologers, and Numerologists can set their status from their host dashboard: **🔴 Live** (in a session), **🟢 Available** (ready to accept requests), or **⚫ Offline**. Devotees see this badge on host cards in the browse/follow screen so they know who can be reached right now.
+- **FR-58** **Filtered "Available now" view:** On the browse screen for priests/astrologers/numerologists, devotees can filter to show only hosts who are currently Available or Live.
+
+#### Session request flow (devotee side)
+- **FR-59** **Send a session request:** A devotee taps **"Request Session"** on any priest/astrologer/numerologist's card (whether or not they follow them). A short form collects: type of service (e.g. "Satyanarayana Pooja", "Birth chart reading"), preferred language, brief description, and the devotee's **phone number** (pre-filled from their profile; devotee explicitly consents to sharing it with the host for this request).
+- **FR-60** The request is submitted and the host receives an **in-app push notification** with the devotee's name, request type, description, and phone number.
+
+#### Host response (host side)
+- **FR-61** **Incoming requests dashboard:** Priests, Astrologers, and Numerologists see a **"Session Requests"** section in their host dashboard listing all pending requests with: devotee name, request details, phone number, and time received.
+- **FR-62** **Two response options:** The host can (a) tap **"Open Chat"** to start a 1:1 in-app chat with the devotee to discuss details further, or (b) call the devotee offline using the displayed phone number — no app action required for option (b).
+- **FR-63** **1:1 in-app chat:** A private text chat thread between the host and the requesting devotee. Either party can send messages. Chat persists so both can refer back to the conversation.
+
+#### Meeting initiation
+- **FR-64** **Host starts instant meeting:** When ready, the host taps **"Start Meeting"** from the request or chat thread. This creates a private LiveKit room (not publicly listed) and posts the meeting join link directly into the chat thread. The devotee receives a push notification.
+- **FR-65** **Devotee joins via link:** The devotee taps the link in the chat and is taken directly into the private meeting room. Access is gated — only the host and the specific requesting devotee can enter.
+- **FR-66** **Session type:** Private sessions are **interactive video + audio** (not broadcast). Both host and devotee can speak and share video. The host performs the pooja, reads the chart, or gives the consultation; the devotee participates live.
+- **FR-67** **Request lifecycle:** A request moves through states: `pending` → `accepted` (host opens chat or calls) → `meeting_started` → `completed`. The host can also `decline` a request with an optional note.
+
+#### Privacy & consent
+- **FR-68** The devotee's phone number is shared with the host **only for requests the devotee explicitly submits**. It is not shown to hosts during general browsing or following. The request form makes this consent explicit ("Your phone number will be visible to the host for this request").
+
+#### Deferred
+- **FR-69** (Future) Private sessions may be **paid** — host sets a rate per session; payment collected before the meeting link is shared. Deferred until app-store IAP policy resolved (open Q7).
+
+### 3.5d Pooja Catalog (admin-managed)
+The platform maintains a master catalog of pooja types that priests can offer. Admin manages this catalog; priests select from it when accepting session requests; devotees browse it when requesting a session.
+
+**Common poojas covered:** Satyanarayana Pooja, Ganesh Pooja, Lakshmi Pooja, Griha Pravesh, Navagraha Pooja, Vastu Pooja, Rudrabhishek, Durga Pooja, Hanuman Pooja, Saraswati Pooja, Mrityunjaya Havan, Namakaran, Annaprasanam, Upanayanam, Vivah / Wedding Rituals, Pitru Tarpan / Shraddha, Kali Pooja, Ayyappa Pooja, Rama Pooja, Sudarshana Homa, and more.
+
+**Common attributes per pooja:**
+
+| Attribute | Description |
+|---|---|
+| Name (EN / HI / TE) | Display name in three languages |
+| Category | `personal`, `festival`, `occasion`, `havan`, `regular` |
+| Deity | Primary deity for this pooja |
+| Description | What this pooja is for / its significance |
+| Duration | Estimated duration in minutes |
+| Base Fee (₹) | Priest's starting fee (0 = negotiable / free) |
+| Occasion Type | `house_warming`, `naming_ceremony`, `wedding`, `birthday`, `death_anniversary`, `none` |
+| Requires Sankalpa | Whether devotee must provide name / gotra / intention |
+| Available Online | Whether this can be performed via video call |
+| Required Items | List of items the devotee should arrange (flowers, fruits, coconut, etc.) |
+| Notes for Priest | Internal guidance for performing priests |
+| Active | Whether visible for booking |
+
+- **FR-70** Admin can **create, view, edit, and delete** pooja types in the catalog via an in-app admin screen (Admin → Pooja Catalog).
+- **FR-71** Each pooja record stores all common attributes listed above. Name supports English, Hindi, and Telugu. Fee is stored in paise (integer); UI shows ₹.
+- **FR-72** When a devotee submits a session request (FR-59), the service type is drawn from the active pooja catalog so the list stays consistent.
+- **FR-73** (Future) Devotees can browse the pooja catalog to discover what services are offered before following a priest.
+
 ### 3.6 Communication & broadcasts
 - **FR-26** Hosts broadcast **group-level messages/announcements** (text + media) to all followers or a subscriber segment; delivered via push + in-app inbox.
 - **FR-27** Information sharing: hosts post updates, images, audio (bhajans), and documents to their profile feed.

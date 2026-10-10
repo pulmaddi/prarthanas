@@ -9,6 +9,7 @@ export type PublicHost = {
   org_name: string | null;
   location: string | null;
   city: string | null;
+  availability_status: 'available' | 'live' | 'offline';
 };
 
 /**
@@ -25,7 +26,7 @@ export function useHostDirectory() {
     if (!isSupabaseConfigured) return;
     const { data, error } = await supabase
       .from('hosts_public')
-      .select('user_id,host_types,name,org_name,location,city')
+      .select('user_id,host_types,name,org_name,location,city,availability_status')
       .limit(60);
     if (!error) setHosts((data as PublicHost[]) ?? []);
     if (uid) {

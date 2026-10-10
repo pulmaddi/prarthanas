@@ -331,6 +331,15 @@ export default function HomeScreen({ navigation }: Props) {
             >
               <Text style={styles.drawerItemText}>🗂️ {t('profile.adminHostsManage')}</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.drawerItem}
+              onPress={() => {
+                setMenuOpen(false);
+                rootNav.navigate('AdminPoojaTypes');
+              }}
+            >
+              <Text style={styles.drawerItemText}>🪔 Pooja Catalog</Text>
+            </TouchableOpacity>
           </View>
           <TouchableOpacity
             style={styles.drawerBackdrop}

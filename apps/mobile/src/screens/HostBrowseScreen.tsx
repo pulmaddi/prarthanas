@@ -16,6 +16,9 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors, radius, spacing } from '../theme';
 import { useHostDirectory, type PublicHost } from '../lib/hosts';
 
+// Types that support on-demand personal sessions (FR-57)
+const SESSION_TYPES = new Set(['priest', 'astrologer', 'numerologist']);
+
 type Props = NativeStackScreenProps<RootStackParamList, 'HostBrowse'>;
 
 const TYPE_META: Record<string, { label: string; icon: keyof typeof MaterialCommunityIcons.glyphMap; accent: string }> = {
@@ -30,6 +33,7 @@ export default function HostBrowseScreen({ route }: Props) {
   const { filterType } = route.params;
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { hosts, followed, follow, unfollow, reload } = useHostDirectory();
+  const supportsSession = SESSION_TYPES.has(filterType);
 
   const meta = TYPE_META[filterType] ?? { label: filterType, icon: 'account' as any, accent: colors.maroon };
   const list = hosts.filter((h) => (h.host_types ?? []).includes(filterType));
@@ -63,30 +67,57 @@ export default function HostBrowseScreen({ route }: Props) {
       ? [h.location, h.city].filter(Boolean).join(', ')
       : h.city;
 
+    const status = h.availability_status ?? 'offline';
+    const statusDot = status === 'live' ? '🔴' : status === 'available' ? '🟢' : '⚫';
+    const statusLabel = status === 'live' ? 'Live' : status === 'available' ? 'Available' : 'Offline';
+
     return (
       <View style={styles.row}>
         <View style={[styles.avatar, { backgroundColor: meta.accent }]}>
           <Text style={styles.avatarText}>{initial}</Text>
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.name}>{displayName}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={styles.name}>{displayName}</Text>
+            {supportsSession && (
+              <Text style={[styles.statusLabel, status === 'live' && styles.statusLive, status === 'available' && styles.statusAvail]}>
+                {statusDot} {statusLabel}
+              </Text>
+            )}
+          </View>
           {!!displaySub && <Text style={styles.city}>{displaySub}</Text>}
         </View>
-        <TouchableOpacity
-          style={[styles.followBtn, isFollowed && styles.followBtnOn, busy && { opacity: 0.5 }]}
-          onPress={toggle}
-          disabled={busy}
-          activeOpacity={0.8}
-        >
-          <MaterialCommunityIcons
-            name={isFollowed ? 'check' : 'plus'}
-            size={14}
-            color={isFollowed ? colors.maroon : '#fff'}
-          />
-          <Text style={[styles.followLabel, isFollowed && styles.followLabelOn]}>
-            {busy ? '…' : isFollowed ? 'Following' : 'Follow'}
-          </Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+          {supportsSession && (status === 'available' || status === 'live') && (
+            <TouchableOpacity
+              style={styles.requestBtn}
+              onPress={() => nav.navigate('SessionRequest', {
+                hostId: h.user_id,
+                hostName: displayName,
+                hostType: filterType,
+              })}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="calendar-plus" size={13} color={meta.accent} />
+              <Text style={[styles.requestLabel, { color: meta.accent }]}>Request</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={[styles.followBtn, isFollowed && styles.followBtnOn, busy && { opacity: 0.5 }]}
+            onPress={toggle}
+            disabled={busy}
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons
+              name={isFollowed ? 'check' : 'plus'}
+              size={14}
+              color={isFollowed ? colors.maroon : '#fff'}
+            />
+            <Text style={[styles.followLabel, isFollowed && styles.followLabelOn]}>
+              {busy ? '…' : isFollowed ? 'Following' : 'Follow'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -176,4 +207,19 @@ const styles = StyleSheet.create({
   followLabel: { fontSize: 12, fontWeight: '700', color: '#fff' },
   followLabelOn: { color: colors.maroon },
   empty: { fontSize: 14, color: colors.muted, fontStyle: 'italic', textAlign: 'center', marginTop: 40 },
+  statusLabel: { fontSize: 10, fontWeight: '700', color: colors.muted },
+  statusLive: { color: '#C0392B' },
+  statusAvail: { color: '#1B6B4A' },
+  requestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.pill,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    backgroundColor: colors.cream,
+  },
+  requestLabel: { fontSize: 11, fontWeight: '700' },
 });
