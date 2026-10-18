@@ -71,6 +71,8 @@ Access is **role-based (RBAC)**. A single user may hold multiple roles (e.g. a d
 - **FR-19** Optional session **recording**; host chooses whether to publish a replay (subject to access rules).
 - **FR-20** Attendance is gated by access rules (free / subscriber / paid ticket) and verified at join.
 
+> **Infrastructure status (2026-10-18):** LiveKit Cloud is the chosen WebRTC provider. Credentials (API key, secret, WSS URL) are configured in Supabase Edge Function secrets. The `livekit-token` Edge Function mints short-lived access tokens after verifying the caller's identity. **Current platform coverage:** Live rooms work on the **web build** (Render deployment) using the `livekit-client` browser SDK. Live video on **native Android/iOS** requires a custom Expo dev build with `@livekit/react-native` — deferred to a later phase. For MVP, the web build is the primary demo/testing surface.
+
 ### 3.5 Virtual rituals
 - **FR-21** A ritual is a structured occasion with steps/stages (e.g. sankalpa → invocation → offerings → aarti → prasad/blessing).
 - **FR-22** Participants submit **sankalpa** details (name, gotra, location, intention) when booking a ritual.
