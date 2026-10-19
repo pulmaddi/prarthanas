@@ -101,6 +101,12 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
         room.on(RoomEvent.LocalTrackPublished, refresh);
         room.on(RoomEvent.LocalTrackUnpublished, refresh);
         room.on(RoomEvent.ActiveSpeakersChanged, refresh);
+        // After switchActiveDevice the underlying MediaStreamTrack is swapped.
+        // Refresh after a short delay so the new track's mediaStreamTrack.id
+        // is already updated — VideoTile watches that id and re-attaches.
+        room.on(RoomEvent.ActiveDeviceChanged, (_kind: string) => {
+          setTimeout(refresh, 300);
+        });
 
         await room.connect(access.livekitUrl, access.token);
         if (cancelled) { room.disconnect(); return; }
@@ -174,9 +180,12 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
         const currentDeviceId = (camPub?.track as any)?.mediaStreamTrack?.getSettings?.()?.deviceId ?? '';
         const currentIdx = videoDevices.findIndex((d) => d.deviceId === currentDeviceId);
         const nextIdx = (currentIdx + 1) % videoDevices.length;
+        // ActiveDeviceChanged event fires after switch and triggers a delayed refresh.
+        // Don't manually refresh here — the new MediaStreamTrack isn't ready yet.
         await room.switchActiveDevice('videoinput', videoDevices[nextIdx].deviceId);
       } else {
-        // Single camera device (mobile) — try facingMode toggle
+        // Single camera (most desktops) — facingMode toggle re-publishes the track,
+        // which fires LocalTrackPublished → refresh.
         const next: 'user' | 'environment' = facingMode === 'user' ? 'environment' : 'user';
         await room.localParticipant.setCameraEnabled(true, {
           facingMode: next,
@@ -185,13 +194,6 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
       }
 
       setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
-
-      // Refresh participant list so the new video track is picked up
-      const local = toRoomParticipant(room.localParticipant, true);
-      const remotes = Array.from(room.remoteParticipants.values()).map((p) =>
-        toRoomParticipant(p, false)
-      );
-      setParticipants([local, ...remotes]);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.warn('[flipCamera] failed:', e);

@@ -15,12 +15,18 @@ type Props = {
 export default function VideoTile({ track, isLocal, name, audioMuted, style }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Re-attach whenever the track object OR its underlying MediaStreamTrack changes.
+  // switchActiveDevice() keeps the same LocalVideoTrack object but swaps the
+  // MediaStreamTrack inside it — watching msTrackId catches that case.
+  const msTrackId = (track as any)?.mediaStreamTrack?.id;
+
   useEffect(() => {
     const el = videoRef.current;
     if (!el || !track) return;
     track.attach(el);
     return () => { track.detach(el); };
-  }, [track]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [track, msTrackId]);
 
   const initial = (name.trim()[0] || '?').toUpperCase();
 
