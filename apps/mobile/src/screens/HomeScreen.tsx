@@ -25,6 +25,7 @@ import HostHomeSections from '../components/HostHomeSections';
 import SectionHeader from '../components/SectionHeader';
 import AdminDashboard from '../components/AdminDashboard';
 import WebPageWrapper from '../components/WebPageWrapper';
+import DevoteeFeed from '../components/DevoteeFeed';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
@@ -428,14 +429,17 @@ export default function HomeScreen({ navigation }: Props) {
               />
             </>
           ) : (
-            /* ── Devotee home: card grid ── */
-            <DevoteeCardGrid
-              profile={profile}
-              today={today}
-              followedOf={followedOf}
-              rootNav={rootNav}
-              isDesktop={isDesktop}
-            />
+            /* ── Devotee home: live feed + card grid ── */
+            <>
+              <DevoteeFeed />
+              <DevoteeCardGrid
+                profile={profile}
+                today={today}
+                followedOf={followedOf}
+                rootNav={rootNav}
+                isDesktop={isDesktop}
+              />
+            </>
           )}
         </ScrollView>
       </WebPageWrapper>
