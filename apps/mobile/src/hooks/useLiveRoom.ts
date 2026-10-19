@@ -26,6 +26,7 @@ export type UseLiveRoomResult = {
   participants: RoomParticipant[];
   isMicOn: boolean;
   isCamOn: boolean;
+  canFlip: boolean;
   facingMode: 'user' | 'environment';
   flipMessage: string | null;
   toggleMic: () => Promise<void>;
@@ -44,6 +45,7 @@ export function useLiveRoom(_meetingId: string): UseLiveRoomResult {
     participants: [],
     isMicOn: false,
     isCamOn: false,
+    canFlip: false,
     facingMode: 'user',
     flipMessage: null,
     toggleMic: async () => {},

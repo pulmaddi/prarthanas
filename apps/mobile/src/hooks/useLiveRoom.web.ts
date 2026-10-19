@@ -28,6 +28,7 @@ export type UseLiveRoomResult = {
   participants: RoomParticipant[];
   isMicOn: boolean;
   isCamOn: boolean;
+  canFlip: boolean;
   facingMode: 'user' | 'environment';
   flipMessage: string | null;
   toggleMic: () => Promise<void>;
@@ -61,6 +62,7 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCamOn, setIsCamOn] = useState(true);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const [canFlip, setCanFlip] = useState(false);
   const [flipMessage, setFlipMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(true);
@@ -127,6 +129,16 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
           }
         }
 
+        // Determine whether a second camera is available for flipping.
+        // Only set canFlip after camera init so device labels are populated.
+        try {
+          const allDevices = await navigator.mediaDevices.enumerateDevices();
+          const videoDevices = allDevices.filter((d) => d.kind === 'videoinput');
+          if (!cancelled) setCanFlip(videoDevices.length > 1);
+        } catch {
+          // Ignore — canFlip stays false
+        }
+
         if (!cancelled) refresh();
       } catch (e: unknown) {
         if (!cancelled) {
@@ -173,33 +185,44 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
   const flipCamera = useCallback(async () => {
     const room = roomRef.current;
     if (!room) return;
+
+    const devices = await navigator.mediaDevices.enumerateDevices().catch(() => [] as MediaDeviceInfo[]);
+    const videoDevices = devices.filter((d) => d.kind === 'videoinput');
+
+    if (videoDevices.length <= 1) {
+      setFlipMessage('Flip camera is only available on a phone or tablet with front and rear cameras.');
+      return;
+    }
+
+    const camPub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+    const currentDeviceId = (camPub?.track as any)?.mediaStreamTrack?.getSettings?.()?.deviceId ?? '';
+    const currentIdx = videoDevices.findIndex((d) => d.deviceId === currentDeviceId);
+    const nextIdx = (currentIdx + 1) % videoDevices.length;
+    const nextDeviceId = videoDevices[nextIdx].deviceId;
+
     try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter((d) => d.kind === 'videoinput');
-
-      if (videoDevices.length <= 1) {
-        // Single physical camera — flip is a no-op on desktop.
-        setFlipMessage('Flip camera is only available on a phone or tablet with front and rear cameras.');
-        return;
-      }
-
-      // Get current active device ID
-      const camPub = room.localParticipant.getTrackPublication(Track.Source.Camera);
-      const currentDeviceId = (camPub?.track as any)?.mediaStreamTrack?.getSettings?.()?.deviceId ?? '';
-      const currentIdx = videoDevices.findIndex((d) => d.deviceId === currentDeviceId);
-      const nextIdx = (currentIdx + 1) % videoDevices.length;
-
-      // ActiveDeviceChanged event fires after switch and triggers a delayed refresh.
-      await room.switchActiveDevice('videoinput', videoDevices[nextIdx].deviceId);
+      // ActiveDeviceChanged event fires after a successful switch and triggers refresh.
+      await room.switchActiveDevice('videoinput', nextDeviceId);
       setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
-    } catch (e: unknown) {
-      const name = (e as { name?: string })?.name ?? '';
-      if (name === 'NotReadableError' || name === 'OverconstrainedError') {
-        setFlipMessage('Could not switch camera. For front/rear flip, use the Prarthanas app on a phone or tablet.');
-      } else {
-        // eslint-disable-next-line no-console
-        console.warn('[flipCamera] failed:', e);
+    } catch {
+      // Switch failed (ghost device or unreadable source) — restore original camera
+      // so the video feed is not left blank.
+      try {
+        if (currentDeviceId) {
+          await room.switchActiveDevice('videoinput', currentDeviceId);
+        } else {
+          await room.localParticipant.setCameraEnabled(true);
+        }
+      } catch {
+        // Recovery also failed — last resort: re-publish camera from scratch
+        room.localParticipant.setCameraEnabled(false).catch(() => {});
+        setTimeout(() => {
+          room.localParticipant.setCameraEnabled(true).catch(() => {});
+        }, 500);
       }
+      // Update canFlip: mark as false so button becomes disabled
+      setCanFlip(false);
+      setFlipMessage('No additional camera found. Connect a second webcam, or use a phone for front/rear flip.');
     }
   }, []);
 
@@ -213,6 +236,7 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
     participants,
     isMicOn,
     isCamOn,
+    canFlip,
     facingMode,
     flipMessage,
     toggleMic,

@@ -53,6 +53,7 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
     participants: lkParticipants,
     isMicOn,
     isCamOn,
+    canFlip,
     facingMode,
     flipMessage,
     toggleMic,
@@ -177,14 +178,21 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
           />
         </TouchableOpacity>
 
-        {/* Flip camera: front ↔ rear */}
+        {/* Flip camera: front ↔ rear — disabled on desktop when only one camera */}
         <TouchableOpacity
-          style={styles.controlBtn}
-          onPress={flipCamera}
+          style={[styles.controlBtn, !canFlip && styles.controlBtnDisabled]}
+          onPress={canFlip ? flipCamera : undefined}
           hitSlop={6}
-          accessibilityLabel={facingMode === 'user' ? 'Switch to rear camera' : 'Switch to front camera'}
+          disabled={!canFlip}
+          accessibilityLabel={canFlip
+            ? (facingMode === 'user' ? 'Switch to rear camera' : 'Switch to front camera')
+            : 'Camera flip not available on this device'}
         >
-          <MaterialCommunityIcons name="camera-flip-outline" size={18} color={colors.white} />
+          <MaterialCommunityIcons
+            name="camera-flip-outline"
+            size={18}
+            color={canFlip ? colors.white : 'rgba(255,255,255,0.35)'}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleLeave} style={styles.leaveBtn} hitSlop={8}>
@@ -343,6 +351,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   controlBtnOff: { backgroundColor: '#C0392B' },
+  controlBtnDisabled: { backgroundColor: 'rgba(255,255,255,0.07)', opacity: 0.45 },
   leaveBtn: {
     width: 34, height: 34, borderRadius: 17,
     backgroundColor: '#C0392B',
