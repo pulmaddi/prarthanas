@@ -53,8 +53,10 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
     participants: lkParticipants,
     isMicOn,
     isCamOn,
+    facingMode,
     toggleMic,
     toggleCam,
+    flipCamera,
     disconnect,
     error: lkError,
     connecting,
@@ -101,10 +103,13 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
   const otherPresence = presenceParticipants.filter((p) => p.user_id !== hostId);
   const count = otherPresence.length + (organizerEntry ? 1 : 0);
 
-  // Pin host video; rest of participants below
-  const hostLk = lkParticipants.find((p) => !p.isLocal) ?? null;
-  const localLk = lkParticipants.find((p) => p.isLocal) ?? null;
-  const otherLk = lkParticipants.filter((p) => p !== hostLk);
+  // Primary video: prefer remote host; fall back to local (organizer alone in room)
+  const remoteLk = lkParticipants.find((p) => !p.isLocal) ?? null;
+  const localLk  = lkParticipants.find((p) => p.isLocal)  ?? null;
+  // Show local as primary when no remote is present yet
+  const primaryLk = remoteLk ?? localLk;
+  const isLocalPrimary = primaryLk?.isLocal ?? false;
+  const otherLk = lkParticipants.filter((p) => p !== primaryLk);
 
   const ParticipantsPanel = (
     <View style={styles.panel}>
@@ -170,6 +175,16 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
           />
         </TouchableOpacity>
 
+        {/* Flip camera: front ↔ rear */}
+        <TouchableOpacity
+          style={styles.controlBtn}
+          onPress={flipCamera}
+          hitSlop={6}
+          accessibilityLabel={facingMode === 'user' ? 'Switch to rear camera' : 'Switch to front camera'}
+        >
+          <MaterialCommunityIcons name="camera-flip-outline" size={18} color={colors.white} />
+        </TouchableOpacity>
+
         <TouchableOpacity onPress={handleLeave} style={styles.leaveBtn} hitSlop={8}>
           <MaterialCommunityIcons name="phone-hangup" size={20} color={colors.white} />
         </TouchableOpacity>
@@ -196,42 +211,51 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
 
         {/* Video area */}
         <View style={styles.videoArea}>
-          {/* Primary (host/remote) video — large */}
-          {hostLk ? (
-            <View style={styles.primaryVideo}>
-              <VideoTile
-                track={hostLk.videoTrack as any}
-                isLocal={hostLk.isLocal}
-                name={hostLk.name}
-                audioMuted={hostLk.audioMuted}
-                style={StyleSheet.absoluteFillObject}
-              />
-              {/* Name label */}
-              <View style={styles.primaryLabel}>
-                {hostLk.audioMuted && (
-                  <MaterialCommunityIcons name="microphone-off" size={13} color="rgba(255,255,255,0.8)" />
-                )}
-                <Text style={styles.primaryLabelText}>{hostLk.name}</Text>
-                {organizerEntry?.user_id === session?.user.id ? null : (
-                  <View style={styles.orgTagSmall}>
-                    <Text style={styles.orgTagSmallText}>Organizer</Text>
+          {/* Primary video — remote host, or local when alone */}
+          <View style={styles.primaryVideo}>
+            {primaryLk ? (
+              <>
+                <VideoTile
+                  track={primaryLk.videoTrack as any}
+                  isLocal={primaryLk.isLocal}
+                  name={primaryLk.name}
+                  audioMuted={primaryLk.audioMuted}
+                  style={StyleSheet.absoluteFillObject}
+                />
+                <View style={styles.primaryLabel}>
+                  {primaryLk.audioMuted && (
+                    <MaterialCommunityIcons name="microphone-off" size={13} color="rgba(255,255,255,0.8)" />
+                  )}
+                  <Text style={styles.primaryLabelText}>
+                    {isLocalPrimary ? 'You (Organizer)' : primaryLk.name}
+                  </Text>
+                  {isLocalPrimary && (
+                    <View style={styles.orgTagSmall}>
+                      <Text style={styles.orgTagSmallText}>
+                        {facingMode === 'environment' ? '📷 Rear' : '🤳 Front'}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                {/* Hint for organizer when alone */}
+                {isLocalPrimary && (
+                  <View style={styles.soloHint}>
+                    <Text style={styles.soloHintText}>Waiting for participants to join…</Text>
                   </View>
                 )}
-              </View>
-            </View>
-          ) : (
-            <View style={styles.primaryVideo}>
+              </>
+            ) : (
               <View style={styles.waitingBox}>
                 <MaterialCommunityIcons name="video-off-outline" size={40} color="rgba(255,255,255,0.3)" />
                 <Text style={styles.waitingText}>
-                  {connecting ? 'Connecting…' : isOrganizer ? 'You are the organizer — waiting for devotees to join' : 'Waiting for the organizer to start'}
+                  {connecting ? 'Connecting…' : 'Waiting for the organizer to start'}
                 </Text>
               </View>
-            </View>
-          )}
+            )}
+          </View>
 
-          {/* Local self-view (small) — shown when remote host is visible */}
-          {localLk && hostLk && localLk !== hostLk && (
+          {/* Self-view PiP — only when remote is the primary */}
+          {localLk && remoteLk && (
             <View style={styles.selfView}>
               <VideoTile
                 track={localLk.videoTrack as any}
@@ -349,6 +373,16 @@ const styles = StyleSheet.create({
   waitingText: {
     color: 'rgba(255,255,255,0.4)', fontSize: 14, textAlign: 'center', lineHeight: 21,
   },
+  soloHint: {
+    position: 'absolute',
+    top: 12,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  soloHintText: { color: 'rgba(255,255,255,0.65)', fontSize: 12 },
   primaryLabel: {
     position: 'absolute',
     bottom: 10,

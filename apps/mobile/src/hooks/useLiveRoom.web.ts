@@ -9,6 +9,7 @@ import {
   type LocalVideoTrack,
   type RemoteVideoTrack,
   type Participant,
+  VideoPresets,
 } from 'livekit-client';
 import { getLivekitToken, type RoomAccess } from '../lib/livekitToken';
 
@@ -27,8 +28,10 @@ export type UseLiveRoomResult = {
   participants: RoomParticipant[];
   isMicOn: boolean;
   isCamOn: boolean;
+  facingMode: 'user' | 'environment';
   toggleMic: () => Promise<void>;
   toggleCam: () => Promise<void>;
+  flipCamera: () => Promise<void>;
   disconnect: () => void;
   error: string | null;
   connecting: boolean;
@@ -55,6 +58,7 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
   const [participants, setParticipants] = useState<RoomParticipant[]>([]);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCamOn, setIsCamOn] = useState(true);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(true);
   const [roomAccess, setRoomAccess] = useState<RoomAccess | null>(null);
@@ -102,13 +106,15 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
         if (cancelled) { room.disconnect(); return; }
 
         try {
-          await room.localParticipant.enableCameraAndMicrophone();
+          await room.localParticipant.enableCameraAndMicrophone({
+            video: { facingMode: 'user', resolution: VideoPresets.h720.resolution },
+          });
         } catch {
-          // User may have denied camera permission; try audio-only.
+          // Camera denied — try audio-only.
           try {
             await room.localParticipant.setMicrophoneEnabled(true);
           } catch {
-            // Both denied — continue without publish capability.
+            // Both denied — continue without media.
           }
         }
 
@@ -153,6 +159,29 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
     );
   }, [isCamOn]);
 
+  const flipCamera = useCallback(async () => {
+    const room = roomRef.current;
+    if (!room) return;
+    const next: 'user' | 'environment' = facingMode === 'user' ? 'environment' : 'user';
+    try {
+      await room.localParticipant.setCameraEnabled(true, {
+        facingMode: next,
+        resolution: VideoPresets.h720.resolution,
+      });
+      setFacingMode(next);
+      const refresh = () => {
+        const local = toRoomParticipant(room.localParticipant, true);
+        const remotes = Array.from(room.remoteParticipants.values()).map((p) =>
+          toRoomParticipant(p, false)
+        );
+        setParticipants([local, ...remotes]);
+      };
+      refresh();
+    } catch (e) {
+      // Device may not support this facing mode — ignore silently
+    }
+  }, [facingMode]);
+
   const disconnect = useCallback(() => {
     roomRef.current?.disconnect();
     roomRef.current = null;
@@ -163,8 +192,10 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
     participants,
     isMicOn,
     isCamOn,
+    facingMode,
     toggleMic,
     toggleCam,
+    flipCamera,
     disconnect,
     error,
     connecting,
