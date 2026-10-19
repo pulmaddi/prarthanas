@@ -162,23 +162,39 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
   const flipCamera = useCallback(async () => {
     const room = roomRef.current;
     if (!room) return;
-    const next: 'user' | 'environment' = facingMode === 'user' ? 'environment' : 'user';
     try {
-      await room.localParticipant.setCameraEnabled(true, {
-        facingMode: next,
-        resolution: VideoPresets.h720.resolution,
-      });
-      setFacingMode(next);
-      const refresh = () => {
-        const local = toRoomParticipant(room.localParticipant, true);
-        const remotes = Array.from(room.remoteParticipants.values()).map((p) =>
-          toRoomParticipant(p, false)
-        );
-        setParticipants([local, ...remotes]);
-      };
-      refresh();
+      // Enumerate all video input devices and cycle to the next one.
+      // This works on desktop (multiple cameras) and mobile (front/rear).
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter((d) => d.kind === 'videoinput');
+
+      if (videoDevices.length > 1) {
+        // Get current active device ID from the published track
+        const camPub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+        const currentDeviceId = (camPub?.track as any)?.mediaStreamTrack?.getSettings?.()?.deviceId ?? '';
+        const currentIdx = videoDevices.findIndex((d) => d.deviceId === currentDeviceId);
+        const nextIdx = (currentIdx + 1) % videoDevices.length;
+        await room.switchActiveDevice('videoinput', videoDevices[nextIdx].deviceId);
+      } else {
+        // Single camera device (mobile) — try facingMode toggle
+        const next: 'user' | 'environment' = facingMode === 'user' ? 'environment' : 'user';
+        await room.localParticipant.setCameraEnabled(true, {
+          facingMode: next,
+          resolution: VideoPresets.h720.resolution,
+        });
+      }
+
+      setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
+
+      // Refresh participant list so the new video track is picked up
+      const local = toRoomParticipant(room.localParticipant, true);
+      const remotes = Array.from(room.remoteParticipants.values()).map((p) =>
+        toRoomParticipant(p, false)
+      );
+      setParticipants([local, ...remotes]);
     } catch (e) {
-      // Device may not support this facing mode — ignore silently
+      // eslint-disable-next-line no-console
+      console.warn('[flipCamera] failed:', e);
     }
   }, [facingMode]);
 
