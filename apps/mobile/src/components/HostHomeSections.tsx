@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -35,7 +35,20 @@ export default function HostHomeSections({
   onOpenRoom: (m: Meeting) => void;
 }) {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { meetings, notifications, reload } = useHostContent();
+  const { meetings, notifications, deleteMeeting, reload } = useHostContent();
+
+  const confirmDelete = (id: string, title: string) => {
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.confirm(`Remove "${title}"?`)) {
+        deleteMeeting(id);
+      }
+    } else {
+      Alert.alert('Remove Meeting', `Remove "${title}"?`, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Remove', style: 'destructive', onPress: () => deleteMeeting(id) },
+      ]);
+    }
+  };
   const { session, hostTypes } = useAuth();
   const uid = session?.user.id;
 
@@ -162,32 +175,42 @@ export default function HostHomeSections({
       {meetings.length === 0 ? (
         <Muted style={{ marginTop: 2 }}>{t('host.noMeetingsHome')}</Muted>
       ) : (
-        meetings.slice(0, 4).map((m) => {
+        meetings.map((m) => {
           const instant = !m.start_date && !m.start_time;
           return (
-            <TouchableOpacity key={m.id} activeOpacity={0.85} onPress={() => onOpenRoom(m)}>
-              <Card style={instant ? styles.instantCard : undefined}>
-                <View style={styles.row}>
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.titleRow}>
-                      <Title>{m.title}</Title>
-                      {instant && (
-                        <View style={styles.instantBadge}>
-                          <MaterialCommunityIcons name="lightning-bolt" size={10} color={colors.white} />
-                          <Text style={styles.instantBadgeText}>Always Open</Text>
-                        </View>
-                      )}
-                    </View>
-                    {!!m.when_text && <Muted>🕒 {m.when_text}</Muted>}
-                    {instant && <Muted>Followers can join anytime</Muted>}
+            <Card key={m.id} style={instant ? styles.instantCard : undefined}>
+              <View style={styles.row}>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.titleRow}>
+                    <Title>{m.title}</Title>
+                    {instant && (
+                      <View style={styles.instantBadge}>
+                        <MaterialCommunityIcons name="lightning-bolt" size={10} color={colors.white} />
+                        <Text style={styles.instantBadgeText}>Always Open</Text>
+                      </View>
+                    )}
                   </View>
-                  <View style={styles.open}>
-                    <MaterialCommunityIcons name="video" size={16} color={colors.green} />
-                    <Text style={styles.openText}>{t('room.open')}</Text>
-                  </View>
+                  {!!m.when_text && <Muted>🕒 {m.when_text}</Muted>}
+                  {instant && <Muted>Followers can join anytime</Muted>}
                 </View>
-              </Card>
-            </TouchableOpacity>
+                {/* Delete / close meeting */}
+                <TouchableOpacity
+                  onPress={() => confirmDelete(m.id, m.title)}
+                  hitSlop={10}
+                  style={styles.deleteBtn}
+                  accessibilityLabel="Remove meeting"
+                >
+                  <MaterialCommunityIcons name="close-circle-outline" size={20} color={colors.muted} />
+                </TouchableOpacity>
+              </View>
+              {/* Enter room + open actions in a row */}
+              <View style={styles.actionRow}>
+                <TouchableOpacity style={styles.enterBtn} activeOpacity={0.85} onPress={() => onOpenRoom(m)}>
+                  <MaterialCommunityIcons name="video" size={14} color={colors.white} />
+                  <Text style={styles.enterText}>{t('room.enterRoom')}</Text>
+                </TouchableOpacity>
+              </View>
+            </Card>
           );
         })
       )}
@@ -220,8 +243,6 @@ export default function HostHomeSections({
 const styles = StyleSheet.create({
   body: { fontSize: 13, color: colors.ink, marginTop: 4 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  open: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  openText: { color: colors.green, fontWeight: '700', fontSize: 12 },
   availCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -270,4 +291,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#E67E22', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2,
   },
   instantBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
+  deleteBtn: { padding: 4 },
+  actionRow: { flexDirection: 'row', marginTop: 10 },
+  enterBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: colors.green, borderRadius: radius.sm, paddingVertical: 8,
+  },
+  enterText: { color: colors.white, fontWeight: '700', fontSize: 13 },
 });
