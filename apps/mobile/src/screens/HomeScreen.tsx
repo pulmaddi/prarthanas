@@ -68,7 +68,14 @@ function DevoteeCardGrid({
   followedOf: (ty: string) => PublicHost[];
   rootNav: NativeStackNavigationProp<RootStackParamList>;
   isDesktop: boolean;
-}) {
+})
+
+// Count followed hosts of a given type who are online (live or available)
+function onlineCount(followed: PublicHost[]): number {
+  return followed.filter(
+    (h) => h.availability_status === 'live' || h.availability_status === 'available',
+  ).length;
+} {
   return (
     <View style={dcStyles.grid}>
       {/* ── Puja cards ── */}
@@ -116,6 +123,7 @@ function DevoteeCardGrid({
       {HOST_CATS.map((cat) => {
         const mine = followedOf(cat.filterType);
         const hasFollowed = mine.length > 0;
+        const online = onlineCount(mine);
         return (
           <TouchableOpacity
             key={cat.filterType}
@@ -123,8 +131,16 @@ function DevoteeCardGrid({
             activeOpacity={0.82}
             onPress={() => rootNav.navigate('HostBrowse', { filterType: cat.filterType })}
           >
-            <View style={[dcStyles.iconCircle, { backgroundColor: cat.accent + '22' }]}>
-              <MaterialCommunityIcons name={cat.icon} size={20} color={cat.accent} />
+            <View style={dcStyles.cardIconRow}>
+              <View style={[dcStyles.iconCircle, { backgroundColor: cat.accent + '22' }]}>
+                <MaterialCommunityIcons name={cat.icon} size={20} color={cat.accent} />
+              </View>
+              {online > 0 && (
+                <View style={dcStyles.onlinePill}>
+                  <View style={dcStyles.onlineDot} />
+                  <Text style={dcStyles.onlineText}>{online} online</Text>
+                </View>
+              )}
             </View>
             <Text style={dcStyles.cardTitle}>{cat.title}</Text>
             <Text
@@ -185,14 +201,30 @@ const dcStyles = StyleSheet.create({
     flexGrow: 1,
     maxWidth: '32.5%' as any,
   },
+  cardIconRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
   iconCircle: {
     width: 38,
     height: 38,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
   },
+  onlinePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#E8F5E9',
+    borderRadius: 999,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+  },
+  onlineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#1B6B4A' },
+  onlineText: { fontSize: 9, fontWeight: '800', color: '#1B6B4A' },
   cardTitle: { fontSize: 12, fontWeight: '800', color: colors.ink, marginBottom: 3 },
   cardSub: { fontSize: 11, color: colors.ink, marginBottom: 8 },
   cardSubMuted: { color: colors.muted, fontStyle: 'italic' },

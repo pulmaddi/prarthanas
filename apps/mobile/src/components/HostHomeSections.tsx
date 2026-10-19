@@ -12,8 +12,8 @@ import { useHostContent, type Meeting } from '../lib/hostContent';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 
-// Host types that support on-demand sessions
-const SESSION_HOST_TYPES = new Set(['priest', 'astrologer', 'numerologist']);
+// Host types that can toggle availability and receive session requests
+const SESSION_HOST_TYPES = new Set(['priest', 'guru', 'astrologer', 'numerologist']);
 // Host types that receive pooja booking requests
 const BOOKING_HOST_TYPES = new Set(['priest', 'temple_exec']);
 

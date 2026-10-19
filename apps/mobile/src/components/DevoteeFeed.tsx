@@ -281,7 +281,12 @@ export default function DevoteeFeed() {
                     <Text style={styles.joinBtnText}>Join</Text>
                   </TouchableOpacity>
                 ) : (
-                  <Text style={styles.noMeetingText}>No active room</Text>
+                  <TouchableOpacity
+                style={styles.viewProfileBtn}
+                onPress={() => nav.navigate('HostProfile', { hostId: h.user_id })}
+              >
+                <Text style={styles.viewProfileText}>View</Text>
+              </TouchableOpacity>
                 )}
               </View>
             ))}
@@ -369,7 +374,15 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   joinBtnText: { color: colors.white, fontSize: 11, fontWeight: '700' },
-  noMeetingText: { fontSize: 10, color: colors.muted, textAlign: 'center', fontStyle: 'italic' },
+  viewProfileBtn: {
+    backgroundColor: colors.cream,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.line,
+    paddingHorizontal: 10, paddingVertical: 5,
+    marginTop: 2,
+  },
+  viewProfileText: { color: colors.maroon, fontSize: 11, fontWeight: '700' },
 
   // Instant rooms
   instantCard: {

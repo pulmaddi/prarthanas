@@ -77,12 +77,19 @@ export default function HostBrowseScreen({ route }: Props) {
           <Text style={styles.avatarText}>{initial}</Text>
         </View>
         <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <Text style={styles.name}>{displayName}</Text>
-            {supportsSession && (
-              <Text style={[styles.statusLabel, status === 'live' && styles.statusLive, status === 'available' && styles.statusAvail]}>
-                {statusDot} {statusLabel}
-              </Text>
+            {/* Show availability for all host types */}
+            {status !== 'offline' && (
+              <View style={[
+                styles.statusPill,
+                status === 'live' ? styles.statusPillLive : styles.statusPillAvail,
+              ]}>
+                <View style={[styles.statusDot, status === 'live' ? styles.dotLive : styles.dotAvail]} />
+                <Text style={[styles.statusLabel, status === 'live' ? styles.statusLive : styles.statusAvail]}>
+                  {statusLabel}
+                </Text>
+              </View>
             )}
           </View>
           {!!displaySub && <Text style={styles.city}>{displaySub}</Text>}
@@ -207,8 +214,17 @@ const styles = StyleSheet.create({
   followLabel: { fontSize: 12, fontWeight: '700', color: '#fff' },
   followLabelOn: { color: colors.maroon },
   empty: { fontSize: 14, color: colors.muted, fontStyle: 'italic', textAlign: 'center', marginTop: 40 },
-  statusLabel: { fontSize: 10, fontWeight: '700', color: colors.muted },
-  statusLive: { color: '#C0392B' },
+  statusPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3,
+  },
+  statusPillLive:  { backgroundColor: '#FDE8E8' },
+  statusPillAvail: { backgroundColor: '#E8F5E9' },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  dotLive:  { backgroundColor: '#C0392B' },
+  dotAvail: { backgroundColor: '#1B6B4A' },
+  statusLabel: { fontSize: 10, fontWeight: '800' },
+  statusLive:  { color: '#C0392B' },
   statusAvail: { color: '#1B6B4A' },
   requestBtn: {
     flexDirection: 'row',
