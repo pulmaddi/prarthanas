@@ -29,9 +29,11 @@ export type UseLiveRoomResult = {
   isMicOn: boolean;
   isCamOn: boolean;
   facingMode: 'user' | 'environment';
+  flipMessage: string | null;
   toggleMic: () => Promise<void>;
   toggleCam: () => Promise<void>;
   flipCamera: () => Promise<void>;
+  dismissFlipMessage: () => void;
   disconnect: () => void;
   error: string | null;
   connecting: boolean;
@@ -59,6 +61,7 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCamOn, setIsCamOn] = useState(true);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const [flipMessage, setFlipMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(true);
   const [roomAccess, setRoomAccess] = useState<RoomAccess | null>(null);
@@ -165,40 +168,40 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
     );
   }, [isCamOn]);
 
+  const dismissFlipMessage = useCallback(() => setFlipMessage(null), []);
+
   const flipCamera = useCallback(async () => {
     const room = roomRef.current;
     if (!room) return;
     try {
-      // Enumerate all video input devices and cycle to the next one.
-      // This works on desktop (multiple cameras) and mobile (front/rear).
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter((d) => d.kind === 'videoinput');
 
-      if (videoDevices.length > 1) {
-        // Get current active device ID from the published track
-        const camPub = room.localParticipant.getTrackPublication(Track.Source.Camera);
-        const currentDeviceId = (camPub?.track as any)?.mediaStreamTrack?.getSettings?.()?.deviceId ?? '';
-        const currentIdx = videoDevices.findIndex((d) => d.deviceId === currentDeviceId);
-        const nextIdx = (currentIdx + 1) % videoDevices.length;
-        // ActiveDeviceChanged event fires after switch and triggers a delayed refresh.
-        // Don't manually refresh here — the new MediaStreamTrack isn't ready yet.
-        await room.switchActiveDevice('videoinput', videoDevices[nextIdx].deviceId);
-      } else {
-        // Single camera (most desktops) — facingMode toggle re-publishes the track,
-        // which fires LocalTrackPublished → refresh.
-        const next: 'user' | 'environment' = facingMode === 'user' ? 'environment' : 'user';
-        await room.localParticipant.setCameraEnabled(true, {
-          facingMode: next,
-          resolution: VideoPresets.h720.resolution,
-        });
+      if (videoDevices.length <= 1) {
+        // Single physical camera — flip is a no-op on desktop.
+        setFlipMessage('Flip camera is only available on a phone or tablet with front and rear cameras.');
+        return;
       }
 
+      // Get current active device ID
+      const camPub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+      const currentDeviceId = (camPub?.track as any)?.mediaStreamTrack?.getSettings?.()?.deviceId ?? '';
+      const currentIdx = videoDevices.findIndex((d) => d.deviceId === currentDeviceId);
+      const nextIdx = (currentIdx + 1) % videoDevices.length;
+
+      // ActiveDeviceChanged event fires after switch and triggers a delayed refresh.
+      await room.switchActiveDevice('videoinput', videoDevices[nextIdx].deviceId);
       setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn('[flipCamera] failed:', e);
+    } catch (e: unknown) {
+      const name = (e as { name?: string })?.name ?? '';
+      if (name === 'NotReadableError' || name === 'OverconstrainedError') {
+        setFlipMessage('Could not switch camera. For front/rear flip, use the Prarthanas app on a phone or tablet.');
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn('[flipCamera] failed:', e);
+      }
     }
-  }, [facingMode]);
+  }, []);
 
   const disconnect = useCallback(() => {
     roomRef.current?.disconnect();
@@ -211,9 +214,11 @@ export function useLiveRoom(meetingId: string): UseLiveRoomResult {
     isMicOn,
     isCamOn,
     facingMode,
+    flipMessage,
     toggleMic,
     toggleCam,
     flipCamera,
+    dismissFlipMessage,
     disconnect,
     error,
     connecting,

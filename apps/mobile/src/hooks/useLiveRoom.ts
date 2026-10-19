@@ -27,9 +27,11 @@ export type UseLiveRoomResult = {
   isMicOn: boolean;
   isCamOn: boolean;
   facingMode: 'user' | 'environment';
+  flipMessage: string | null;
   toggleMic: () => Promise<void>;
   toggleCam: () => Promise<void>;
   flipCamera: () => Promise<void>;
+  dismissFlipMessage: () => void;
   disconnect: () => void;
   error: string | null;
   connecting: boolean;
@@ -43,9 +45,11 @@ export function useLiveRoom(_meetingId: string): UseLiveRoomResult {
     isMicOn: false,
     isCamOn: false,
     facingMode: 'user',
+    flipMessage: null,
     toggleMic: async () => {},
     toggleCam: async () => {},
     flipCamera: async () => {},
+    dismissFlipMessage: () => {},
     disconnect: () => {},
     error: 'Live video calls require the native Prarthanas app.',
     connecting: false,

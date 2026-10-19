@@ -54,9 +54,11 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
     isMicOn,
     isCamOn,
     facingMode,
+    flipMessage,
     toggleMic,
     toggleCam,
     flipCamera,
+    dismissFlipMessage,
     disconnect,
     error: lkError,
     connecting,
@@ -204,6 +206,15 @@ export default function LiveRoomScreen({ route, navigation }: Props) {
           <MaterialCommunityIcons name="alert-circle-outline" size={16} color={colors.white} />
           <Text style={styles.errorText}>{lkError}</Text>
         </View>
+      )}
+
+      {/* Flip-camera not-available toast */}
+      {!!flipMessage && (
+        <TouchableOpacity style={styles.flipToast} onPress={dismissFlipMessage} activeOpacity={0.85}>
+          <MaterialCommunityIcons name="cellphone" size={16} color={colors.white} style={{ marginRight: 6 }} />
+          <Text style={styles.flipToastText}>{flipMessage}</Text>
+          <MaterialCommunityIcons name="close" size={14} color={colors.white} style={{ marginLeft: 8 }} />
+        </TouchableOpacity>
       )}
 
       {/* Main layout */}
@@ -355,6 +366,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   errorText: { color: colors.white, fontSize: 13, flex: 1 },
+
+  flipToast: {
+    backgroundColor: 'rgba(30,30,30,0.92)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 10,
+  },
+  flipToastText: { color: colors.white, fontSize: 13, flex: 1 },
 
   body: { flex: 1 },
   bodyWide: { flexDirection: 'row' },
