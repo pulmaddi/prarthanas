@@ -34,6 +34,9 @@ type Meeting = {
   host_types?: string[];
 };
 
+// Host types eligible for instant/always-open rooms on devotee screens
+const INSTANT_HOST_TYPES = new Set(['priest', 'guru', 'astrologer', 'numerologist']);
+
 const HOST_EMOJI: Record<string, string> = {
   priest: '🪔', guru: '🧘', temple_exec: '🛕',
   astrologer: '⭐', numerologist: '🔢',
@@ -67,6 +70,7 @@ export default function JoinMeetingScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { isDesktop } = useBreakpoint();
 
+  const [instantMeetings, setInstantMeetings] = useState<Meeting[]>([]);
   const [liveMeetings, setLiveMeetings] = useState<Meeting[]>([]);
   const [upcoming, setUpcoming] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,6 +98,7 @@ export default function JoinMeetingScreen() {
       const hostIds = (followRows ?? []).map((r: any) => r.host_id as string);
       if (hostIds.length === 0) {
         setIsFollowingAnyone(false);
+        setInstantMeetings([]);
         setLiveMeetings([]);
         setUpcoming([]);
         return;
@@ -134,10 +139,23 @@ export default function JoinMeetingScreen() {
         host_types: hostMap[m.host_id]?.host_types ?? [],
       }));
 
-      // Split: Live = host is currently live/available, Upcoming = rest
-      const live = enriched.filter((m) => m.host_status === 'live' || m.host_status === 'available');
-      const upcomingList = enriched.filter((m) => m.host_status !== 'live' && m.host_status !== 'available');
+      // Instant rooms: no date + no time, eligible host types only
+      const instants = enriched.filter((m) =>
+        !m.start_date && !m.start_time &&
+        (m.host_types ?? []).some((t) => INSTANT_HOST_TYPES.has(t))
+      );
+      // Live (host online) — dated meetings only
+      const live = enriched.filter((m) =>
+        (m.start_date || m.start_time) &&
+        (m.host_status === 'live' || m.host_status === 'available')
+      );
+      // Upcoming — dated, host not currently live
+      const upcomingList = enriched.filter((m) =>
+        (m.start_date || m.start_time) &&
+        m.host_status !== 'live' && m.host_status !== 'available'
+      );
 
+      setInstantMeetings(instants);
       setLiveMeetings(live);
       setUpcoming(upcomingList);
     } catch (e: unknown) {
@@ -204,6 +222,43 @@ export default function JoinMeetingScreen() {
 
           {!loading && !error && isFollowingAnyone && (
             <>
+              {/* ── Available Now (instant / always-open rooms) ── */}
+              {instantMeetings.length > 0 && (
+                <>
+                  <View style={styles.sectionRow}>
+                    <MaterialCommunityIcons name="lightning-bolt" size={14} color="#E67E22" />
+                    <Text style={[styles.sectionLabel, { color: '#E67E22' }]}>Available Now</Text>
+                  </View>
+                  <View style={isDesktop ? styles.liveGrid : undefined}>
+                    {instantMeetings.map((m) => (
+                      <Card key={m.id} style={styles.instantCard}>
+                        <View style={styles.row}>
+                          <View style={[styles.thumb, styles.thumbInstant]}>
+                            <Text style={styles.thumbEmoji}>{hostEmoji(m.host_types)}</Text>
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <View style={styles.instantBadgeRow}>
+                              <View style={styles.instantBadge}>
+                                <MaterialCommunityIcons name="lightning-bolt" size={10} color={colors.white} />
+                                <Text style={styles.instantBadgeText}>Always Open</Text>
+                              </View>
+                            </View>
+                            <Title>{m.title}</Title>
+                            {!!m.host_name && <Muted>By {m.host_name}</Muted>}
+                            {!!m.deity_name && <Muted>🕉️ {m.deity_name}</Muted>}
+                            <Muted>Join anytime — no reservation needed</Muted>
+                          </View>
+                        </View>
+                        <TouchableOpacity style={[styles.joinBtn, styles.joinBtnInstant]} onPress={() => join(m)}>
+                          <MaterialCommunityIcons name="video" size={15} color={colors.white} />
+                          <Text style={styles.joinBtnText}>{t('common.join')}</Text>
+                        </TouchableOpacity>
+                      </Card>
+                    ))}
+                  </View>
+                </>
+              )}
+
               {/* ── Live Now ── */}
               <View style={styles.sectionRow}>
                 <View style={styles.liveDot} />
@@ -316,7 +371,18 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   joinBtnUpcoming: { backgroundColor: '#1A5276' },
+  joinBtnInstant: { backgroundColor: '#E67E22' },
   joinBtnText: { color: colors.white, fontWeight: '700', fontSize: 13 },
+
+  instantCard: { backgroundColor: '#FFF8E1', borderColor: '#FFE082', borderWidth: 1.5 },
+  thumbInstant: { backgroundColor: '#FFF3CD' },
+  instantBadgeRow: { marginBottom: 4 },
+  instantBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: '#E67E22', borderRadius: 6,
+    paddingHorizontal: 7, paddingVertical: 2, alignSelf: 'flex-start',
+  },
+  instantBadgeText: { color: colors.white, fontSize: 10, fontWeight: '800' },
 
   errorCard: { backgroundColor: '#FFF0F0' },
   errorText: { color: colors.live, fontSize: 14, marginBottom: 8 },

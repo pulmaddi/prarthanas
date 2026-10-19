@@ -162,22 +162,34 @@ export default function HostHomeSections({
       {meetings.length === 0 ? (
         <Muted style={{ marginTop: 2 }}>{t('host.noMeetingsHome')}</Muted>
       ) : (
-        meetings.slice(0, 3).map((m) => (
-          <TouchableOpacity key={m.id} activeOpacity={0.85} onPress={() => onOpenRoom(m)}>
-            <Card>
-              <View style={styles.row}>
-                <View style={{ flex: 1 }}>
-                  <Title>{m.title}</Title>
-                  {!!m.when_text && <Muted>🕒 {m.when_text}</Muted>}
+        meetings.slice(0, 4).map((m) => {
+          const instant = !m.start_date && !m.start_time;
+          return (
+            <TouchableOpacity key={m.id} activeOpacity={0.85} onPress={() => onOpenRoom(m)}>
+              <Card style={instant ? styles.instantCard : undefined}>
+                <View style={styles.row}>
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.titleRow}>
+                      <Title>{m.title}</Title>
+                      {instant && (
+                        <View style={styles.instantBadge}>
+                          <MaterialCommunityIcons name="lightning-bolt" size={10} color={colors.white} />
+                          <Text style={styles.instantBadgeText}>Always Open</Text>
+                        </View>
+                      )}
+                    </View>
+                    {!!m.when_text && <Muted>🕒 {m.when_text}</Muted>}
+                    {instant && <Muted>Followers can join anytime</Muted>}
+                  </View>
+                  <View style={styles.open}>
+                    <MaterialCommunityIcons name="video" size={16} color={colors.green} />
+                    <Text style={styles.openText}>{t('room.open')}</Text>
+                  </View>
                 </View>
-                <View style={styles.open}>
-                  <MaterialCommunityIcons name="video" size={16} color={colors.green} />
-                  <Text style={styles.openText}>{t('room.open')}</Text>
-                </View>
-              </View>
-            </Card>
-          </TouchableOpacity>
-        ))
+              </Card>
+            </TouchableOpacity>
+          );
+        })
       )}
       <Button label={`＋ ${t('host.scheduleMeeting')}`} onPress={onOpenMeetings} />
 
@@ -251,4 +263,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   badgeText: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 2 },
+  instantCard: { backgroundColor: '#FFF8E1', borderColor: '#FFE082' },
+  instantBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: '#E67E22', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2,
+  },
+  instantBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
 });

@@ -18,6 +18,18 @@ import { colors, radius, spacing } from '../theme';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 
+// Host types eligible to show instant/always-open rooms on devotee home
+const INSTANT_HOST_TYPES = new Set(['priest', 'guru', 'astrologer', 'numerologist']);
+
+type InstantRoom = {
+  id: string;
+  title: string;
+  deity_name: string | null;
+  host_id: string;
+  host_name: string;
+  host_types: string[];
+};
+
 type LiveHost = {
   user_id: string;
   name: string;
@@ -72,6 +84,7 @@ function formatWhen(
 export default function DevoteeFeed() {
   const { session } = useAuth();
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [instantRooms, setInstantRooms] = useState<InstantRoom[]>([]);
   const [liveHosts, setLiveHosts] = useState<LiveHost[]>([]);
   const [upcoming, setUpcoming] = useState<UpcomingMeeting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,6 +104,7 @@ export default function DevoteeFeed() {
 
       const hostIds = (followRows ?? []).map((r: any) => r.host_id as string);
       if (hostIds.length === 0) {
+        setInstantRooms([]);
         setLiveHosts([]);
         setUpcoming([]);
         return;
@@ -115,13 +129,33 @@ export default function DevoteeFeed() {
         .order('start_date', { ascending: true, nullsFirst: false })
         .limit(20);
 
-      // Map each host to their nearest upcoming meeting
-      const meetingByHost: Record<string, any> = {};
-      (meetingRows ?? []).forEach((m: any) => {
-        if (!meetingByHost[m.host_id]) meetingByHost[m.host_id] = m;
-      });
+      const allMeetings = meetingRows ?? [];
 
-      // 4. Build live hosts list (status = live or available)
+      // 4a. Instant rooms: no date + no time, from eligible host types
+      const instant: InstantRoom[] = allMeetings
+        .filter((m: any) => {
+          if (m.start_date || m.start_time) return false;
+          const types: string[] = hostMap[m.host_id]?.host_types ?? [];
+          return types.some((t: string) => INSTANT_HOST_TYPES.has(t));
+        })
+        .map((m: any) => ({
+          id: m.id,
+          title: m.title,
+          deity_name: m.deity_name,
+          host_id: m.host_id,
+          host_name: hostMap[m.host_id]?.name ?? 'Host',
+          host_types: hostMap[m.host_id]?.host_types ?? [],
+        }));
+
+      // 4b. Map each host to their nearest dated upcoming meeting
+      const meetingByHost: Record<string, any> = {};
+      allMeetings
+        .filter((m: any) => m.start_date || m.start_time)
+        .forEach((m: any) => {
+          if (!meetingByHost[m.host_id]) meetingByHost[m.host_id] = m;
+        });
+
+      // 4c. Live hosts (status = live or available) with their active dated meeting
       const live: LiveHost[] = (hostRows ?? [])
         .filter((h: any) => h.availability_status === 'live' || h.availability_status === 'available')
         .map((h: any) => ({
@@ -132,18 +166,22 @@ export default function DevoteeFeed() {
           activeMeeting: meetingByHost[h.user_id] ?? undefined,
         }));
 
-      // 5. Upcoming meetings (all followed hosts, chronological, max 5)
-      const up: UpcomingMeeting[] = (meetingRows ?? []).slice(0, 5).map((m: any) => ({
-        id: m.id,
-        title: m.title,
-        deity_name: m.deity_name,
-        host_id: m.host_id,
-        host_name: hostMap[m.host_id]?.name ?? 'Host',
-        start_date: m.start_date,
-        start_time: m.start_time,
-        when_text: m.when_text,
-      }));
+      // 4d. Upcoming dated meetings
+      const up: UpcomingMeeting[] = allMeetings
+        .filter((m: any) => m.start_date || m.start_time)
+        .slice(0, 5)
+        .map((m: any) => ({
+          id: m.id,
+          title: m.title,
+          deity_name: m.deity_name,
+          host_id: m.host_id,
+          host_name: hostMap[m.host_id]?.name ?? 'Host',
+          start_date: m.start_date,
+          start_time: m.start_time,
+          when_text: m.when_text,
+        }));
 
+      setInstantRooms(instant);
       setLiveHosts(live);
       setUpcoming(up);
     } catch (e) {
@@ -167,10 +205,43 @@ export default function DevoteeFeed() {
     );
   }
 
-  if (liveHosts.length === 0 && upcoming.length === 0) return null;
+  if (instantRooms.length === 0 && liveHosts.length === 0 && upcoming.length === 0) return null;
 
   return (
     <View style={styles.feed}>
+      {/* ── Available Now (instant / always-open rooms) ── */}
+      {instantRooms.length > 0 && (
+        <>
+          <View style={styles.sectionRow}>
+            <MaterialCommunityIcons name="lightning-bolt" size={14} color="#E67E22" />
+            <Text style={[styles.sectionTitle, { color: '#E67E22' }]}>Available Now</Text>
+          </View>
+          {instantRooms.map((r) => (
+            <TouchableOpacity
+              key={r.id}
+              style={styles.instantCard}
+              onPress={() => join(r.id, r.title, r.host_id, r.deity_name ?? undefined)}
+              activeOpacity={0.85}
+            >
+              <View style={styles.instantLeft}>
+                <View style={styles.instantAvatar}>
+                  <Text style={styles.liveEmoji}>{hostEmoji(r.host_types)}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.instantTitle}>{r.title}</Text>
+                  <Text style={styles.instantHost}>{r.host_name}</Text>
+                  {!!r.deity_name && <Text style={styles.instantDeity}>🕉️ {r.deity_name}</Text>}
+                </View>
+              </View>
+              <View style={styles.instantJoin}>
+                <MaterialCommunityIcons name="video" size={14} color={colors.white} />
+                <Text style={styles.joinBtnText}>Join</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </>
+      )}
+
       {/* ── Live Now ── */}
       {liveHosts.length > 0 && (
         <>
@@ -299,6 +370,34 @@ const styles = StyleSheet.create({
   },
   joinBtnText: { color: colors.white, fontSize: 11, fontWeight: '700' },
   noMeetingText: { fontSize: 10, color: colors.muted, textAlign: 'center', fontStyle: 'italic' },
+
+  // Instant rooms
+  instantCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF8E1',
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    borderColor: '#FFE082',
+    padding: 12,
+    marginBottom: 8,
+    gap: 10,
+  },
+  instantLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  instantAvatar: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: '#FFF3CD',
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5, borderColor: '#FFE082',
+  },
+  instantTitle: { fontSize: 13, fontWeight: '700', color: colors.ink },
+  instantHost: { fontSize: 11, color: colors.muted, marginTop: 1 },
+  instantDeity: { fontSize: 11, color: colors.muted },
+  instantJoin: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: '#E67E22',
+    borderRadius: radius.sm, paddingHorizontal: 12, paddingVertical: 7,
+  },
 
   // Upcoming list
   upcomingCard: {

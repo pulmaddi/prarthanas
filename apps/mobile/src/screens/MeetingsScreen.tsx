@@ -18,6 +18,7 @@ import { colors, radius, spacing } from '../theme';
 import { Card, Title, Muted, Button } from '../components/ui';
 import SectionHeader from '../components/SectionHeader';
 import { t } from '../i18n';
+import { useAuth } from '../lib/auth';
 import { useHostContent, type MeetingType, type Recurrence } from '../lib/hostContent';
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -76,9 +77,16 @@ const Chip = ({
   </TouchableOpacity>
 );
 
+// Instant meetings have no date or time set — always available for followers.
+const INSTANT_HOST_TYPES = new Set(['priest', 'guru', 'astrologer', 'numerologist']);
+const isInstant = (m: { start_date: string | null; start_time: string | null }) =>
+  !m.start_date && !m.start_time;
+
 export default function MeetingsScreen() {
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
   const { meetings, createMeeting, deleteMeeting } = useHostContent();
+  const { hostTypes } = useAuth();
+  const canInstant = (hostTypes ?? []).some((t) => INSTANT_HOST_TYPES.has(t));
 
   const openRoom = (m: (typeof meetings)[number]) =>
     navigation.getParent<NativeStackNavigationProp<RootStackParamList>>()?.navigate('LiveRoom', {
@@ -87,6 +95,28 @@ export default function MeetingsScreen() {
       deityName: m.deity_name ?? undefined,
       hostId: m.host_id,
     });
+
+  // Instant room quick-create state
+  const [instantTitle, setInstantTitle] = useState('Open Session');
+  const [instantBusy, setInstantBusy] = useState(false);
+  const [instantFeedback, setInstantFeedback] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const createInstant = async () => {
+    if (!instantTitle.trim()) return;
+    setInstantBusy(true);
+    setInstantFeedback(null);
+    try {
+      await createMeeting({ title: instantTitle.trim(), meeting_type: 'meeting' });
+      setInstantFeedback({ ok: true, text: 'Room created — followers can now join anytime.' });
+    } catch (e: any) {
+      setInstantFeedback({ ok: false, text: e?.message ?? 'Failed to create room.' });
+    } finally {
+      setInstantBusy(false);
+    }
+  };
+
+  const instantMeetings = meetings.filter(isInstant);
+  const scheduledMeetings = meetings.filter((m) => !isInstant(m));
 
   const [type, setType] = useState<MeetingType>('meeting');
   const [title, setTitle] = useState('');
@@ -167,6 +197,72 @@ export default function MeetingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
+
+        {/* ── Instant Room ── */}
+        {canInstant && (
+          <>
+            <SectionHeader icon="lightning-bolt" title="Instant Room" />
+            <Card style={styles.instantCard}>
+              <Text style={styles.instantDesc}>
+                Create a room with no fixed time. Followers who follow you can join it anytime — ideal for open sessions, Q&amp;A, and consultations.
+              </Text>
+              <Text style={styles.label}>Room Title</Text>
+              <TextInput
+                style={styles.input}
+                value={instantTitle}
+                onChangeText={setInstantTitle}
+                placeholder="e.g. Open Session, Weekly Satsang"
+                placeholderTextColor={colors.muted}
+              />
+              {instantFeedback && (
+                <View style={[styles.banner, instantFeedback.ok ? styles.bannerOk : styles.bannerErr]}>
+                  <MaterialCommunityIcons
+                    name={instantFeedback.ok ? 'check-circle' : 'alert-circle'}
+                    size={16}
+                    color={instantFeedback.ok ? colors.green : '#B00020'}
+                  />
+                  <Text style={[styles.bannerText, { color: instantFeedback.ok ? colors.green : '#B00020' }]}>
+                    {instantFeedback.text}
+                  </Text>
+                </View>
+              )}
+              <TouchableOpacity style={styles.instantBtn} onPress={createInstant} disabled={instantBusy} activeOpacity={0.85}>
+                <MaterialCommunityIcons name="lightning-bolt" size={16} color={colors.white} />
+                <Text style={styles.instantBtnText}>{instantBusy ? 'Creating…' : 'Make Available Now'}</Text>
+              </TouchableOpacity>
+            </Card>
+
+            {instantMeetings.length > 0 && (
+              <>
+                <Text style={styles.subLabel}>Active Instant Rooms</Text>
+                {instantMeetings.map((m) => (
+                  <Card key={m.id} style={styles.instantRoomCard}>
+                    <View style={styles.rowBetween}>
+                      <View style={{ flex: 1 }}>
+                        <View style={styles.titleRow}>
+                          <Title>{m.title}</Title>
+                          <View style={styles.instantBadge}>
+                            <MaterialCommunityIcons name="lightning-bolt" size={10} color={colors.white} />
+                            <Text style={styles.instantBadgeText}>Always Open</Text>
+                          </View>
+                        </View>
+                        <Muted>Followers can join this room anytime</Muted>
+                      </View>
+                      <TouchableOpacity onPress={() => confirmDelete(m.id)} hitSlop={8}>
+                        <MaterialCommunityIcons name="trash-can-outline" size={20} color={colors.muted} />
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity style={styles.enterBtn} activeOpacity={0.85} onPress={() => openRoom(m)}>
+                      <MaterialCommunityIcons name="video" size={16} color={colors.white} />
+                      <Text style={styles.enterText}>{t('room.enterRoom')}</Text>
+                    </TouchableOpacity>
+                  </Card>
+                ))}
+              </>
+            )}
+          </>
+        )}
+
         <SectionHeader icon="calendar-plus" title={t('host.scheduleTitle')} />
         <Card>
           {/* Type */}
@@ -285,8 +381,8 @@ export default function MeetingsScreen() {
         </Card>
 
         <SectionHeader icon="calendar-check" title={t('host.upcomingMeetings')} />
-        {meetings.length === 0 && <Muted style={{ marginTop: 2 }}>{t('host.noMeetings')}</Muted>}
-        {meetings.map((m) => (
+        {scheduledMeetings.length === 0 && <Muted style={{ marginTop: 2 }}>{t('host.noMeetings')}</Muted>}
+        {scheduledMeetings.map((m) => (
           <Card key={m.id}>
             <View style={styles.rowBetween}>
               <View style={{ flex: 1 }}>
@@ -397,4 +493,19 @@ const styles = StyleSheet.create({
   bannerOk: { backgroundColor: '#E8F5E9' },
   bannerErr: { backgroundColor: '#FDECEA' },
   bannerText: { flex: 1, fontSize: 13, fontWeight: '600' },
+
+  instantCard: { backgroundColor: '#FFFDE7', borderColor: '#F9A825' },
+  instantDesc: { fontSize: 13, color: colors.ink, marginBottom: 10, lineHeight: 19 },
+  instantBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: '#E67E22', borderRadius: radius.sm, paddingVertical: 10, marginTop: 10,
+  },
+  instantBtnText: { color: colors.white, fontWeight: '800', fontSize: 13 },
+  instantRoomCard: { backgroundColor: '#FFF8E1', borderColor: '#FFE082' },
+  instantBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: '#E67E22', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2,
+  },
+  instantBadgeText: { color: colors.white, fontSize: 10, fontWeight: '800' },
+  subLabel: { fontSize: 12, fontWeight: '700', color: colors.muted, marginTop: 10, marginBottom: 6 },
 });
